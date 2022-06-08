@@ -14,4 +14,6 @@ public @interface MessageFile {
     String author() default "unknown";
 
     String version() default "1.0";
+
+    String[] header() default "";
 }

@@ -78,7 +78,9 @@ public class TranslationHandler {
 
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
-        List<String> comments;
+        List<String> comments = Arrays.stream(messageFile.header()).toList();
+        cfg.options().setHeader(comments);
+
         for (MessageGroupMeta meta : annotatedClass.getAnnotationsByType(MessageGroupMeta.class)) {
             comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
             comments.add("Valid placeholders: " + Arrays.stream(meta.placeholders())
