@@ -21,6 +21,14 @@ public class Message implements ComponentLike {
 		return this.asComponent(TranslationHandler.getInstance().getAudiences().console());
 	}
 
+	public Component asComponent(TagResolver... templates) {
+		return TranslationHandler.getInstance().translateLine(this, (Audience) null, templates);
+	}
+
+	public List<Component> asComponents(TagResolver... templates) {
+		return TranslationHandler.getInstance().translateLines(this, (Audience) null, templates);
+	}
+
 	public Component asComponent(Player player, TagResolver... templates) {
 		return TranslationHandler.getInstance().translateLine(this, player, templates);
 	}
