@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class MenuIcon {
+public class TranslatedItem {
 
 	private static int counter = 1;
 	public static final Map<Integer, TagResolver[]> resolvers = new HashMap<>();
@@ -27,13 +27,13 @@ public class MenuIcon {
 	private final Message lore;
 	private TagResolver[] loreResolver = new TagResolver[0];
 
-	public MenuIcon(Material material, Message name, Message lore) {
+	public TranslatedItem(Material material, Message name, Message lore) {
 		this.stack = new ItemStack(material);
 		this.name = name;
 		this.lore = lore;
 	}
 
-	public MenuIcon(Material material, Message name, Message lore, TagResolver[] nameResolver, TagResolver[] loreResolver) {
+	public TranslatedItem(Material material, Message name, Message lore, TagResolver[] nameResolver, TagResolver[] loreResolver) {
 		this.stack = new ItemStack(material);
 		this.name = name;
 		this.lore = lore;
@@ -119,8 +119,8 @@ public class MenuIcon {
 			return this;
 		}
 
-		public MenuIcon build() {
-			return new MenuIcon(stack, name, nameResolvers.toArray(TagResolver[]::new), lore, loreResolvers.toArray(TagResolver[]::new));
+		public TranslatedItem build() {
+			return new TranslatedItem(stack, name, nameResolvers.toArray(TagResolver[]::new), lore, loreResolvers.toArray(TagResolver[]::new));
 		}
 
 		public ItemStack createItem() {

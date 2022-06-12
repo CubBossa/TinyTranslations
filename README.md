@@ -1,17 +1,40 @@
 # Translations
 
 A translation framework to easily translate chat messages and GUI ItemStacks.
+This framework requires [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
+<br>This is the way!
 
 ---
 
 ### Content
 
-- Maven
-- How to use
+- [Maven](#Maven)
+- [How to use](#How_to_use)
 
 ---
 
-### Maven
+## Maven
+
+Repo:
+```XML
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+Dependency:
+```XML
+<dependency>
+    <groupId>com.github.CubBossa</groupId>
+    <artifactId>Translations</artifactId>
+    <version>[VERSION]</version>
+</dependency>
+```
+
+---
 
 ## How to use
 
@@ -19,18 +42,18 @@ A translation framework to easily translate chat messages and GUI ItemStacks.
 
 First, you have to initialize the TranslationHandler.
 
-```java
+```JAVA
 // Use your plugin main class as parameter.
 TranslationHandler th=new TranslationHandler(this);
 // Set fallback language
-		th.setFallbackLanguage("en_US");
+th.setFallbackLanguage("en_US");
 // Choose if player client locales should be used
-		th.setUseClientLanguage(true);
+th.setUseClientLanguage(true);
 // Save resources from your jar if needed
 // Should not be necessary when API used with Annotations
-		th.saveResources(Locale.US);
+th.saveResources(Locale.US);
 // Load all languages from [PLUGIN_DIR]/lang/
-		th.loadLanguages();
+th.loadLanguages();
 ```
 
 The fallback language will be used whenever a user requests a translation of a language that does not exist.
@@ -48,6 +71,8 @@ Now you can use
 ```Java
 TranslationHandler.getInstance().sendMessage(Messages.ERR_NO_PLAYER, player);
 ```
+
+In inventories, use TranslatableItems to render items differently to everyone.
 
 You can also input a `FormattedMessage` object, which contains a message key but also an array of TagResolvers.
 TagResolvers are the way to go if you want to use custom placeholders like

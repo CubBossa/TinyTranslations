@@ -91,7 +91,7 @@ public class PacketTranslationHandler {
 			String messageKey = matcher.group(1).replace("$", ".");
 			String resolverIdString = matcher.group(2);
 
-			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : MenuIcon.resolvers.get(Integer.parseInt(resolverIdString));
+			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : TranslatedItem.resolvers.get(Integer.parseInt(resolverIdString));
 
 			display.setString("Name", SERIALIZER.serialize(TranslationHandler.getInstance()
 					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false)));
@@ -110,7 +110,7 @@ public class PacketTranslationHandler {
 			String messageKey = matcher.group(1).replace("$", ".");
 			String resolverIdString = matcher.group(2);
 
-			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : MenuIcon.resolvers.get(Integer.parseInt(resolverIdString));
+			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : TranslatedItem.resolvers.get(Integer.parseInt(resolverIdString));
 
 			lore.clear();
 			lore.addAll(TranslationHandler.getInstance().translateLines(new Message(messageKey), player, resolver).stream()
