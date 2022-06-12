@@ -8,10 +8,15 @@ This framework requires [Kyori Components and the MiniMessage format](https://do
 
 ### Content
 
+- [Requirements](#Requirements)
 - [Maven](#Maven)
 - [How to use](#How_to_use)
 
 ---
+
+## Requirements
+- [Kyori Adventure & MiniMessage](https://docs.adventure.kyori.net/minimessage/format.html)
+- [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
 
 ## Maven
 
@@ -44,7 +49,7 @@ First, you have to initialize the TranslationHandler.
 
 ```JAVA
 // Use your plugin main class as parameter.
-TranslationHandler th=new TranslationHandler(this);
+TranslationHandler th = new TranslationHandler(this);
 // Set fallback language
 th.setFallbackLanguage("en_US");
 // Choose if player client locales should be used
