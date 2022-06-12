@@ -141,9 +141,9 @@ Without Group Comment (placeholders in this case):
 public class Messages {
 
 	@MessageMeta(value = "Error in format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_STRING = new Message("general.hello_world");
+	public static final Message FORMAT_STRING = new Message("error.format.string");
 	@MessageMeta(value = "Error in number format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_INT = new Message("general.hello_space");
+	public static final Message FORMAT_INT = new Message("error.format.number");
 }
 ```
 
