@@ -8,10 +8,15 @@ This framework requires [Kyori Components and the MiniMessage format](https://do
 
 ### Content
 
+- [Requirements](#Requirements)
 - [Maven](#Maven)
 - [How to use](#How_to_use)
 
 ---
+
+## Requirements
+- [Kyori Adventure & MiniMessage](https://docs.adventure.kyori.net/minimessage/format.html)
+- [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
 
 ## Maven
 
@@ -44,7 +49,7 @@ First, you have to initialize the TranslationHandler.
 
 ```JAVA
 // Use your plugin main class as parameter.
-TranslationHandler th=new TranslationHandler(this);
+TranslationHandler th = new TranslationHandler(this);
 // Set fallback language
 th.setFallbackLanguage("en_US");
 // Choose if player client locales should be used
@@ -141,9 +146,9 @@ Without Group Comment (placeholders in this case):
 public class Messages {
 
 	@MessageMeta(value = "Error in format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_STRING = new Message("general.hello_world");
+	public static final Message FORMAT_STRING = new Message("error.format.string");
 	@MessageMeta(value = "Error in number format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_INT = new Message("general.hello_space");
+	public static final Message FORMAT_INT = new Message("error.format.number");
 }
 ```
 
