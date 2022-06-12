@@ -72,7 +72,7 @@ public class TranslationHandler {
         }
 
         Field[] messages = Arrays.stream(annotatedClass.getDeclaredFields())
-                .filter(field -> field.getDeclaringClass().equals(Message.class))
+				.filter(field -> field.getType().equals(Message.class))
                 .filter(field -> field.getAnnotation(MessageMeta.class) != null)
                 .toArray(Field[]::new);
 
@@ -82,38 +82,44 @@ public class TranslationHandler {
         cfg.options().setHeader(comments);
 
         for (MessageGroupMeta meta : annotatedClass.getAnnotationsByType(MessageGroupMeta.class)) {
-            comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
-            comments.add("Valid placeholders: " + Arrays.stream(meta.placeholders())
-                    .map(s -> "<" + s + ">")
-                    .collect(Collectors.joining(", ")));
-            cfg.set(meta.path(), comments);
-        }
+			comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
+			if (meta.placeholders().length > 0) {
+				comments.add("Valid placeholders: " + Arrays.stream(meta.placeholders())
+						.map(s -> "<" + s + ">")
+						.collect(Collectors.joining(", ")));
+			}
+			cfg.set(meta.path(), comments);
+		}
 
         for (Field messageField : messages) {
             try {
-                Message message = (Message) messageField.get(annotatedClass);
-                MessageMeta value = messageField.getAnnotation(MessageMeta.class);
-                MessageGroupMeta[] groupMeta = messageField.getAnnotationsByType(MessageGroupMeta.class);
+				Message message = (Message) messageField.get(annotatedClass);
+				MessageMeta value = messageField.getAnnotation(MessageMeta.class);
+				MessageGroupMeta[] groupMeta = messageField.getAnnotationsByType(MessageGroupMeta.class);
 
-                if (fileExists && cfg.isSet(message.getKey())) {
-                    continue;
-                }
+				if (fileExists && cfg.isSet(message.getKey())) {
+					continue;
+				}
 
-                comments = Arrays.stream(value.comment()).collect(Collectors.toCollection(ArrayList::new));
-                comments.add("Valid placeholders: " + Arrays.stream(value.placeholders())
-                        .map(s -> "<" + s + ">")
-                        .collect(Collectors.joining(", ")));
-                cfg.setComments(message.getKey(), comments);
-                cfg.set(message.getKey(), value.value());
+				comments = Arrays.stream(value.comment()).collect(Collectors.toCollection(ArrayList::new));
+				if (value.placeholders().length > 0) {
+					comments.add("Valid placeholders: " + Arrays.stream(value.placeholders())
+							.map(s -> "<" + s + ">")
+							.collect(Collectors.joining(", ")));
+				}
+				cfg.set(message.getKey(), value.value());
+				cfg.setComments(message.getKey(), comments);
 
-                for (MessageGroupMeta meta : groupMeta) {
+				for (MessageGroupMeta meta : groupMeta) {
 
-                    comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
-                    comments.add("Valid placeholders: " + Arrays.stream(meta.placeholders())
-                            .map(s -> "<" + s + ">")
-                            .collect(Collectors.joining(", ")));
-                    cfg.set(meta.path(), comments);
-                }
+					comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
+					if (value.placeholders().length > 0) {
+						comments.add("Valid placeholders: " + Arrays.stream(meta.placeholders())
+								.map(s -> "<" + s + ">")
+								.collect(Collectors.joining(", ")));
+					}
+					cfg.set(meta.path(), comments);
+				}
 
             } catch (Exception e) {
                 throw new SerializationException("Could not write message '" + messageField.getName() + "' to file. Skipping.");

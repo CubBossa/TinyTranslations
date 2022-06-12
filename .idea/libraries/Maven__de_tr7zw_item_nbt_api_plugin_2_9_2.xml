@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: de.tr7zw:item-nbt-api-plugin:2.9.2">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/de/tr7zw/item-nbt-api-plugin/2.9.2/item-nbt-api-plugin-2.9.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/de/tr7zw/item-nbt-api-plugin/2.9.2/item-nbt-api-plugin-2.9.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/de/tr7zw/item-nbt-api-plugin/2.9.2/item-nbt-api-plugin-2.9.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
