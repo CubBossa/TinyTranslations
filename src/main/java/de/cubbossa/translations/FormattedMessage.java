@@ -4,6 +4,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 public class FormattedMessage extends Message {
 
@@ -13,6 +14,11 @@ public class FormattedMessage extends Message {
 	public FormattedMessage(String key, TagResolver... resolvers) {
 		super(key);
 		this.resolvers = resolvers;
+	}
+
+	@Override
+	public FormattedMessage format(TagResolver... resolvers) {
+		return new FormattedMessage(getKey(), Stream.concat(Arrays.stream(this.resolvers), Arrays.stream(resolvers)).toArray(TagResolver[]::new));
 	}
 
 	@Override

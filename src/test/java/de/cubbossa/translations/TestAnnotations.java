@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 public class TestAnnotations {
 
+
     @Test
     public void testAnnotations() throws IOException {
 
