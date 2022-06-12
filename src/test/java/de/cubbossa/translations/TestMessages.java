@@ -1,6 +1,15 @@
 package de.cubbossa.translations;
 
-@MessageFile(author = "CubBossa")
+@MessageFile(
+        author = "CubBossa",
+        languageString = "en_US",
+        version = "1.0",
+        header = """
+                This is a long header
+                to demonstrate
+                the functionality.
+                """
+)
 @MessageGroupMeta(path = "general", comment = "a group comment")
 public class TestMessages {
 

@@ -95,11 +95,17 @@ public class MenuIcon {
 
 		public Builder withName(Message message) {
 			this.name = message;
+			if (message instanceof FormattedMessage formatted) {
+				this.nameResolvers.addAll(List.of(formatted.getResolvers()));
+			}
 			return this;
 		}
 
 		public Builder withLore(Message message) {
 			this.lore = message;
+			if (message instanceof FormattedMessage formatted) {
+				this.loreResolvers.addAll(List.of(formatted.getResolvers()));
+			}
 			return this;
 		}
 

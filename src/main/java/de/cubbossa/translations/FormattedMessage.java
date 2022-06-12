@@ -1,11 +1,13 @@
 package de.cubbossa.translations;
 
+import lombok.Getter;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Arrays;
 
 public class FormattedMessage extends Message {
 
+	@Getter
 	private final TagResolver[] resolvers;
 
 	public FormattedMessage(String key, TagResolver... resolvers) {
