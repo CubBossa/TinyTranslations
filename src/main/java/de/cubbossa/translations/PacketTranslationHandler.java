@@ -36,6 +36,7 @@ public class PacketTranslationHandler {
 	@Getter
 	private static PacketTranslationHandler instance;
 
+	public static final GsonComponentSerializer SERIALIZER = GsonComponentSerializer.builder().build();
 	/**
 	 * Groups:
 	 * - 1: whole text part
@@ -44,8 +45,7 @@ public class PacketTranslationHandler {
 	 * - 4: tagresolver id
 	 * - 5: all after placeholder
 	 */
-	private static final String REGEX = "\"text\":\"([^\"]*)§<message:([^>]+);([0-9]+)>([^\"]*)\"";
-	private static final GsonComponentSerializer SERIALIZER = GsonComponentSerializer.builder().build();
+	private static final String REGEX = "\\{\"translate\":\"§<message:([^>]+);([0-9]+)>\"}";
 	private static final Pattern PATTERN = Pattern.compile(REGEX);
 
 	private final Collection<UUID> whitelist = new HashSet<>();
@@ -136,30 +136,18 @@ public class PacketTranslationHandler {
 	}
 
 	private String json(String string, Player player) {
-		String in = string;
+		String json = string;
 
-		Matcher matcher = PATTERN.matcher(in);
+		Matcher matcher = PATTERN.matcher(json);
 		while (matcher.find()) {
-			String messageKey = matcher.group(2).replace("$", ".");
-			String resolverIdString = matcher.group(3);
+			String messageKey = matcher.group(1).replace("$", ".");
+			String resolverIdString = matcher.group(2);
 
 			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : TranslatedItem.resolvers.get(Integer.parseInt(resolverIdString));
 
-			String insert = matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
-					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false)));
-
-			in = in.replace(format(messageKey, Integer.parseInt(resolverIdString)), insert);
+			json = matcher.replaceAll(matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
+					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false))));
 		}
-		return in;
+		return json;
 	}
-
-
-	/**
-	 * Groups:
-	 * - 1: whole text part
-	 * - 2: all before placeholder
-	 * - 3: language key
-	 * - 4: tagresolver id
-	 * - 5: all after placeholder
-	 */
 }

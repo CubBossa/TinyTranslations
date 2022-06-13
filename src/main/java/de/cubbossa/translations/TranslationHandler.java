@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,8 @@ public class TranslationHandler {
 
 	private final List<TagResolver> globalReplacements;
 	private static final Map<String, Map<String, String>> languageFormats = new HashMap<>();
+
+	public static final String HEADER_VALUE_UNDEFINED = "undefined";
 
 	@Setter
 	private boolean useClientLanguage = false;
@@ -85,6 +88,15 @@ public class TranslationHandler {
 		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
 		List<String> comments = Arrays.stream(messageFile.header()).toList();
+		if (!messageFile.author().equals(HEADER_VALUE_UNDEFINED)) {
+			comments.add("Author: " + messageFile.author());
+		}
+		if (!messageFile.author().equals(HEADER_VALUE_UNDEFINED)) {
+			comments.add("File Version: " + messageFile.version());
+		}
+		if (!messageFile.author().equals(HEADER_VALUE_UNDEFINED)) {
+			comments.add("Language: " + messageFile.languageString());
+		}
 		cfg.options().setHeader(comments);
 
 		for (MessageGroupMeta meta : annotatedClass.getAnnotationsByType(MessageGroupMeta.class)) {
@@ -97,8 +109,8 @@ public class TranslationHandler {
 			cfg.set(meta.path(), comments);
 		}
 
-        for (Field messageField : messages) {
-            try {
+		for (Field messageField : messages) {
+			try {
 				Message message = (Message) messageField.get(annotatedClass);
 				MessageMeta value = messageField.getAnnotation(MessageMeta.class);
 				MessageGroupMeta[] groupMeta = messageField.getAnnotationsByType(MessageGroupMeta.class);
@@ -134,9 +146,14 @@ public class TranslationHandler {
 		cfg.save(file);
 	}
 
+	private Tag insertPreMessage(ArgumentQueue argumentQueue, Context context, Audience audience) {
+		final String messageKey = argumentQueue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
+		return Tag.preProcessParsed(getMiniMessageFormat(new Message(messageKey), getLanguage(audience)));
+	}
+
 	private Tag insertMessage(ArgumentQueue argumentQueue, Context context, Audience audience) {
 		final String messageKey = argumentQueue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
-		return Tag.inserting(new Message(messageKey).asComponent(audience));
+		return Tag.inserting(translateLine(messageKey, audience));
 	}
 
 	public void saveResources(Locale... locales) throws IOException {
@@ -164,47 +181,55 @@ public class TranslationHandler {
 		});
 	}
 
-    public void loadLanguage(final File languageFile) throws IOException {
-        File file = languageFile;
-        String languageKey = file.getName().replace(".yml", "");
+	public void loadLanguage(final File languageFile) throws IOException {
+		File file = languageFile;
+		String languageKey = file.getName().replace(".yml", "");
 
-        if (!file.exists()) {
+		if (!file.exists()) {
 			plugin.saveResource(languageKey + ".yml", false);
 			file = new File(languageDirectory, languageKey + ".yml");
 			if (!file.exists()) {
 				throw new IOException("Could not create language file: " + languageKey);
 			}
 		}
-        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-        Map<String, Object> map = cfg.getValues(true);
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (entry.getValue() instanceof String s) {
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+		Map<String, Object> map = cfg.getValues(true);
+		for (Map.Entry<String, Object> entry : map.entrySet()) {
+			if (entry.getValue() instanceof String s) {
 
-                Map<String, String> translations = languageFormats.getOrDefault(entry.getKey(), new HashMap<>());
-                translations.put(languageKey, s);
-                languageFormats.put(entry.getKey(), translations);
-            }
-        }
-    }
+				Map<String, String> translations = languageFormats.getOrDefault(entry.getKey(), new HashMap<>());
+				translations.put(languageKey, s);
+				languageFormats.put(entry.getKey(), translations);
+			}
+		}
+	}
 
-    public void registerTagResolver(TagResolver resolver) {
-        globalReplacements.add(resolver);
-    }
+	public void registerTagResolver(TagResolver resolver) {
+		globalReplacements.add(resolver);
+	}
 
-    public void unregisterTagResolver(TagResolver tagResolver) {
-        globalReplacements.remove(tagResolver);
-    }
+	public void unregisterTagResolver(TagResolver tagResolver) {
+		globalReplacements.remove(tagResolver);
+	}
 
-    private String getMiniMessageFormat(Message message, String lang) {
-        return languageFormats.getOrDefault(message.getKey(), new HashMap<>()).getOrDefault(lang, "missing:" + lang + "-" + message.getKey());
-    }
+	private String getMiniMessageFormat(Message message, String lang) {
+		return languageFormats.getOrDefault(message.getKey(), new HashMap<>()).getOrDefault(lang, "missing:" + lang + "-" + message.getKey());
+	}
 
 	public Component translateLine(Message message, @Nullable Player player, TagResolver... tagResolvers) {
-		return translateLine(getMiniMessageFormat(message, getLanguage(player)), player, tagResolvers);
+		List<TagResolver> resolvers = Lists.newArrayList(tagResolvers);
+		if (message instanceof FormattedMessage formatted) {
+			resolvers.addAll(List.of(formatted.getResolvers()));
+		}
+		return translateLine(getMiniMessageFormat(message, getLanguage(player)), player, resolvers.toArray(TagResolver[]::new));
 	}
 
 	public Component translateLine(Message message, @Nullable Audience audience, TagResolver... tagResolvers) {
-		return translateLine(getMiniMessageFormat(message, getLanguage(audience)), audience, tagResolvers);
+		List<TagResolver> resolvers = Lists.newArrayList(tagResolvers);
+		if (message instanceof FormattedMessage formatted) {
+			resolvers.addAll(List.of(formatted.getResolvers()));
+		}
+		return translateLine(getMiniMessageFormat(message, getLanguage(audience)), audience, resolvers.toArray(TagResolver[]::new));
 	}
 
 	public List<Component> translateLines(Message message, @Nullable Player player, TagResolver... tagResolvers) {
@@ -237,7 +262,10 @@ public class TranslationHandler {
 
 		List<TagResolver> t = new ArrayList<>(List.of(tagResolvers));
 		t.addAll(globalReplacements);
-		t.add(TagResolver.builder().tag("message", (argumentQueue, context) -> insertMessage(argumentQueue, context, audience)).build());
+		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience);
+		t.add(TagResolver.builder().tag("message", function).build());
+		t.add(TagResolver.builder().tag("msg", function).build());
+		t.add(TagResolver.builder().tag("ins", (argumentQueue, context) -> insertMessage(argumentQueue, context, audience)).build());
 		TagResolver[] resolvers = t.toArray(TagResolver[]::new);
 
 		String[] toFormat = message.split("\n");

@@ -1,13 +1,13 @@
 package de.cubbossa.translations;
 
-import com.google.common.collect.Lists;
+import de.tr7zw.nbtapi.NBTCompound;
+import de.tr7zw.nbtapi.NBTItem;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,21 +46,16 @@ public class TranslatedItem {
 		if (stack.getType() == Material.AIR) {
 			return stack.clone();
 		}
-		ItemMeta meta = stack.getItemMeta();
-
-		if (meta == null) {
-			meta = Bukkit.getItemFactory().getItemMeta(stack.getType());
-			if (meta == null) {
-				throw new RuntimeException("Could not create menu icon, no meta provided.");
-			}
-		}
+		NBTItem item = new NBTItem(stack);
+		NBTCompound display = item.getCompound("display");
 		if (name != null) {
 			int nameId = 0;
 			if (nameResolver != null && nameResolver.length > 0) {
 				nameId = counter++;
 				resolvers.put(nameId, nameResolver);
 			}
-			meta.setDisplayName(PacketTranslationHandler.format(name.getKey().replace(".", "$"), nameId));
+			display.setString("Name", PacketTranslationHandler.SERIALIZER
+					.serialize(Component.translatable(PacketTranslationHandler.format(name.getKey().replace(".", "$"), nameId))));
 		}
 
 		if (lore != null) {
@@ -69,16 +64,16 @@ public class TranslatedItem {
 				loreId = counter++;
 				resolvers.put(loreId, loreResolver);
 			}
-			meta.setLore(Lists.newArrayList(PacketTranslationHandler.format(lore.getKey().replace(".", "$"), loreId)));
+			List<String> loreList = display.getStringList("Lore");
+			loreList.clear();
+			loreList.add(PacketTranslationHandler.SERIALIZER
+					.serialize(Component.translatable(PacketTranslationHandler.format(lore.getKey().replace(".", "$"), loreId))));
 		}
 
 		if (counter >= Integer.MAX_VALUE - 3) {
 			counter = 1;
 		}
-
-		ItemStack stack = this.stack.clone();
-		stack.setItemMeta(meta);
-		return stack;
+		return item.getItem();
 	}
 
 	public static class Builder {
