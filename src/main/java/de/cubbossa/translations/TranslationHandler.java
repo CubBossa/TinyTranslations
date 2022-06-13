@@ -87,7 +87,9 @@ public class TranslationHandler {
 
 		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
-		List<String> comments = Arrays.stream(messageFile.header()).toList();
+		List<String> comments = Arrays.stream(messageFile.header())
+				.flatMap(string -> Arrays.stream(string.split("\n")))
+				.collect(Collectors.toList());
 		if (!messageFile.author().equals(HEADER_VALUE_UNDEFINED)) {
 			comments.add("Author: " + messageFile.author());
 		}
@@ -153,7 +155,7 @@ public class TranslationHandler {
 
 	private Tag insertMessage(ArgumentQueue argumentQueue, Context context, Audience audience) {
 		final String messageKey = argumentQueue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
-		return Tag.inserting(translateLine(messageKey, audience));
+		return Tag.inserting(translateLine(new Message(messageKey), audience));
 	}
 
 	public void saveResources(Locale... locales) throws IOException {
@@ -276,6 +278,11 @@ public class TranslationHandler {
 			return new ArrayList<>();
 		}
 		return result;
+	}
+
+	public void sendMessage(String string, Player player) {
+		Audience audience = audiences.player(player);
+		audience.sendMessage(translateLine(string, audience));
 	}
 
 	public void sendMessage(Message message, Player player) {

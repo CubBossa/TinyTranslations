@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface MessageFile {
 
-	String languageString() default TranslationHandler.HEADER_VALUE_UNDEFINED;
+	String languageString() default "en_US";
 
 	String author() default TranslationHandler.HEADER_VALUE_UNDEFINED;
 
