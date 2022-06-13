@@ -10,16 +10,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class TranslatedItem {
-
-	private static int counter = 1;
-	public static final Map<Integer, TagResolver[]> resolvers = new HashMap<>();
 
 	private final ItemStack stack;
 	private final Message name;
@@ -46,13 +41,15 @@ public class TranslatedItem {
 		if (stack.getType() == Material.AIR) {
 			return stack.clone();
 		}
+		PacketTranslationHandler translator = PacketTranslationHandler.getInstance();
+
 		NBTItem item = new NBTItem(stack);
 		NBTCompound display = item.getCompound("display");
 		if (name != null) {
 			int nameId = 0;
 			if (nameResolver != null && nameResolver.length > 0) {
-				nameId = counter++;
-				resolvers.put(nameId, nameResolver);
+				nameId = translator.getCounter().getAndIncrement();
+				translator.getResolvers().put(nameId, nameResolver);
 			}
 			display.setString("Name", PacketTranslationHandler.SERIALIZER
 					.serialize(Component.translatable(PacketTranslationHandler.format(name.getKey().replace(".", "$"), nameId))));
@@ -61,8 +58,8 @@ public class TranslatedItem {
 		if (lore != null) {
 			int loreId = 0;
 			if (loreResolver != null && loreResolver.length > 0) {
-				loreId = counter++;
-				resolvers.put(loreId, loreResolver);
+				loreId = translator.getCounter().getAndIncrement();
+				translator.getResolvers().put(loreId, loreResolver);
 			}
 			List<String> loreList = display.getStringList("Lore");
 			loreList.clear();
@@ -70,8 +67,8 @@ public class TranslatedItem {
 					.serialize(Component.translatable(PacketTranslationHandler.format(lore.getKey().replace(".", "$"), loreId))));
 		}
 
-		if (counter >= Integer.MAX_VALUE - 3) {
-			counter = 1;
+		if (translator.getCounter().get() >= Integer.MAX_VALUE - 3) {
+			translator.getCounter().set(1);
 		}
 		return item.getItem();
 	}
