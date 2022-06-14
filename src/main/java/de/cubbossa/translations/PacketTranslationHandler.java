@@ -6,6 +6,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import de.tr7zw.nbtapi.NBTCompound;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
@@ -84,6 +85,22 @@ public class PacketTranslationHandler {
 				}
 			}
 		});
+
+		ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(plugin,
+				ListenerPriority.NORMAL,
+				PacketType.Play.Server.OPEN_WINDOW) {
+
+			@Override
+			public void onPacketSending(PacketEvent event) {
+				if (whitelist.contains(event.getPlayer().getUniqueId())) {
+					return;
+				}
+
+				PacketContainer packet = event.getPacket();
+				String json = packet.getChatComponents().read(0).getJson();
+				packet.getChatComponents().write(0, WrappedChatComponent.fromJson(json(json, event.getPlayer())));
+			}
+		});
 	}
 
 	public void whitelist(Player player) {
@@ -98,9 +115,6 @@ public class PacketTranslationHandler {
 		return String.format("c:%s:%d", messageKey, placeHolder);
 	}
 
-	/**
-	 * {id:"iron_sword",display:{Name:'{"text":"abc"}',Lore:['{"text":"def"}']}}
-	 */
 	private ItemStack translateStack(ItemStack stack, Player player) {
 		if (stack.getType() == Material.AIR) {
 			return stack;
@@ -121,6 +135,7 @@ public class PacketTranslationHandler {
 			List<String> list = display.getStringList("Lore");
 			for (int i = 0; i < list.size(); i++) {
 				list.set(i, json(list.get(i), player));
+				//TODO test and if required split on linebreak
 			}
 		}
 		return item.getItem();

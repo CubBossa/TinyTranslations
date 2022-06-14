@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,10 @@ public class Message implements ComponentLike {
 
 	@Getter
 	private final String key;
+
+	public TranslatableComponent asTranslatable(TagResolver... resolvers) {
+		return TranslationHandler.getInstance().toTranslatable(this, resolvers);
+	}
 
 	public @NotNull Component asComponent() {
 		return this.asComponent(TranslationHandler.getInstance().getAudiences().console());

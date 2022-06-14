@@ -7,6 +7,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -315,5 +316,18 @@ public class TranslationHandler {
 			return player.getLocale();
 		}
 		return fallbackLanguage;
+	}
+
+	public TranslatableComponent toTranslatable(Message message, TagResolver... resolvers) {
+		int resolverId = 0;
+		if (resolvers != null && resolvers.length > 0) {
+			resolverId = PacketTranslationHandler.getInstance().getCounter().getAndIncrement();
+			PacketTranslationHandler.getInstance().getResolvers().put(resolverId, resolvers);
+		}
+		return toTranslatable(message.getKey(), resolverId);
+	}
+
+	public TranslatableComponent toTranslatable(String messageKey, int resolverId) {
+		return Component.translatable(PacketTranslationHandler.format(messageKey.replace(".", "$"), resolverId));
 	}
 }

@@ -4,7 +4,6 @@ import de.tr7zw.nbtapi.NBTCompound;
 import de.tr7zw.nbtapi.NBTItem;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -46,25 +45,13 @@ public class TranslatedItem {
 		NBTItem item = new NBTItem(stack);
 		NBTCompound display = item.getCompound("display");
 		if (name != null) {
-			int nameId = 0;
-			if (nameResolver != null && nameResolver.length > 0) {
-				nameId = translator.getCounter().getAndIncrement();
-				translator.getResolvers().put(nameId, nameResolver);
-			}
-			display.setString("Name", PacketTranslationHandler.SERIALIZER
-					.serialize(Component.translatable(PacketTranslationHandler.format(name.getKey().replace(".", "$"), nameId))));
+			display.setString("Name", PacketTranslationHandler.SERIALIZER.serialize(TranslationHandler.getInstance().toTranslatable(name, nameResolver)));
 		}
 
 		if (lore != null) {
-			int loreId = 0;
-			if (loreResolver != null && loreResolver.length > 0) {
-				loreId = translator.getCounter().getAndIncrement();
-				translator.getResolvers().put(loreId, loreResolver);
-			}
 			List<String> loreList = display.getStringList("Lore");
 			loreList.clear();
-			loreList.add(PacketTranslationHandler.SERIALIZER
-					.serialize(Component.translatable(PacketTranslationHandler.format(lore.getKey().replace(".", "$"), loreId))));
+			loreList.add(PacketTranslationHandler.SERIALIZER.serialize(TranslationHandler.getInstance().toTranslatable(lore, loreResolver)));
 		}
 
 		if (translator.getCounter().get() >= Integer.MAX_VALUE - 3) {
