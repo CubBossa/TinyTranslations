@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,14 @@ public class Message implements ComponentLike {
 
 	public List<Component> asComponents(Player player, TagResolver... templates) {
 		return TranslationHandler.getInstance().translateLines(this, player, templates);
+	}
+
+	public Component asComponent(CommandSender sender, TagResolver... templates) {
+		return TranslationHandler.getInstance().translateLine(this, sender, templates);
+	}
+
+	public List<Component> asComponents(CommandSender sender, TagResolver... templates) {
+		return TranslationHandler.getInstance().translateLines(this, sender, templates);
 	}
 
 	public Component asComponent(Audience audience, TagResolver... templates) {

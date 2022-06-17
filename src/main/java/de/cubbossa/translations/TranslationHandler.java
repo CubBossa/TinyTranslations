@@ -14,6 +14,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.apache.commons.lang.SerializationException;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -219,12 +220,12 @@ public class TranslationHandler {
 		return languageFormats.getOrDefault(message.getKey(), new HashMap<>()).getOrDefault(lang, "missing:" + lang + "-" + message.getKey());
 	}
 
-	public Component translateLine(Message message, @Nullable Player player, TagResolver... tagResolvers) {
-		List<TagResolver> resolvers = Lists.newArrayList(tagResolvers);
-		if (message instanceof FormattedMessage formatted) {
-			resolvers.addAll(List.of(formatted.getResolvers()));
-		}
-		return translateLine(getMiniMessageFormat(message, getLanguage(player)), player, resolvers.toArray(TagResolver[]::new));
+	public Component translateLine(Message message, CommandSender sender, TagResolver... tagResolvers) {
+		return translateLine(message, audiences.sender(sender), tagResolvers);
+	}
+
+	public Component translateLine(Message message, Player player, TagResolver... tagResolvers) {
+		return translateLine(message, audiences.player(player), tagResolvers);
 	}
 
 	public Component translateLine(Message message, @Nullable Audience audience, TagResolver... tagResolvers) {
@@ -233,6 +234,10 @@ public class TranslationHandler {
 			resolvers.addAll(List.of(formatted.getResolvers()));
 		}
 		return translateLine(getMiniMessageFormat(message, getLanguage(audience)), audience, resolvers.toArray(TagResolver[]::new));
+	}
+
+	public List<Component> translateLines(Message message, @Nullable CommandSender sender, TagResolver... tagResolvers) {
+		return translateLines(message, sender == null ? null : audiences.sender(sender), tagResolvers);
 	}
 
 	public List<Component> translateLines(Message message, @Nullable Player player, TagResolver... tagResolvers) {
@@ -284,6 +289,10 @@ public class TranslationHandler {
 	public void sendMessage(String string, Player player) {
 		Audience audience = audiences.player(player);
 		audience.sendMessage(translateLine(string, audience));
+	}
+
+	public void sendMessage(Message message, CommandSender sender) {
+		sendMessage(message, audiences.sender(sender));
 	}
 
 	public void sendMessage(Message message, Player player) {
