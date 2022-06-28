@@ -257,7 +257,10 @@ public class TranslationHandler {
 
 		List<TagResolver> t = Lists.newArrayList(tagResolvers);
 		t.addAll(globalReplacements);
-		t.add(TagResolver.builder().tag("message", (argumentQueue, context) -> insertMessage(argumentQueue, context, audience)).build());
+		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience);
+		t.add(TagResolver.builder().tag("message", function).build());
+		t.add(TagResolver.builder().tag("msg", function).build());
+		t.add(TagResolver.builder().tag("ins", (argumentQueue, context) -> insertPreMessage(argumentQueue, context, audience)).build());
 
 		return miniMessage.deserialize(message, t.toArray(TagResolver[]::new));
 	}
@@ -273,7 +276,7 @@ public class TranslationHandler {
 		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience);
 		t.add(TagResolver.builder().tag("message", function).build());
 		t.add(TagResolver.builder().tag("msg", function).build());
-		t.add(TagResolver.builder().tag("ins", (argumentQueue, context) -> insertMessage(argumentQueue, context, audience)).build());
+		t.add(TagResolver.builder().tag("ins", (argumentQueue, context) -> insertPreMessage(argumentQueue, context, audience)).build());
 		TagResolver[] resolvers = t.toArray(TagResolver[]::new);
 
 		String[] toFormat = message.split("\n");
@@ -337,6 +340,6 @@ public class TranslationHandler {
 	}
 
 	public TranslatableComponent toTranslatable(String messageKey, int resolverId) {
-		return Component.translatable(PacketTranslationHandler.format(messageKey.replace(".", "$"), resolverId));
+		return Component.translatable(PacketTranslationHandler.format(messageKey, resolverId));
 	}
 }

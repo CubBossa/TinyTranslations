@@ -33,7 +33,7 @@ public @interface MessageFile {
 			<msg:[message-key]> or <message:[message-key]> will replaced with another already interpreted messages
 			    Using <msg:color_red> and referring to a translation `color_red: <#ff0000>` will not work.
 			    The color will be interpreted as component before being inserted.
-			<col:[message-key]> will insert a message as raw MiniMessage.
+			<ins:[message-key]> will insert a message as raw MiniMessage.
 			    So instead of <msg:color_red>, you can use
 			    <col:color_red> to insert the value of color_red ("<#ff0000>") as simple string.
 			    With this functionality, you can add a style table at the top of your language file and change colors for the

@@ -43,7 +43,7 @@ public class TranslatedItem {
 		PacketTranslationHandler translator = PacketTranslationHandler.getInstance();
 
 		NBTItem item = new NBTItem(stack);
-		NBTCompound display = item.getCompound("display");
+		NBTCompound display = item.getOrCreateCompound("display");
 		if (name != null) {
 			display.setString("Name", PacketTranslationHandler.SERIALIZER.serialize(TranslationHandler.getInstance().toTranslatable(name, nameResolver)));
 		}

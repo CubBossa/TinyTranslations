@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class PacketTranslationHandler {
 
@@ -31,8 +32,10 @@ public class PacketTranslationHandler {
 	private static PacketTranslationHandler instance;
 
 	public static final GsonComponentSerializer SERIALIZER = GsonComponentSerializer.builder().build();
-	private static final String REGEX = "\\{\"translate\":\"c:([^>]+):([0-9]+)>\"}";
+	private static final String REGEX = ".*\\{\"translate\":\"§:([^>]+):([0-9]+)\"}.*";
+	private static final String REGEX_INVENTORY_TITLES = ".*\\{\"text\":\"§:([^>]+):([0-9]+)\"}.*";
 	private static final Pattern PATTERN = Pattern.compile(REGEX);
+	private static final Pattern PATTERN_INVENTORY_TITLES = Pattern.compile(REGEX_INVENTORY_TITLES);
 
 	@Getter
 	@Setter
@@ -54,6 +57,7 @@ public class PacketTranslationHandler {
 			@Override
 			public void onPacketSending(PacketEvent event) {
 				if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+
 					if (whitelist.contains(event.getPlayer().getUniqueId())) {
 						return;
 					}
@@ -76,6 +80,7 @@ public class PacketTranslationHandler {
 			@Override
 			public void onPacketSending(PacketEvent event) {
 				if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+
 					if (whitelist.contains(event.getPlayer().getUniqueId())) {
 						return;
 					}
@@ -98,7 +103,7 @@ public class PacketTranslationHandler {
 
 				PacketContainer packet = event.getPacket();
 				String json = packet.getChatComponents().read(0).getJson();
-				packet.getChatComponents().write(0, WrappedChatComponent.fromJson(json(json, event.getPlayer())));
+				packet.getChatComponents().write(0, WrappedChatComponent.fromJson(json(json, event.getPlayer(), PATTERN_INVENTORY_TITLES)));
 			}
 		});
 	}
@@ -112,7 +117,7 @@ public class PacketTranslationHandler {
 	}
 
 	public static String format(String messageKey, int placeHolder) {
-		return String.format("c:%s:%d", messageKey, placeHolder);
+		return String.format("§:%s:%d", messageKey, placeHolder);
 	}
 
 	private ItemStack translateStack(ItemStack stack, Player player) {
@@ -128,34 +133,61 @@ public class PacketTranslationHandler {
 
 		if (display.hasKey("Name")) {
 			String name = display.getString("Name");
-			display.setString("Name", json(name, player));
+			display.setString("Name", json(name, player, PATTERN));
 		}
 
 		if (display.hasKey("Lore")) {
 			List<String> list = display.getStringList("Lore");
-			for (int i = 0; i < list.size(); i++) {
-				list.set(i, json(list.get(i), player));
-				//TODO test and if required split on linebreak
+
+			int currentIndex = 0;
+			for (String loreLine : new ArrayList<>(display.getStringList("Lore"))) {
+				List<String> lines = jsonList(loreLine, player, PATTERN, "\n");
+				list.set(currentIndex++, lines.get(0));
+				for (int i = 1; i < lines.size(); i++) {
+					list.add(currentIndex++, lines.get(i));
+				}
 			}
 		}
 		return item.getItem();
 	}
 
-	private String json(String string, Player player) {
+	private String json(String string, Player player, Pattern pattern) {
 		String json = string;
 
-		Matcher matcher = PATTERN.matcher(json);
+		Matcher matcher = pattern.matcher(json);
 		while (matcher.find()) {
-			String messageKey = matcher.group(1).replace("$", ".");
+			String messageKey = matcher.group(1);
 			String resolverIdString = matcher.group(2);
 			int resolverId = Integer.parseInt(resolverIdString);
 
 			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.get(resolverId);
 
-			json = matcher.replaceAll(matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
-					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false))));
+			json = matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
+					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false)));
 			resolvers.remove(resolverId);
 		}
 		return json;
+	}
+
+	private List<String> jsonList(String string, Player player, Pattern pattern, String linebreak) {
+		String json = string;
+		List<String> parsed = new ArrayList<>();
+
+		Matcher matcher = pattern.matcher(json);
+		while (matcher.find()) {
+			String messageKey = matcher.group(1);
+			String resolverIdString = matcher.group(2);
+			int resolverId = Integer.parseInt(resolverIdString);
+
+			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.get(resolverId);
+
+			parsed.addAll(TranslationHandler.getInstance().translateLines(new Message(messageKey), player, resolver)
+					.stream().map(c -> c.decoration(TextDecoration.ITALIC, false))
+					.map(SERIALIZER::serialize)
+					.collect(Collectors.toList()));
+
+			resolvers.remove(resolverId);
+		}
+		return parsed;
 	}
 }
