@@ -142,7 +142,7 @@ public class PacketTranslationHandler {
 			int currentIndex = 0;
 			for (String loreLine : new ArrayList<>(display.getStringList("Lore"))) {
 				List<String> lines = jsonList(loreLine, player, PATTERN, "\n");
-				list.set(currentIndex++, lines.get(0));
+				list.set(currentIndex++, lines.size() < 1 ? "" : lines.get(0));
 				for (int i = 1; i < lines.size(); i++) {
 					list.add(currentIndex++, lines.get(i));
 				}
@@ -160,7 +160,7 @@ public class PacketTranslationHandler {
 			String resolverIdString = matcher.group(2);
 			int resolverId = Integer.parseInt(resolverIdString);
 
-			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.get(resolverId);
+			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.getOrDefault(resolverId, new TagResolver[0]);
 
 			json = matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
 					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false)));
@@ -179,7 +179,7 @@ public class PacketTranslationHandler {
 			String resolverIdString = matcher.group(2);
 			int resolverId = Integer.parseInt(resolverIdString);
 
-			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.get(resolverId);
+			TagResolver[] resolver = resolverIdString.equals("0") ? new TagResolver[0] : resolvers.getOrDefault(resolverId, new TagResolver[0]);
 
 			parsed.addAll(TranslationHandler.getInstance().translateLines(new Message(messageKey), player, resolver)
 					.stream().map(c -> c.decoration(TextDecoration.ITALIC, false))

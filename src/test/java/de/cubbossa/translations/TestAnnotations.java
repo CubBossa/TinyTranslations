@@ -1,6 +1,5 @@
 package de.cubbossa.translations;
 
-import org.apache.commons.lang.SerializationException;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class TestAnnotations {
                 System.out.println("#### Value:\n" + message.getKey() + ": " + value.value());
 
             } catch (Exception e) {
-                throw new SerializationException("Could not write message '" + messageField.getName() + "' to file. Skipping.");
+                throw new RuntimeException("Could not write message '" + messageField.getName() + "' to file. Skipping.");
             }
         }
     }

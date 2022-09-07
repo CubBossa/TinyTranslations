@@ -13,7 +13,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.apache.commons.lang.SerializationException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -144,7 +143,7 @@ public class TranslationHandler {
 				}
 
 			} catch (Exception e) {
-				throw new SerializationException("Could not write message '" + messageField.getName() + "' to file. Skipping.");
+				throw new RuntimeException("Could not write message '" + messageField.getName() + "' to file. Skipping.");
 			}
 		}
 		cfg.save(file);
@@ -155,9 +154,9 @@ public class TranslationHandler {
 		return Tag.preProcessParsed(getMiniMessageFormat(new Message(messageKey), getLanguage(audience)));
 	}
 
-	private Tag insertMessage(ArgumentQueue argumentQueue, Context context, Audience audience) {
+	private Tag insertMessage(ArgumentQueue argumentQueue, Context context, Audience audience, TagResolver... resolvers) {
 		final String messageKey = argumentQueue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
-		return Tag.inserting(translateLine(new Message(messageKey), audience));
+		return Tag.inserting(translateLine(new Message(messageKey), audience, resolvers));
 	}
 
 	public void saveResources(Locale... locales) throws IOException {
@@ -257,7 +256,7 @@ public class TranslationHandler {
 
 		List<TagResolver> t = Lists.newArrayList(tagResolvers);
 		t.addAll(globalReplacements);
-		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience);
+		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience, tagResolvers);
 		t.add(TagResolver.builder().tag("message", function).build());
 		t.add(TagResolver.builder().tag("msg", function).build());
 		t.add(TagResolver.builder().tag("ins", (argumentQueue, context) -> insertPreMessage(argumentQueue, context, audience)).build());
