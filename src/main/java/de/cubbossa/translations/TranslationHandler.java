@@ -73,6 +73,9 @@ public class TranslationHandler {
 		if (messageFile == null) {
 			throw new IllegalArgumentException("To load a class as message class, it has to be annotated with MessageFile.class.");
 		}
+		if (!languageDirectory.exists()) {
+			languageDirectory.mkdirs();
+		}
 		File file = new File(languageDirectory, messageFile.languageString() + ".yml");
 		boolean fileExists = file.exists();
 		if (!fileExists) {

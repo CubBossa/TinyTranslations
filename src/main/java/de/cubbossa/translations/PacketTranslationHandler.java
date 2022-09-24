@@ -97,13 +97,15 @@ public class PacketTranslationHandler {
 
 			@Override
 			public void onPacketSending(PacketEvent event) {
-				if (whitelist.contains(event.getPlayer().getUniqueId())) {
-					return;
-				}
+				if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+					if (whitelist.contains(event.getPlayer().getUniqueId())) {
+						return;
+					}
 
-				PacketContainer packet = event.getPacket();
-				String json = packet.getChatComponents().read(0).getJson();
-				packet.getChatComponents().write(0, WrappedChatComponent.fromJson(json(json, event.getPlayer(), PATTERN_INVENTORY_TITLES)));
+					PacketContainer packet = event.getPacket();
+					String json = packet.getChatComponents().read(0).getJson();
+					packet.getChatComponents().write(0, WrappedChatComponent.fromJson(json(json, event.getPlayer(), PATTERN_INVENTORY_TITLES)));
+				}
 			}
 		});
 	}
