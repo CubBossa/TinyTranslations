@@ -154,7 +154,7 @@ public class Messages {
 
 With Group Comment:
 
-```JAVA
+```Java
 
 import de.cubbossa.translations.MessageGroupMeta;
 
