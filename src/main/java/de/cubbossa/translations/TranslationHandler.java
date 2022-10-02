@@ -103,7 +103,11 @@ public class TranslationHandler {
 		if (!messageFile.author().equals(HEADER_VALUE_UNDEFINED)) {
 			comments.add("Language: " + messageFile.languageString());
 		}
-		cfg.options().setHeader(comments);
+		try {
+			cfg.options().setHeader(comments);
+		} catch (Throwable t) {
+			plugin.getLogger().log(Level.WARNING, "Could not insert file header for translation file - file headers supported in API: > 1.17");
+		}
 
 		for (MessageGroupMeta meta : annotatedClass.getAnnotationsByType(MessageGroupMeta.class)) {
 			comments = Arrays.stream(meta.comment()).collect(Collectors.toCollection(ArrayList::new));
