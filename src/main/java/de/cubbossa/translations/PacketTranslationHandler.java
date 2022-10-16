@@ -45,7 +45,6 @@ public class PacketTranslationHandler {
 	@Getter
 	private final Collection<UUID> whitelist = new HashSet<>();
 
-
 	public PacketTranslationHandler(Plugin plugin) {
 		instance = this;
 
@@ -166,7 +165,7 @@ public class PacketTranslationHandler {
 
 			json = matcher.replaceFirst(SERIALIZER.serialize(TranslationHandler.getInstance()
 					.translateLine(new Message(messageKey), player, resolver).decoration(TextDecoration.ITALIC, false)));
-			resolvers.remove(resolverId);
+			//resolvers.remove(resolverId);
 		}
 		return json;
 	}
@@ -188,7 +187,7 @@ public class PacketTranslationHandler {
 					.map(SERIALIZER::serialize)
 					.collect(Collectors.toList()));
 
-			resolvers.remove(resolverId);
+			//resolvers.remove(resolverId);
 		}
 		return parsed;
 	}

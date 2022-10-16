@@ -39,7 +39,7 @@ public class TranslationHandler {
 	private final BukkitAudiences audiences;
 	private final MiniMessage miniMessage;
 
-	private final List<TagResolver> globalReplacements;
+	private final List<TagResolver> globalResolvers;
 	private static final Map<String, Map<String, String>> languageFormats = new HashMap<>();
 
 	public static final String HEADER_VALUE_UNDEFINED = "undefined";
@@ -65,7 +65,7 @@ public class TranslationHandler {
 		this.miniMessage = miniMessage;
 		this.languageDirectory = directory;
 		this.languageDirectory.mkdirs();
-		this.globalReplacements = new ArrayList<>();
+		this.globalResolvers = new ArrayList<>();
 	}
 
 	public void registerAnnotatedLanguageClass(Class<?> annotatedClass) throws IOException {
@@ -173,6 +173,27 @@ public class TranslationHandler {
 		}
 	}
 
+	public void loadStyle() {
+
+		if (!languageDirectory.exists()) {
+			languageDirectory.mkdir();
+		}
+		File stylesFile = new File(languageDirectory, "styles.yml");
+		YamlConfiguration cfg = YamlConfiguration.loadConfiguration(stylesFile);
+		var entries = cfg.getValues(false).entrySet().stream().filter(e -> e.getValue() instanceof String).toList();
+		if (cfg.getValues(true).size() != entries.size()) {
+			plugin.getLogger().log(Level.SEVERE, "Style files can only have top-level string values, like: 'key: \"value\"'. Some values are being ignored.");
+		}
+		Collection<TagResolver> resolvers = new ArrayList<>();
+		entries.forEach(entry -> {
+			// Append any char to the tags to assure that colors are parsed properly.
+			// It won't be visible anyways because we only use the style of this component.
+			Component styleHolder = miniMessage.deserialize(entry.getValue() + "a");
+			resolvers.add(TagResolver.resolver(entry.getKey(), (queue, context) -> Tag.styling(style -> style.merge(styleHolder.style()))));
+		});
+		globalResolvers.addAll(resolvers);
+	}
+
 	public void loadLanguages() throws IOException {
 
 		if (!languageDirectory.exists()) {
@@ -215,11 +236,11 @@ public class TranslationHandler {
 	}
 
 	public void registerTagResolver(TagResolver resolver) {
-		globalReplacements.add(resolver);
+		globalResolvers.add(resolver);
 	}
 
 	public void unregisterTagResolver(TagResolver tagResolver) {
-		globalReplacements.remove(tagResolver);
+		globalResolvers.remove(tagResolver);
 	}
 
 	private String getMiniMessageFormat(Message message, String lang) {
@@ -262,7 +283,7 @@ public class TranslationHandler {
 	public Component translateLine(String message, @Nullable Audience audience, TagResolver... tagResolvers) {
 
 		List<TagResolver> t = Lists.newArrayList(tagResolvers);
-		t.addAll(globalReplacements);
+		t.addAll(globalResolvers);
 		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience, tagResolvers);
 		t.add(TagResolver.builder().tag("message", function).build());
 		t.add(TagResolver.builder().tag("msg", function).build());
@@ -278,7 +299,7 @@ public class TranslationHandler {
 	public List<Component> translateLines(String message, @Nullable Audience audience, TagResolver... tagResolvers) {
 
 		List<TagResolver> t = new ArrayList<>(List.of(tagResolvers));
-		t.addAll(globalReplacements);
+		t.addAll(globalResolvers);
 		BiFunction<ArgumentQueue, Context, Tag> function = (argumentQueue, context) -> insertMessage(argumentQueue, context, audience);
 		t.add(TagResolver.builder().tag("message", function).build());
 		t.add(TagResolver.builder().tag("msg", function).build());
