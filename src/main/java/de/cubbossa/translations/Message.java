@@ -19,10 +19,6 @@ public class Message implements ComponentLike {
 	@Getter
 	private final String key;
 
-	public TranslatableComponent asTranslatable(TagResolver... resolvers) {
-		return TranslationHandler.getInstance().toTranslatable(this, resolvers);
-	}
-
 	public @NotNull Component asComponent() {
 		return this.asComponent(TranslationHandler.getInstance().getAudiences().console());
 	}

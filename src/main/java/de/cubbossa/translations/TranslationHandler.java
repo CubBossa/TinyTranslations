@@ -356,17 +356,4 @@ public class TranslationHandler {
 		}
 		return fallbackLanguage;
 	}
-
-	public TranslatableComponent toTranslatable(Message message, TagResolver... resolvers) {
-		int resolverId = 0;
-		if (resolvers != null && resolvers.length > 0) {
-			resolverId = PacketTranslationHandler.getInstance().getCounter().getAndIncrement();
-			PacketTranslationHandler.getInstance().getResolvers().put(resolverId, resolvers);
-		}
-		return toTranslatable(message.getKey(), resolverId);
-	}
-
-	public TranslatableComponent toTranslatable(String messageKey, int resolverId) {
-		return Component.translatable(PacketTranslationHandler.format(messageKey, resolverId));
-	}
 }
