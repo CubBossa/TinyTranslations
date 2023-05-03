@@ -9,12 +9,14 @@ public class MessageBuilder {
 
     private final String key;
     private String defaultValue;
+    private final Map<Locale, String> translations;
     private final List<String> comments;
     private final Map<String, Placeholder> placeholderMap;
 
     public MessageBuilder(String key) {
         this.key = key;
         this.comments = new ArrayList<>();
+        this.translations = new HashMap<>();
         this.placeholderMap = new HashMap<>();
     }
 
@@ -25,6 +27,15 @@ public class MessageBuilder {
 
     public MessageBuilder withDefault(String defaultValue) {
         this.defaultValue = defaultValue;
+        return this;
+    }
+
+    public MessageBuilder withTranslation(Locale locale, String miniMessage) {
+        return this.withTranslation(locale, Message.Format.MINI_MESSAGE, miniMessage);
+    }
+
+    public MessageBuilder withTranslation(Locale locale, Message.Format format, String translation) {
+        this.translations.put(locale, format.toPrefix() + translation);
         return this;
     }
 
@@ -52,6 +63,7 @@ public class MessageBuilder {
         Message message = new Message(key);
         message.setComment(String.join("\n", comments));
         message.setDefaultValue(defaultValue);
+        message.setDefaultTranslations(translations);
         message.setPlaceholderResolvers(placeholderMap.values().stream()
                 .map(Placeholder::resolver)
                 .filter(Optional::isPresent).map(Optional::get)

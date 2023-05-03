@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.serialize.StorageType;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public interface PluginTranslations extends Translator {
 
@@ -15,7 +17,19 @@ public interface PluginTranslations extends Translator {
     class Config {
         protected Locale defaultLanguage = Locale.US;
         protected boolean preferClientLanguage = false;
+        protected StorageType languageFileStorageType = StorageType.PROPERTIES;
+        protected StorageType styleFileStorageType = StorageType.PROPERTIES;
     }
+
+    CompletableFuture<Void> writeLocale(Locale locale);
+
+    CompletableFuture<Void> cacheLocale(Locale locale);
+
+    void addMessage(Message message);
+
+    void addMessages(Message...messages);
+
+    void addMessagesClass(Class<?> fromClass);
 
     Config getConfig();
 

@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public interface LanguageFileHandle {
 
-    Optional<String> readMessage(Message message, Locale locale);
+    Optional<String> readMessage(Message message, Locale locale, Collection<Message> scope);
 
-    Map<Message, String> readMessages(Collection<Message> message, Locale locale);
+    Map<Message, String> readMessages(Collection<Message> message, Locale locale, Collection<Message> scope);
 
     boolean writeMessage(Message message, Locale locale, String translation);
 
