@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final File dir = new File("src/test/resources");
+    public static final File dir = new File("./pathfinder_tests/");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -36,13 +36,17 @@ public class TestPlugin {
 
     @BeforeAll
     public static void beforeAll() {
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
     }
 
     @AfterAll
     public static void afterAll() {
         for (File file : dir.listFiles()) {
-            //file.delete();
+            file.delete();
         }
+        dir.delete();
     }
 
     @Test
