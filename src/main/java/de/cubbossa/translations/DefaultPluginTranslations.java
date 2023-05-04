@@ -5,7 +5,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 public class DefaultPluginTranslations implements PluginTranslations {
 
     private final Translations translations;
-    private final File directory;
     @Getter
     private final Config config;
     private final Map<String, Message> registeredMessages;
@@ -26,13 +24,12 @@ public class DefaultPluginTranslations implements PluginTranslations {
     private final Collection<TagResolver> styles;
     private final Logger logger;
 
-    public DefaultPluginTranslations(Translations translations, File directory, Logger logger) {
-        this(translations, directory, logger, new Config());
+    public DefaultPluginTranslations(Translations translations, Logger logger) {
+        this(translations, logger, new Config());
     }
 
-    public DefaultPluginTranslations(Translations translations, File directory, Logger logger, Config config) {
+    public DefaultPluginTranslations(Translations translations, Logger logger, Config config) {
         this.translations = translations;
-        this.directory = directory;
         this.config = config;
         this.logger = logger;
         this.registeredMessages = new HashMap<>();
@@ -44,7 +41,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
     @Override
     public CompletableFuture<Void> writeLocale(Locale locale) {
         return CompletableFuture.runAsync(() -> {
-            LanguageFileHandle handle = config.languageFileStorageType.languageFileHandle();
+            LocalesStorage handle = config.localeBundleStorage;
             handle.writeMessages(registeredMessages.values().stream()
                             .collect(Collectors.toMap(Function.identity(), m -> m.getDefaultTranslations().getOrDefault(locale, m.getDefaultValue()))),
                     locale
@@ -52,26 +49,32 @@ public class DefaultPluginTranslations implements PluginTranslations {
         });
     }
 
-    public CompletableFuture<Void> cacheLocale(Locale locale) {
+    public CompletableFuture<Void> loadLocale(Locale locale) {
         return CompletableFuture.runAsync(() -> {
-            LanguageFileHandle handle = config.languageFileStorageType.languageFileHandle();
+            LocalesStorage handle = config.localeBundleStorage;
             translationCache.computeIfAbsent(locale, x -> new HashMap<>()).putAll(
-                    handle.readMessages(registeredMessages.values(), locale, registeredMessages.values())
+                    handle.readMessages(registeredMessages.values(), locale)
             );
         });
     }
 
-    public CompletableFuture<Void> cacheMessage(Message message, Locale locale) {
+    public CompletableFuture<Void> loadMessage(Message message, Locale locale) {
         return CompletableFuture.runAsync(() -> {
-            LanguageFileHandle handle = config.languageFileStorageType.languageFileHandle();
-            Optional<String> translation = handle.readMessage(message, locale, registeredMessages.values());
-            translation.ifPresent(s -> translationCache.computeIfAbsent(locale, x -> new HashMap<>()).put(message, s));
+            LocalesStorage handle = config.localeBundleStorage;
+            Optional<String> translation = handle.readMessage(message, locale);
+            if (translation.isPresent()) {
+                translationCache.computeIfAbsent(locale, x -> new HashMap<>()).put(message, translation.get());
+            } else {
+                String s = message.getDefaultTranslations().getOrDefault(locale, message.getDefaultValue());
+                handle.writeMessage(message, locale, s);
+                translationCache.computeIfAbsent(locale, x -> new HashMap<>()).put(message, s);
+            }
         });
     }
 
     public CompletableFuture<Void> loadStyles() {
         return CompletableFuture.runAsync(() -> {
-            StyleFileHandle handle = config.styleFileStorageType.styleFileHandle();
+            StylesStorage handle = config.stylesStorage;
             styles.clear();
             styles.addAll(handle.loadStyles());
         });
@@ -115,7 +118,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
     private String getTranslationRaw(Locale locale, Message message) {
         Map<Message, String> map = translationCache.get(locale);
         if (map == null || !map.containsKey(message)) {
-            cacheMessage(message, locale).join();
+            loadMessage(message, locale).join();
             map = translationCache.get(locale);
             if (map == null || !map.containsKey(message)) {
                 throw new IllegalStateException("Caching did not contain message against expectation.");
@@ -136,7 +139,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
 
     @Override
     public String translateRaw(Message message) {
-        return getTranslationRaw(config.defaultLanguage, message);
+        return getTranslationRaw(config.defaultLocale(), message);
     }
 
     @Override
@@ -162,7 +165,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
      */
     @Override
     public Component translate(Message message) {
-        return getTranslation(config.defaultLanguage, message, null);
+        return getTranslation(config.defaultLocale(), message, null);
     }
 
     @Override

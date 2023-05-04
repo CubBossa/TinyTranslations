@@ -1,10 +1,9 @@
 package de.cubbossa.translations.serialize;
 
-import de.cubbossa.translations.LanguageFileHandle;
-import de.cubbossa.translations.StyleFileHandle;
+import de.cubbossa.translations.LocalesStorage;
+import de.cubbossa.translations.StylesStorage;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.logging.Logger;
 
 public enum StorageType {
@@ -12,11 +11,11 @@ public enum StorageType {
     YML,
     PROPERTIES;
 
-    public LanguageFileHandle languageFileHandle() {
-        return new PropertiesFileHandle(Logger.getLogger("test"), new File("src/main/resources/"));
+    public LocalesStorage languageFileHandle() {
+        return new PropertiesStorage(Logger.getLogger("test"), new File("src/main/resources/"));
     }
 
-    public StyleFileHandle styleFileHandle() {
-        return new PropertiesFileHandle(Logger.getLogger("test"), new File("src/main/resources/"));
+    public StylesStorage styleFileHandle() {
+        return new PropertiesStorage(Logger.getLogger("test"), new File("src/main/resources/"));
     }
 }

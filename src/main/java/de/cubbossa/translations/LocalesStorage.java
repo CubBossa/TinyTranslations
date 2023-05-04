@@ -5,11 +5,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-public interface LanguageFileHandle {
+public interface LocalesStorage {
 
-    Optional<String> readMessage(Message message, Locale locale, Collection<Message> scope);
+    Optional<String> readMessage(Message message, Locale locale);
 
-    Map<Message, String> readMessages(Collection<Message> message, Locale locale, Collection<Message> scope);
+    Map<Message, String> readMessages(Collection<Message> message, Locale locale);
 
     boolean writeMessage(Message message, Locale locale, String translation);
 

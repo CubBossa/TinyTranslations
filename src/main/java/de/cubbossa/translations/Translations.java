@@ -3,20 +3,12 @@ package de.cubbossa.translations;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.AudienceProvider;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -28,39 +20,41 @@ public class Translations implements Translator {
         return instance;
     }
 
-    public static synchronized PluginTranslations create(String name, AudienceProvider audiences, File langDirectory, Logger logger) {
+    public static PluginTranslationsBuilder builder(String pluginName) {
         Translations translations = Translations.get();
         if (translations == null) {
-            translations = new Translations(audiences, logger);
+            translations = new Translations();
+        }
+        return new PluginTranslationsBuilder(translations, pluginName);
+    }
+
+    public synchronized void register(String name, PluginTranslations translations) {
+        Translations t = Translations.get();
+        if (t == null) {
+            t = new Translations();
         }
 
-        if (translations.applicationMap.containsKey(name)) {
+        if (t.applicationMap.containsKey(name)) {
             throw new IllegalArgumentException("Could not register new PluginTranslations, another translation with" +
                     "key '" + name + "' already exists");
         }
-
-        PluginTranslations plugin = new DefaultPluginTranslations(translations, langDirectory, logger);
-        translations.applicationMap.put(name, plugin);
-        return plugin;
+        t.applicationMap.put(name, translations);
     }
 
-    private final AudienceProvider audiences;
-    private final Logger logger;
+    private final Logger logger = Logger.getLogger("Translations");
 
     private final Map<String, PluginTranslations> applicationMap;
     private final Collection<TagResolver> globalResolvers;
 
-    public Translations(AudienceProvider audiences, Logger logger) {
+    public Translations() {
         instance = this;
-
-        this.audiences = audiences;
-        this.logger = logger;
 
         this.applicationMap = new HashMap<>();
         this.globalResolvers = new ArrayList<>();
     }
 
     public TagResolver messageTags(Message forMessage, Audience audience) {
+        // TODO proper loop detection
         return TagResolver.builder()
                 .tag(Set.of("msg", "message", "translation"), (queue, ctx) -> {
                     String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();

@@ -104,7 +104,7 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
     @Override
     public @NotNull Component asComponent() {
-        return this.asComponent(translations.getAudiences().console());
+        return translations.translate(this);
     }
 
     public Component asComponent(Audience audience) {

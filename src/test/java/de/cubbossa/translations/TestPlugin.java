@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final File dir = new File("src/main/resources");
+    public static final File dir = new File("src/test/resources");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -30,6 +30,12 @@ public class TestPlugin {
             .withPlaceholder("abc")
             .withDefault("<green>Luke - I am your father!")
             .build();
+    public static final Message TEST_C = new MessageBuilder("sorted.c")
+            .withDefault("abC").build();
+    public static final Message TEST_B = new MessageBuilder("sorted.b")
+            .withDefault("aBc").build();
+    public static final Message TEST_A = new MessageBuilder("sorted.a")
+            .withDefault("Abc").build();
 
     @BeforeAll
     public static void beforeAll() {
@@ -49,16 +55,20 @@ public class TestPlugin {
 
         JavaPlugin plugin = MockBukkit.createMockPlugin("testpl");
 
-        PluginTranslations translations = Translations.create(
-                "test",
-                BukkitAudiences.create(plugin),
-                dir,
-                Logger.getLogger("default")
-        );
+        PluginTranslations translations = Translations.builder("testpl")
+                .withLogger(Logger.getLogger("testTranslations"))
+                .withDefaultLocale(Locale.US)
+                .withEnabledLocales(Locale.US, Locale.GERMAN)
+                .withPropertiesStorage(dir)
+                .build();
+
         translations.addMessagesClass(this.getClass());
 
         Assertions.assertEquals(Component.text("Hello world!", NamedTextColor.RED), translations.translate(TEST_1));
-        Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.translate(TEST_2));
         Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.translate(TEST_1, Locale.GERMAN));
+
+        translations.writeLocale(Locale.US).join();
+
+        Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.translate(TEST_2));
     }
 }

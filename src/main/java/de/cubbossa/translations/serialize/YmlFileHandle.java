@@ -1,9 +1,8 @@
 package de.cubbossa.translations.serialize;
 
-import de.cubbossa.translations.LanguageFileException;
-import de.cubbossa.translations.LanguageFileHandle;
+import de.cubbossa.translations.LocalesStorage;
 import de.cubbossa.translations.Message;
-import de.cubbossa.translations.StyleFileHandle;
+import de.cubbossa.translations.StylesStorage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.yaml.snakeyaml.Yaml;
 
@@ -14,7 +13,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class YmlFileHandle implements StyleFileHandle, LanguageFileHandle {
+public class YmlFileHandle implements StylesStorage, LocalesStorage {
 
     private final Logger logger;
     private final Yaml yaml;
@@ -32,7 +31,7 @@ public class YmlFileHandle implements StyleFileHandle, LanguageFileHandle {
     private void mkDir() {
         if (!directory.exists()) {
             if (!directory.mkdirs()) {
-                throw new LanguageFileException("Could not create language directory");
+                throw new RuntimeException("Could not create language directory");
             }
         }
     }
@@ -48,12 +47,12 @@ public class YmlFileHandle implements StyleFileHandle, LanguageFileHandle {
     }
 
     @Override
-    public Optional<String> readMessage(Message message, Locale locale, Collection<Message> scope) {
-        return Optional.ofNullable(readMessages(Set.of(message), locale, scope).get(message));
+    public Optional<String> readMessage(Message message, Locale locale) {
+        return Optional.ofNullable(readMessages(Set.of(message), locale).get(message));
     }
 
     @Override
-    public Map<Message, String> readMessages(Collection<Message> messages, Locale locale, Collection<Message> scope) {
+    public Map<Message, String> readMessages(Collection<Message> messages, Locale locale) {
         try {
             Map<Message, String> result = new HashMap<>();
             Map<String, Object> map = yaml.load(new FileInputStream(localeFile(locale)));
@@ -68,7 +67,7 @@ public class YmlFileHandle implements StyleFileHandle, LanguageFileHandle {
             });
             return result;
         } catch (FileNotFoundException e) {
-            throw new LanguageFileException(e);
+            throw new RuntimeException(e);
         }
     }
 
