@@ -44,21 +44,39 @@ public class TestPlugin {
 
     @AfterAll
     public static void afterAll() {
-        MockBukkit.unmock();
         for (File file : dir.listFiles()) {
-            // file.delete();
+            //file.delete();
         }
+    }
+
+    @Test
+    public void testPreventDuplicateKey() {
+        Translations.builder("a").build();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> Translations.builder("a").build());
+    }
+
+    @Test
+    public void testFileCreation() {
+        PluginTranslations translations = Translations.builder("testpl")
+                .withLogger(Logger.getLogger("testTranslations"))
+                .withDefaultLocale(Locale.US)
+                .withEnabledLocales(Locale.US, Locale.GERMANY)
+                .withPropertiesStorage(dir)
+                .build();
+
+        translations.writeLocale(Locale.US);
+
+        translations.addMessagesClass(this.getClass());
+        Assertions.assertTrue(new File("src/test/resources/en-US.properties").exists());
     }
 
     @Test
     public void testLoad() {
 
-        JavaPlugin plugin = MockBukkit.createMockPlugin("testpl");
-
-        PluginTranslations translations = Translations.builder("testpl")
+        PluginTranslations translations = Translations.builder("testpl1")
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.US)
-                .withEnabledLocales(Locale.US, Locale.GERMAN)
+                .withEnabledLocales(Locale.US, Locale.GERMANY)
                 .withPropertiesStorage(dir)
                 .build();
 
