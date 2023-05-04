@@ -1,10 +1,7 @@
 package de.cubbossa.translations;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,7 +36,6 @@ public class TestPlugin {
 
     @BeforeAll
     public static void beforeAll() {
-        MockBukkit.mock();
     }
 
     @AfterAll
