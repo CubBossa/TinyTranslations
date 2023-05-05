@@ -111,12 +111,12 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
         return translations.translate(this, audience);
     }
 
-    public Message format(TagResolver resolver) {
-        this.placeholderResolvers.add(resolver);
+    public Message format(TagResolver... resolver) {
+        this.placeholderResolvers.add(TagResolver.resolver(resolver));
         return this;
     }
 
-    public Message formatted(TagResolver resolver) {
+    public Message formatted(TagResolver... resolver) {
         return this.clone().format(resolver);
     }
 
