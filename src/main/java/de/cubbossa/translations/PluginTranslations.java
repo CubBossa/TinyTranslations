@@ -42,12 +42,26 @@ public interface PluginTranslations extends Translator {
     Config getConfig();
 
     default Locale getLanguage(@Nullable Audience audience) {
+        // no specified audience -> default locale
         if (audience == null) {
             return getConfig().defaultLocale;
         }
-        if (getConfig().preferClientLanguage) {
-            return audience.getOrDefault(Identity.LOCALE, Locale.US);
+        // all audiences will receive the same locale -> default locale
+        if (!getConfig().preferClientLanguage) {
+            return getConfig().defaultLocale;
         }
+        // check actual client locale
+        Locale client = audience.getOrDefault(Identity.LOCALE, Locale.US);
+        // if client locale is supported, return client locale
+        if (getConfig().enabledLocales().contains(client)) {
+            return client;
+        }
+        // retrieve language of client locale, to e.g. reduce de-AT to de. Maybe, de is supported while de-AT is not
+        Locale clientLang = Locale.forLanguageTag(client.getLanguage());
+        if (getConfig().enabledLocales().contains(clientLang)) {
+            return clientLang;
+        }
+        // could not find any supported locale for audience, go with default
         return getConfig().defaultLocale;
     }
 

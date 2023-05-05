@@ -40,6 +40,9 @@ public class DefaultPluginTranslations implements PluginTranslations {
 
     @Override
     public CompletableFuture<Void> writeLocale(Locale locale) {
+        if (!config.enabledLocales.contains(locale)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Unsupported locale: " + locale));
+        }
         return CompletableFuture.runAsync(() -> {
             LocalesStorage handle = config.localeBundleStorage;
             handle.writeMessages(registeredMessages.values().stream()
@@ -50,10 +53,14 @@ public class DefaultPluginTranslations implements PluginTranslations {
     }
 
     public CompletableFuture<Void> loadLocale(Locale locale) {
+        if (!config.enabledLocales.contains(locale)) {
+            locale = Locale.US;
+        }
+        final Locale fLocale = locale;
         return CompletableFuture.runAsync(() -> {
             LocalesStorage handle = config.localeBundleStorage;
-            translationCache.computeIfAbsent(locale, x -> new HashMap<>()).putAll(
-                    handle.readMessages(registeredMessages.values(), locale)
+            translationCache.computeIfAbsent(fLocale, x -> new HashMap<>()).putAll(
+                    handle.readMessages(registeredMessages.values(), fLocale)
             );
         });
     }
