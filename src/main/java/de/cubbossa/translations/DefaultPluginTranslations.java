@@ -106,12 +106,12 @@ public class DefaultPluginTranslations implements PluginTranslations {
     }
 
     @Override
-    public Collection<TagResolver> getGlobalResolvers() {
+    public Collection<TagResolver> getResolvers() {
         return new HashSet<>(applicationResolvers);
     }
 
     @Override
-    public void addGlobalResolver(TagResolver resolver) {
+    public void addResolver(TagResolver resolver) {
         applicationResolvers.add(resolver);
     }
 

@@ -7,50 +7,16 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class PropertiesStorage implements StylesStorage, LocalesStorage {
+public class PropertiesStorage extends FileStorage implements LocalesStorage {
 
-    private final Logger logger;
-    private final File directory;
 
     public PropertiesStorage(Logger logger, File directory) {
-        if (!directory.isDirectory()) {
-            throw new IllegalArgumentException("Language directory must not be a file.");
-        }
-        this.logger = logger;
-        this.directory = directory;
-    }
-
-    private void mkDir() {
-        if (!directory.exists()) {
-            if (!directory.mkdirs()) {
-                throw new RuntimeException("Could not create language directory");
-            }
-        }
-    }
-
-    private File localeFile(Locale locale) {
-        mkDir();
-        File file = new File(directory, locale.toLanguageTag() + ".properties");
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return file;
-    }
-
-    private File stylesFile() {
-        mkDir();
-        return new File(directory, "styles.properties");
+        super(logger, directory, ".properties");
     }
 
     @Override
@@ -101,11 +67,6 @@ public class PropertiesStorage implements StylesStorage, LocalesStorage {
         return messages.keySet();
     }
 
-    @Override
-    public Collection<TagResolver> loadStyles() {
-        return null;
-    }
-
     private void writeFile(File file, List<Entry> entries) {
         BufferedWriter writer;
         try {
@@ -143,8 +104,16 @@ public class PropertiesStorage implements StylesStorage, LocalesStorage {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
+                lineIndex++;
+                if (line.isEmpty() || line.isBlank()) {
+                    continue;
+                }
                 if (line.startsWith("# ")) {
                     comments.add(line.substring(2));
+                    continue;
+                }
+                if (line.startsWith("#")) {
+                    comments.add(line.substring(1));
                     continue;
                 }
                 Matcher matcher = keyValue.matcher(line);
@@ -155,9 +124,8 @@ public class PropertiesStorage implements StylesStorage, LocalesStorage {
                     comments.clear();
                     continue;
                 }
-                throw new RuntimeException("Parse error bla "); // TODO
+                throw new RuntimeException("Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
             }
-            lineIndex++;
         } catch (Throwable t) {
             logger.log(Level.SEVERE, "Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);
             throw new RuntimeException(t);

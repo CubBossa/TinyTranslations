@@ -2,8 +2,6 @@ package de.cubbossa.translations.serialize;
 
 import de.cubbossa.translations.LocalesStorage;
 import de.cubbossa.translations.Message;
-import de.cubbossa.translations.StylesStorage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -13,37 +11,13 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class YmlFileHandle implements StylesStorage, LocalesStorage {
+public class YamlStorage extends FileStorage implements LocalesStorage {
 
-    private final Logger logger;
     private final Yaml yaml;
-    private final File directory;
 
-    public YmlFileHandle(Logger logger, File directory) {
-        if (!directory.isDirectory()) {
-            throw new IllegalArgumentException("Language directory must not be a file.");
-        }
-        this.logger = logger;
-        this.directory = directory;
+    public YamlStorage(Logger logger, File directory) {
+        super(logger, directory, ".yml");
         this.yaml = new Yaml();
-    }
-
-    private void mkDir() {
-        if (!directory.exists()) {
-            if (!directory.mkdirs()) {
-                throw new RuntimeException("Could not create language directory");
-            }
-        }
-    }
-
-    private File localeFile(Locale locale) {
-        mkDir();
-        return new File(directory, locale.getLanguage() + ".yml");
-    }
-
-    private File stylesFile() {
-        mkDir();
-        return new File(directory, "styles.yml");
     }
 
     @Override
@@ -106,10 +80,5 @@ public class YmlFileHandle implements StylesStorage, LocalesStorage {
             success.add(message);
         });
         return success;
-    }
-
-    @Override
-    public Collection<TagResolver> loadStyles() {
-        return null;
     }
 }

@@ -1,6 +1,7 @@
 package de.cubbossa.translations;
 
 import de.cubbossa.translations.serialize.PropertiesStorage;
+import de.cubbossa.translations.serialize.PropertiesStyles;
 
 import java.io.File;
 import java.util.*;
@@ -49,6 +50,7 @@ public class PluginTranslationsBuilder {
     }
 
     public PluginTranslationsBuilder withPropertiesStyles(File styleFile) {
+        this.stylesStorage = new PropertiesStyles(styleFile);
         return this;
     }
 

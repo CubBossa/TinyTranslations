@@ -62,8 +62,10 @@ public class TestPlugin {
                 .withDefaultLocale(Locale.US)
                 .withEnabledLocales(Locale.US, Locale.GERMANY)
                 .withPropertiesStorage(dir)
+                .withPropertiesStyles(new File(dir, "styles.properties"))
                 .build();
 
+        translations.loadStyles();
         translations.writeLocale(Locale.US);
 
         translations.addMessagesClass(this.getClass());

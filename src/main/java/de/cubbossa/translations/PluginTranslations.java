@@ -27,6 +27,8 @@ public interface PluginTranslations extends Translator {
         protected StylesStorage stylesStorage;
     }
 
+    CompletableFuture<Void> loadStyles();
+
     CompletableFuture<Void> writeLocale(Locale locale);
 
     CompletableFuture<Void> loadLocale(Locale locale);
@@ -49,7 +51,7 @@ public interface PluginTranslations extends Translator {
         return getConfig().defaultLocale;
     }
 
-    Collection<TagResolver> getGlobalResolvers();
+    Collection<TagResolver> getResolvers();
 
-    void addGlobalResolver(TagResolver resolver);
+    void addResolver(TagResolver resolver);
 }
