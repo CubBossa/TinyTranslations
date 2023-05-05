@@ -1,10 +1,7 @@
 package de.cubbossa.translations;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,7 +13,7 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final File dir = new File("src/test/resources");
+    public static final File dir = new File("./pathfinder_tests/");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -39,14 +36,17 @@ public class TestPlugin {
 
     @BeforeAll
     public static void beforeAll() {
-        MockBukkit.mock();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
     }
 
     @AfterAll
     public static void afterAll() {
         for (File file : dir.listFiles()) {
-            //file.delete();
+            file.delete();
         }
+        dir.delete();
     }
 
     @Test
