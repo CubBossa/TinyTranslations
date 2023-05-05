@@ -27,6 +27,8 @@ public interface PluginTranslations extends Translator {
         protected StylesStorage stylesStorage;
     }
 
+    void clearCache();
+
     CompletableFuture<Void> loadStyles();
 
     CompletableFuture<Void> writeLocale(Locale locale);

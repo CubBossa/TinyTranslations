@@ -12,6 +12,7 @@ public class FileStorage {
     final String fileSuffix;
 
     public FileStorage(Logger logger, File directory, String suffix) {
+        directory.mkdirs();
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException("Language directory must not be a file.");
         }

@@ -39,6 +39,11 @@ public class DefaultPluginTranslations implements PluginTranslations {
     }
 
     @Override
+    public void clearCache() {
+        translationCache.clear();
+    }
+
+    @Override
     public CompletableFuture<Void> writeLocale(Locale locale) {
         if (!config.enabledLocales.contains(locale)) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Unsupported locale: " + locale));
