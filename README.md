@@ -6,6 +6,14 @@ This framework requires [Kyori Components and the MiniMessage format](https://do
 
 ---
 
+### TODO
+- SQL Locale and Styles storage
+- YML Locale and Styles storage
+- Tests for <msg> placeholders
+- Test for color resolving
+- Test for .formatted() call
+- Test for overwriting translator configurations by main translations class
+
 ### Content
 
 - [Requirements](#Requirements)

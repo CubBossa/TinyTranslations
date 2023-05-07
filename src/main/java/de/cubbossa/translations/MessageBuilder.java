@@ -60,14 +60,14 @@ public class MessageBuilder {
     }
 
     public Message build() {
-        Message message = new Message(key);
+        Message message = new Message(key, Translations.get());
         message.setComment(String.join("\n", comments));
         message.setDefaultValue(defaultValue);
         message.setDefaultTranslations(translations);
         message.setPlaceholderResolvers(placeholderMap.values().stream()
                 .map(Placeholder::resolver)
                 .filter(Optional::isPresent).map(Optional::get)
-                .toList());
+                .collect(Collectors.toSet()));
         message.setPlaceholderTags(placeholderMap.values().stream()
                 .collect(Collectors.toMap(Placeholder::tag, Placeholder::desc)));
         return message;

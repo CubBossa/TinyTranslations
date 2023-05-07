@@ -61,14 +61,14 @@ public class Translations implements Translator {
                     if (forMessage.getKey().equals(messageKey)) {
                         throw new MessageReferenceLoopException(forMessage);
                     }
-                    return Tag.preProcessParsed(translateRaw(new Message(messageKey), audience));
+                    return Tag.preProcessParsed(translateRaw(new Message(messageKey, forMessage.getTranslator()), audience));
                 })
                 .tag(Set.of("raw-msg", "raw-message"), (queue, ctx) -> {
                     String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
                     if (forMessage.getKey().equals(messageKey)) {
                         throw new MessageReferenceLoopException(forMessage);
                     }
-                    return Tag.inserting(translate(new Message(messageKey), audience));
+                    return Tag.inserting(translate(new Message(messageKey, forMessage.getTranslator()), audience));
                 })
                 .build();
     }

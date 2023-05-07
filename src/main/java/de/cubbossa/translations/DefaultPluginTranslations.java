@@ -3,6 +3,8 @@ package de.cubbossa.translations;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.lang.reflect.Field;
@@ -20,6 +22,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
     private final Config config;
     private final Map<String, Message> registeredMessages;
     private final Map<Locale, Map<Message, String>> translationCache;
+    private final Map<String, Style> styleCache;
     private final Collection<TagResolver> applicationResolvers;
     private final Collection<TagResolver> styles;
     private final Logger logger;
@@ -34,6 +37,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
         this.logger = logger;
         this.registeredMessages = new HashMap<>();
         this.translationCache = new HashMap<>();
+        this.styleCache = new HashMap<>();
         this.applicationResolvers = new HashSet<>();
         this.styles = new HashSet<>();
     }
@@ -88,11 +92,12 @@ public class DefaultPluginTranslations implements PluginTranslations {
         return CompletableFuture.runAsync(() -> {
             StylesStorage handle = config.stylesStorage;
             styles.clear();
-            styles.addAll(handle.loadStyles());
+            styles.add(handle.loadStylesAsResolver());
         });
     }
 
     public void addMessage(Message message) {
+        message.setTranslator(this);
         registeredMessages.put(message.getKey(), message);
     }
 
@@ -112,7 +117,6 @@ public class DefaultPluginTranslations implements PluginTranslations {
                 addMessage((Message) messageField.get(messageClass));
             } catch (Throwable t) {
                 logger.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName());
-                continue;
             }
         }
     }
@@ -142,8 +146,10 @@ public class DefaultPluginTranslations implements PluginTranslations {
     private Component getTranslation(Locale locale, Message message, Audience audience) {
         String translation = getTranslationRaw(locale, message);
         TagResolver resolver = TagResolver.builder()
+                .resolvers(message.getPlaceholderResolvers())
                 .resolvers(translations.getGlobalResolvers())
-                .resolvers(translations.messageTags(message, audience))
+                .resolver(translations.messageTags(message, audience))
+                .resolver(getStylesAsResolver())
                 .resolvers(applicationResolvers)
                 .build();
         return Message.Format.translate(translation, resolver);
@@ -188,5 +194,27 @@ public class DefaultPluginTranslations implements PluginTranslations {
     @Override
     public Component translate(Message message, Locale locale) {
         return getTranslation(locale, message, null);
+    }
+
+    @Override
+    public Map<String, Style> getStyles() {
+        return new HashMap<>(styleCache);
+    }
+
+    @Override
+    public TagResolver getStylesAsResolver() {
+        return TagResolver.resolver(styleCache.entrySet().stream()
+            .map(e -> TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(e.getValue()))))
+            .toList());
+    }
+
+    @Override
+    public void addStyle(String key, Style style) {
+        styleCache.put(key, style);
+    }
+
+    @Override
+    public void removeStyle(String key) {
+        styleCache.remove(key);
     }
 }

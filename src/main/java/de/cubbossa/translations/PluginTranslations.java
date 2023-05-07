@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public interface PluginTranslations extends Translator {
+public interface PluginTranslations extends Translator, TranslationStyle {
 
     @Getter
     @Setter

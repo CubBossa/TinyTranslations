@@ -34,7 +34,7 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
         LEGACY_AMP("ampersand", S_LEGACY_AMP::deserialize),
         PLAIN;
 
-        private static final Pattern PREFIX = Pattern.compile("^(!!([a-z_]+): )?(.*)$");
+        private static final Pattern PREFIX = Pattern.compile("^(!!([a-z_]+): )?((.|\n)*)");
 
         private final String prefix;
 
@@ -88,27 +88,27 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 	private String comment;
 	private Map<String, Optional<String>> placeholderTags;
 	private Collection<TagResolver> placeholderResolvers;
-	private final Translations translations;
-    public Message(String key) {
-        this(key, "No default translation present");
+	private Translator translator;
+    public Message(String key, Translator translator) {
+        this(key, "No default translation present", translator);
     }
 
-    public Message(String key, String defaultValue) {
+    public Message(String key, String defaultValue, Translator translator) {
         this.key = key;
         this.defaultValue = defaultValue;
         this.defaultTranslations = new HashMap<>();
         this.placeholderTags = new HashMap<>();
         this.placeholderResolvers = new HashSet<>();
-        this.translations = Translations.get();
+        this.translator = translator;
     }
 
     @Override
     public @NotNull Component asComponent() {
-        return translations.translate(this);
+        return translator.translate(this);
     }
 
     public Component asComponent(Audience audience) {
-        return translations.translate(this, audience);
+        return translator.translate(this, audience);
     }
 
     public Message format(TagResolver... resolver) {
@@ -140,9 +140,9 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
     @Override
     public Message clone() {
-        Message message = new Message(key, defaultValue);
-        message.setPlaceholderTags(placeholderTags);
-        message.setPlaceholderResolvers(placeholderResolvers);
+        Message message = new Message(key, defaultValue, translator);
+        message.setPlaceholderTags(new HashMap<>(placeholderTags));
+        message.setPlaceholderResolvers(new HashSet<>(placeholderResolvers));
         message.setComment(comment);
         return message;
     }

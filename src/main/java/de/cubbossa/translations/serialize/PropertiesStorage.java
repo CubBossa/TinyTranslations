@@ -84,7 +84,7 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
                 writer.append(entry.key())
                         .append("=")
                         .append("\"")
-                        .append(entry.value())
+                        .append(entry.value().replace("\n", "\\n"))
                         .append("\"")
                         .append(System.getProperty("line.separator"));
             }
@@ -120,6 +120,7 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
                 if (matcher.find()) {
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
+                    stripped = stripped.replace("\\n", "\n");
                     entries.add(new Entry(matcher.group(1), stripped, String.join("\n", comments)));
                     comments.clear();
                     continue;

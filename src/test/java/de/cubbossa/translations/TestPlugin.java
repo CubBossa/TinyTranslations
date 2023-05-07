@@ -19,7 +19,7 @@ public class TestPlugin {
             .withComment("Lets test this")
             .withPlaceholder("red", "The color red")
             .withPlaceholders("green", "blue")
-            .withDefault("<red>Hello world!")
+            .withDefault("<red>Hello \nworld!")
             .withTranslation(Locale.GERMAN, "<red>Hallo Welt!")
             .build();
     public static final Message TEST_2 = new MessageBuilder("examples.test.second")
@@ -59,17 +59,18 @@ public class TestPlugin {
     public void testFileCreation() {
         PluginTranslations translations = Translations.builder("testpl")
                 .withLogger(Logger.getLogger("testTranslations"))
-                .withDefaultLocale(Locale.US)
-                .withEnabledLocales(Locale.US, Locale.GERMANY)
+                .withDefaultLocale(Locale.ENGLISH)
+                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY)
                 .withPropertiesStorage(dir)
                 .withPropertiesStyles(new File(dir, "styles.properties"))
                 .build();
 
         translations.loadStyles();
-        translations.writeLocale(Locale.US);
-
         translations.addMessagesClass(this.getClass());
-        Assertions.assertTrue(new File("src/test/resources/en-US.properties").exists());
+        translations.writeLocale(Locale.ENGLISH);
+
+        Assertions.assertTrue(dir.exists());
+        Assertions.assertTrue(new File(dir, "en.properties").exists());
     }
 
     @Test
@@ -77,17 +78,19 @@ public class TestPlugin {
 
         PluginTranslations translations = Translations.builder("testpl1")
                 .withLogger(Logger.getLogger("testTranslations"))
-                .withDefaultLocale(Locale.US)
-                .withEnabledLocales(Locale.US, Locale.GERMANY)
+                .withDefaultLocale(Locale.ENGLISH)
+                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY)
                 .withPropertiesStorage(dir)
                 .build();
 
         translations.addMessagesClass(this.getClass());
 
-        Assertions.assertEquals(Component.text("Hello world!", NamedTextColor.RED), translations.translate(TEST_1));
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.translate(TEST_1));
         Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.translate(TEST_1, Locale.GERMAN));
 
-        translations.writeLocale(Locale.US).join();
+        translations.writeLocale(Locale.ENGLISH).join();
+        translations.clearCache();
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.translate(TEST_1));
 
         Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.translate(TEST_2));
     }

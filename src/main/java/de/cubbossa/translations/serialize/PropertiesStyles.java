@@ -2,6 +2,7 @@ package de.cubbossa.translations.serialize;
 
 import de.cubbossa.translations.StylesStorage;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -23,6 +24,13 @@ public class PropertiesStyles implements StylesStorage {
     private final File file;
 
     public PropertiesStyles(File file) {
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (Throwable t) {
+                throw new IllegalStateException("Could not create properties file.");
+            }
+        }
         if (file.isDirectory()) {
             throw new IllegalArgumentException("PropertiesStyles requires a properties file as argument");
         }
@@ -33,7 +41,12 @@ public class PropertiesStyles implements StylesStorage {
     }
 
     @Override
-    public Collection<TagResolver> loadStyles() {
+    public void writeStyles(Map<String, Style> styles) {
+
+    }
+
+    @Override
+    public Map<String, Style> loadStyles() {
         if (!file.exists()) {
             try {
                 file.mkdirs();
@@ -61,6 +74,7 @@ public class PropertiesStyles implements StylesStorage {
                 if (matcher.find()) {
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
+                    stripped = stripped.replace("\\n", "\n");
                     props.put(matcher.group(1), stripped);
                     continue;
                 }
@@ -70,9 +84,11 @@ public class PropertiesStyles implements StylesStorage {
             throw new RuntimeException(t);
         }
         MiniMessage miniMessage = MiniMessage.miniMessage();
-        return props.entrySet().stream().map(e -> {
+        Map<String, Style> styles = new HashMap<>();
+        props.entrySet().forEach(e -> {
             Component styleHolder = miniMessage.deserialize(e.getValue());
-            return TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(styleHolder.style())));
-        }).collect(Collectors.toSet());
+            styles.put(e.getKey(), styleHolder.style());
+        });
+        return styles;
     }
 }
