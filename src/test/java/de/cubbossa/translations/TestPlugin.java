@@ -51,13 +51,13 @@ public class TestPlugin {
 
     @Test
     public void testPreventDuplicateKey() {
-        Translations.builder("a").build();
-        Assertions.assertThrows(IllegalArgumentException.class, () -> Translations.builder("a").build());
+        GlobalTranslations.builder("a").build();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalTranslations.builder("a").build());
     }
 
     @Test
     public void testFileCreation() {
-        MessageBundle translations = Translations.builder("testpl")
+        MessageBundle translations = GlobalTranslations.builder("testpl")
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
                 .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
@@ -76,7 +76,7 @@ public class TestPlugin {
     @Test
     public void testLoad() {
 
-        MessageBundle translations = Translations.builder("testpl1")
+        MessageBundle translations = GlobalTranslations.builder("testpl1")
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
                 .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)

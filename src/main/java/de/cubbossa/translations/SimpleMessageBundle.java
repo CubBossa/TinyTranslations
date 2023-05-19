@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class SimpleMessageBundle implements MessageBundle {
 
-    private final Translations translations;
+    private final GlobalTranslations translations;
     @Getter
     private final Config config;
     private final Map<String, Message> registeredMessages;
@@ -31,11 +31,11 @@ public class SimpleMessageBundle implements MessageBundle {
     private final Collection<TagResolver> styles;
     private final Logger logger;
 
-    public SimpleMessageBundle(Translations translations, Logger logger) {
+    public SimpleMessageBundle(GlobalTranslations translations, Logger logger) {
         this(translations, logger, new Config());
     }
 
-    public SimpleMessageBundle(Translations translations, Logger logger, Config config) {
+    public SimpleMessageBundle(GlobalTranslations translations, Logger logger, Config config) {
         this.translations = translations;
         this.config = config;
         this.logger = logger;
@@ -133,6 +133,11 @@ public class SimpleMessageBundle implements MessageBundle {
                 logger.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName());
             }
         }
+    }
+
+    @Override
+    public Message getMessage(String key) {
+        return registeredMessages.get(key);
     }
 
     @Override

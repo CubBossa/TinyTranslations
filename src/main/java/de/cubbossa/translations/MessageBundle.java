@@ -42,6 +42,8 @@ public interface MessageBundle extends Translator, StyleBundle {
 
     void addMessagesClass(Class<?> fromClass);
 
+    Message getMessage(String key);
+
     Config getConfig();
 
     Locale getLocale(@Nullable Audience audience);

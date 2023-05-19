@@ -1,6 +1,7 @@
 package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,20 +17,20 @@ class SimpleMessageBundleTest {
     public static final File dir = new File("./src/test/resources/pf1");
 
     public static final Message SIMPLE = new MessageBuilder("simple")
-            .withDefault("Hello world")
+            .withDefault("<red>Hello world")
             .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
             .withTranslation(Locale.GERMAN, "Hallo welt - Deutsch")
             .withComment("abc")
             .build();
 
     public static final Message EMBED = new MessageBuilder("embedded")
-            .withDefault("Embedded: <msg:simple>")
+            .withDefault("Embedded: <msg:simple>a")
             .build();
-    public static final Message EMBED_NO_BLEED = new MessageBuilder("embedded")
-            .withDefault("Embedded: <msg:simple:true>")
+    public static final Message EMBED_NO_BLEED = new MessageBuilder("embedded_complex")
+            .withDefault("Embedded: <msg:simple:true>a")
             .build();
 
-    static MessageBundle translations = Translations.builder("test")
+    static MessageBundle translations = GlobalTranslations.builder("test")
             .withDefaultLocale(Locale.ENGLISH)
             .withLogger(Logger.getLogger("TestLog"))
             .withPropertiesStorage(dir)
@@ -39,6 +40,8 @@ class SimpleMessageBundleTest {
     @BeforeAll
     public static void beforeAll() {
         translations.addMessage(SIMPLE);
+        translations.addMessage(EMBED);
+        translations.addMessage(EMBED_NO_BLEED);
     }
 
     @AfterAll
@@ -67,17 +70,20 @@ class SimpleMessageBundleTest {
 
     @Test
     void translate() {
-        assertEquals(Component.text("Hello world"), translations.translate(SIMPLE));
+        assertEquals(Component.text("Hello world", NamedTextColor.RED), translations.translate(SIMPLE));
         assertEquals(Component.text("Hallo welt - Deutschland"), translations.translate(SIMPLE, Locale.GERMANY));
         assertEquals(Component.text("Hallo welt - Deutsch"), translations.translate(SIMPLE, Locale.GERMAN));
         assertEquals(Component.text("Hallo welt - Deutsch"), translations.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
 
         assertEquals(
-                Component.text("Embedded: Hello world"),
+                Component.text("Embedded: ")
+                    .append(Component.text("Hello worlda", NamedTextColor.RED)),
                 translations.translate(EMBED, Locale.US)
         );
         assertEquals(
-                Component.text("Embedded: Hello world"),
+            Component.text("Embedded: ")
+                .append(Component.text("Hello world", NamedTextColor.RED))
+                .append(Component.text("a")),
                 translations.translate(EMBED_NO_BLEED, Locale.US)
         );
     }

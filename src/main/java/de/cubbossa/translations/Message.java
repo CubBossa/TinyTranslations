@@ -38,7 +38,7 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
         private final String prefix;
 
-		private final BiFunction<String, TagResolver, Component> translator;
+        private final BiFunction<String, TagResolver, Component> translator;
         Format() {
             this.prefix = toString().toLowerCase();
             this.translator = (s, tagResolver) -> Component.text(s);
@@ -103,6 +103,13 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
         this.translator = translator;
     }
 
+    public void setTranslator(Translator translator) {
+        if (this.translator != null && !this.translator.equals(translator)) {
+            throw new IllegalStateException("Cannot add message to two different translators. Create a new message instance instead or use .clone().");
+        }
+        this.translator = translator;
+    }
+
     @Override
     public @NotNull Component asComponent() {
         return translator.translate(this);
@@ -139,13 +146,17 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
         return key.hashCode();
     }
 
-    @Override
-    public Message clone() {
+    public Message clone(Translator translator) {
         Message message = new Message(key, defaultValue, translator);
         message.setPlaceholderTags(new HashMap<>(placeholderTags));
         message.setPlaceholderResolvers(new HashSet<>(placeholderResolvers));
         message.setComment(comment);
         return message;
+    }
+
+    @Override
+    public Message clone() {
+        return clone(translator);
     }
 
 	@Override

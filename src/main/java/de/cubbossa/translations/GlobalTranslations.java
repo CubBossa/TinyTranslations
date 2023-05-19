@@ -12,26 +12,26 @@ import java.util.logging.Logger;
 
 @Getter
 @Setter
-public class Translations implements Translator {
+public class GlobalTranslations implements Translator {
 
-    private static Translations instance;
+    private static GlobalTranslations instance;
 
-    public static Translations get() {
+    public static GlobalTranslations get() {
         return instance;
     }
 
     public static PluginTranslationsBuilder builder(String pluginName) {
-        Translations translations = Translations.get();
+        GlobalTranslations translations = GlobalTranslations.get();
         if (translations == null) {
-            translations = new Translations();
+            translations = new GlobalTranslations();
         }
         return new PluginTranslationsBuilder(translations, pluginName);
     }
 
     public synchronized void register(String name, MessageBundle translations) {
-        Translations t = Translations.get();
+        GlobalTranslations t = GlobalTranslations.get();
         if (t == null) {
-            t = new Translations();
+            t = new GlobalTranslations();
         }
 
         if (t.applicationMap.containsKey(name)) {
@@ -46,28 +46,28 @@ public class Translations implements Translator {
     private final Map<String, MessageBundle> applicationMap;
     private final Collection<TagResolver> globalResolvers;
 
-    public Translations() {
+    public GlobalTranslations() {
         instance = this;
 
         this.applicationMap = new HashMap<>();
         this.globalResolvers = new ArrayList<>();
     }
 
-    public TagResolver messageTags(Translator fallback, Message forMessage, Audience audience) {
+    public TagResolver messageTags(MessageBundle bundle, Message forMessage, Audience audience) {
         // TODO proper loop detection
         return TagResolver.resolver(Set.of("msg", "message", "translation"), (queue, ctx) -> {
             String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
             boolean preventBleed = queue.hasNext() && queue.pop().isTrue();
             Translator app = queue.hasNext()
-                    ? applicationMap.get(queue.pop().value())
-                    : fallback;
+                    ? applicationMap.get(queue.pop().lowerValue())
+                    : forMessage.getTranslator();
 
             if (forMessage.getKey().equals(messageKey)) {
                 throw new MessageReferenceLoopException(forMessage);
             }
             return preventBleed
-                    ? Tag.preProcessParsed(app.translateRaw(new Message(messageKey, app), audience))
-                    : Tag.inserting(app.translate(new Message(messageKey, forMessage.getTranslator()), audience));
+                ? Tag.selfClosingInserting(app.translate(bundle.getMessage(messageKey), audience))
+                : Tag.preProcessParsed(app.translateRaw(bundle.getMessage(messageKey), audience));
         });
     }
 
