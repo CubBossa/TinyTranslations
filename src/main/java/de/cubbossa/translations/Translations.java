@@ -28,7 +28,7 @@ public class Translations implements Translator {
         return new PluginTranslationsBuilder(translations, pluginName);
     }
 
-    public synchronized void register(String name, PluginTranslations translations) {
+    public synchronized void register(String name, MessageBundle translations) {
         Translations t = Translations.get();
         if (t == null) {
             t = new Translations();
@@ -43,7 +43,7 @@ public class Translations implements Translator {
 
     private final Logger logger = Logger.getLogger("Translations");
 
-    private final Map<String, PluginTranslations> applicationMap;
+    private final Map<String, MessageBundle> applicationMap;
     private final Collection<TagResolver> globalResolvers;
 
     public Translations() {
@@ -53,24 +53,22 @@ public class Translations implements Translator {
         this.globalResolvers = new ArrayList<>();
     }
 
-    public TagResolver messageTags(Message forMessage, Audience audience) {
+    public TagResolver messageTags(Translator fallback, Message forMessage, Audience audience) {
         // TODO proper loop detection
-        return TagResolver.builder()
-                .tag(Set.of("msg", "message", "translation"), (queue, ctx) -> {
-                    String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
-                    if (forMessage.getKey().equals(messageKey)) {
-                        throw new MessageReferenceLoopException(forMessage);
-                    }
-                    return Tag.preProcessParsed(translateRaw(new Message(messageKey, forMessage.getTranslator()), audience));
-                })
-                .tag(Set.of("raw-msg", "raw-message"), (queue, ctx) -> {
-                    String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
-                    if (forMessage.getKey().equals(messageKey)) {
-                        throw new MessageReferenceLoopException(forMessage);
-                    }
-                    return Tag.inserting(translate(new Message(messageKey, forMessage.getTranslator()), audience));
-                })
-                .build();
+        return TagResolver.resolver(Set.of("msg", "message", "translation"), (queue, ctx) -> {
+            String messageKey = queue.popOr("The message tag requires a message key, like <message:error.no_permission>.").value();
+            boolean preventBleed = queue.hasNext() && queue.pop().isTrue();
+            Translator app = queue.hasNext()
+                    ? applicationMap.get(queue.pop().value())
+                    : fallback;
+
+            if (forMessage.getKey().equals(messageKey)) {
+                throw new MessageReferenceLoopException(forMessage);
+            }
+            return preventBleed
+                    ? Tag.preProcessParsed(app.translateRaw(new Message(messageKey, app), audience))
+                    : Tag.inserting(app.translate(new Message(messageKey, forMessage.getTranslator()), audience));
+        });
     }
 
     public void registerGlobalResolver(TagResolver resolver) {
@@ -81,7 +79,7 @@ public class Translations implements Translator {
         globalResolvers.remove(tagResolver);
     }
 
-    private Optional<PluginTranslations> getApplicationFromKey(Message message) {
+    private Optional<MessageBundle> getApplicationFromKey(Message message) {
         return Optional.ofNullable(applicationMap.get(message.getKey().split("\\.")[0]));
     }
 

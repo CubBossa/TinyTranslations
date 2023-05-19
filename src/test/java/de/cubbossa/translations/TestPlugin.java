@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final File dir = new File("./pathfinder_tests/");
+    public static final File dir = new File("./src/test/resources/pf");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -57,10 +57,10 @@ public class TestPlugin {
 
     @Test
     public void testFileCreation() {
-        PluginTranslations translations = Translations.builder("testpl")
+        MessageBundle translations = Translations.builder("testpl")
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
-                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY)
+                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
                 .withPropertiesStorage(dir)
                 .withPropertiesStyles(new File(dir, "styles.properties"))
                 .build();
@@ -76,10 +76,10 @@ public class TestPlugin {
     @Test
     public void testLoad() {
 
-        PluginTranslations translations = Translations.builder("testpl1")
+        MessageBundle translations = Translations.builder("testpl1")
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
-                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY)
+                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
                 .withPropertiesStorage(dir)
                 .build();
 

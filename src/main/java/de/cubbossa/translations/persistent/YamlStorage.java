@@ -1,6 +1,5 @@
-package de.cubbossa.translations.serialize;
+package de.cubbossa.translations.persistent;
 
-import de.cubbossa.translations.LocalesStorage;
 import de.cubbossa.translations.Message;
 import org.yaml.snakeyaml.Yaml;
 

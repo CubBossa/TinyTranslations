@@ -89,6 +89,7 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 	private Map<String, Optional<String>> placeholderTags;
 	private Collection<TagResolver> placeholderResolvers;
 	private Translator translator;
+
     public Message(String key, Translator translator) {
         this(key, "No default translation present", translator);
     }

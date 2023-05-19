@@ -1,11 +1,15 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.persistent.LocalesStorage;
+import de.cubbossa.translations.persistent.StylesStorage;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -15,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class DefaultPluginTranslations implements PluginTranslations {
+public class SimpleMessageBundle implements MessageBundle {
 
     private final Translations translations;
     @Getter
@@ -27,11 +31,11 @@ public class DefaultPluginTranslations implements PluginTranslations {
     private final Collection<TagResolver> styles;
     private final Logger logger;
 
-    public DefaultPluginTranslations(Translations translations, Logger logger) {
+    public SimpleMessageBundle(Translations translations, Logger logger) {
         this(translations, logger, new Config());
     }
 
-    public DefaultPluginTranslations(Translations translations, Logger logger, Config config) {
+    public SimpleMessageBundle(Translations translations, Logger logger, Config config) {
         this.translations = translations;
         this.config = config;
         this.logger = logger;
@@ -76,14 +80,24 @@ public class DefaultPluginTranslations implements PluginTranslations {
 
     public CompletableFuture<Void> loadMessage(Message message, Locale locale) {
         return CompletableFuture.runAsync(() -> {
+            Locale supportedLocale = supportedLocale(locale);
             LocalesStorage handle = config.localeBundleStorage;
-            Optional<String> translation = handle.readMessage(message, locale);
+            Optional<String> translation = handle.readMessage(message, supportedLocale);
             if (translation.isPresent()) {
-                translationCache.computeIfAbsent(locale, x -> new HashMap<>()).put(message, translation.get());
+                translationCache.computeIfAbsent(supportedLocale, x -> new HashMap<>()).put(message, translation.get());
             } else {
-                String s = message.getDefaultTranslations().getOrDefault(locale, message.getDefaultValue());
-                handle.writeMessage(message, locale, s);
-                translationCache.computeIfAbsent(locale, x -> new HashMap<>()).put(message, s);
+                String s = message.getDefaultTranslations().get(supportedLocale);
+                if (s == null) {
+                    Locale reduced = Locale.forLanguageTag(supportedLocale.getLanguage());
+                    if (config.enabledLocales.contains(reduced)) {
+                        s = message.getDefaultTranslations().get(Locale.forLanguageTag(supportedLocale.getLanguage()));
+                    }
+                }
+                if (s == null) {
+                    s = message.getDefaultValue();
+                }
+                handle.writeMessage(message, supportedLocale, s);
+                translationCache.computeIfAbsent(supportedLocale, x -> new HashMap<>()).put(message, s);
             }
         });
     }
@@ -148,7 +162,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
         TagResolver resolver = TagResolver.builder()
                 .resolvers(message.getPlaceholderResolvers())
                 .resolvers(translations.getGlobalResolvers())
-                .resolver(translations.messageTags(message, audience))
+                .resolver(translations.messageTags(this, message, audience))
                 .resolver(getStylesAsResolver())
                 .resolvers(applicationResolvers)
                 .build();
@@ -162,7 +176,7 @@ public class DefaultPluginTranslations implements PluginTranslations {
 
     @Override
     public String translateRaw(Message message, Audience audience) {
-        return getTranslationRaw(getLanguage(audience), message);
+        return getTranslationRaw(getLocale(audience), message);
     }
 
     @Override
@@ -188,12 +202,12 @@ public class DefaultPluginTranslations implements PluginTranslations {
 
     @Override
     public Component translate(Message message, Audience audience) {
-        return getTranslation(getLanguage(audience), message, audience);
+        return getTranslation(getLocale(audience), message, audience);
     }
 
     @Override
     public Component translate(Message message, Locale locale) {
-        return getTranslation(locale, message, null);
+        return getTranslation(supportedLocale(locale), message, null);
     }
 
     @Override
@@ -216,5 +230,38 @@ public class DefaultPluginTranslations implements PluginTranslations {
     @Override
     public void removeStyle(String key) {
         styleCache.remove(key);
+    }
+
+    @Override
+    public Locale getLocale(@Nullable Audience audience) {
+        // no specified audience -> default locale
+        if (audience == null) {
+            return getConfig().defaultLocale;
+        }
+        // all audiences will receive the same locale -> default locale
+        if (!getConfig().preferClientLanguage) {
+            return getConfig().defaultLocale;
+        }
+        // check actual client locale
+        Locale client = audience.getOrDefault(Identity.LOCALE, Locale.US);
+        try {
+            return supportedLocale(client);
+        } catch (IllegalStateException e) {
+            // if player locale is not supported use default
+            return getConfig().defaultLocale;
+        }
+    }
+
+    private Locale supportedLocale(Locale anyLocale) {
+        // If locale supported then no issues
+        if (config.enabledLocales.contains(anyLocale)) {
+            return anyLocale;
+        }
+        // Have a look at language without country
+        Locale reduced = Locale.forLanguageTag(anyLocale.getLanguage());
+        if (reduced == null || !config.enabledLocales.contains(reduced)) {
+            throw new IllegalStateException("Locale '" + anyLocale + "' is not supported by Translations.");
+        }
+        return reduced;
     }
 }

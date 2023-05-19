@@ -1,10 +1,11 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.persistent.LocalesStorage;
+import de.cubbossa.translations.persistent.StylesStorage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +15,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public interface PluginTranslations extends Translator, TranslationStyle {
+public interface MessageBundle extends Translator, StyleBundle {
 
     @Getter
     @Setter
@@ -43,29 +44,7 @@ public interface PluginTranslations extends Translator, TranslationStyle {
 
     Config getConfig();
 
-    default Locale getLanguage(@Nullable Audience audience) {
-        // no specified audience -> default locale
-        if (audience == null) {
-            return getConfig().defaultLocale;
-        }
-        // all audiences will receive the same locale -> default locale
-        if (!getConfig().preferClientLanguage) {
-            return getConfig().defaultLocale;
-        }
-        // check actual client locale
-        Locale client = audience.getOrDefault(Identity.LOCALE, Locale.US);
-        // if client locale is supported, return client locale
-        if (getConfig().enabledLocales().contains(client)) {
-            return client;
-        }
-        // retrieve language of client locale, to e.g. reduce de-AT to de. Maybe, de is supported while de-AT is not
-        Locale clientLang = Locale.forLanguageTag(client.getLanguage());
-        if (getConfig().enabledLocales().contains(clientLang)) {
-            return clientLang;
-        }
-        // could not find any supported locale for audience, go with default
-        return getConfig().defaultLocale;
-    }
+    Locale getLocale(@Nullable Audience audience);
 
     Collection<TagResolver> getResolvers();
 

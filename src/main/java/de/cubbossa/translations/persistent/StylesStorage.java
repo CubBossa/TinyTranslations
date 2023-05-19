@@ -1,4 +1,4 @@
-package de.cubbossa.translations;
+package de.cubbossa.translations.persistent;
 
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;

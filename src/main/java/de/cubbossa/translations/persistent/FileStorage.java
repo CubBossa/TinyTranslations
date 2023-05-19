@@ -1,4 +1,4 @@
-package de.cubbossa.translations.serialize;
+package de.cubbossa.translations.persistent;
 
 import java.io.File;
 import java.io.IOException;

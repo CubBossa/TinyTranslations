@@ -1,9 +1,6 @@
-package de.cubbossa.translations.serialize;
+package de.cubbossa.translations.persistent;
 
-import de.cubbossa.translations.LocalesStorage;
 import de.cubbossa.translations.Message;
-import de.cubbossa.translations.StylesStorage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.*;
 import java.util.*;
@@ -36,7 +33,10 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
         Map<Message, String> toWrite = new HashMap<>();
         for (Message message : messages) {
             if (!entryMap.containsKey(message.getKey())) {
-                String t = message.getDefaultTranslations().getOrDefault(locale, message.getDefaultValue());
+                String t = message.getDefaultTranslations().get(locale);
+                if (t == null) {
+                    continue;
+                }
                 result.put(message, t);
                 toWrite.put(message, t);
                 continue;

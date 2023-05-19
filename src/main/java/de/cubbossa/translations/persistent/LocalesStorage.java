@@ -1,4 +1,6 @@
-package de.cubbossa.translations;
+package de.cubbossa.translations.persistent;
+
+import de.cubbossa.translations.Message;
 
 import java.util.Collection;
 import java.util.Locale;

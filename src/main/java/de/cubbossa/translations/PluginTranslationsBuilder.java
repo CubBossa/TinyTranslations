@@ -1,7 +1,9 @@
 package de.cubbossa.translations;
 
-import de.cubbossa.translations.serialize.PropertiesStorage;
-import de.cubbossa.translations.serialize.PropertiesStyles;
+import de.cubbossa.translations.persistent.LocalesStorage;
+import de.cubbossa.translations.persistent.PropertiesStorage;
+import de.cubbossa.translations.persistent.PropertiesStyles;
+import de.cubbossa.translations.persistent.StylesStorage;
 
 import java.io.File;
 import java.util.*;
@@ -54,14 +56,14 @@ public class PluginTranslationsBuilder {
         return this;
     }
 
-    public PluginTranslations build() {
-        PluginTranslations.Config c = new PluginTranslations.Config()
+    public MessageBundle build() {
+        MessageBundle.Config c = new MessageBundle.Config()
                 .defaultLocale(defaultLanguage)
                 .enabledLocales(enabledLocales)
                 .preferClientLanguage(preferClientLanguage)
                 .localeBundleStorage(localesStorage)
                 .stylesStorage(stylesStorage);
-        DefaultPluginTranslations translations = new DefaultPluginTranslations(this.translations, logger, c);
+        SimpleMessageBundle translations = new SimpleMessageBundle(this.translations, logger, c);
         this.translations.register(pluginName, translations);
         return translations;
     }

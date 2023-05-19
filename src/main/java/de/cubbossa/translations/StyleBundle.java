@@ -5,7 +5,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Map;
 
-public interface TranslationStyle {
+public interface StyleBundle {
 
   Map<String, Style> getStyles();
 
