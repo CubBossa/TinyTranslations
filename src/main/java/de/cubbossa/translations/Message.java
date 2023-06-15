@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 @Setter
 public final class Message implements ComponentLike, Cloneable, Comparable<Message> {
 
-    private static final MiniMessage S_MM = MiniMessage.miniMessage();
+    private static final MiniMessage S_MM = MiniMessage.builder()
+        .build();
     private static final GsonComponentSerializer S_GSON = GsonComponentSerializer.gson();
     private static final LegacyComponentSerializer S_LEGACY = LegacyComponentSerializer.legacySection();
     private static final LegacyComponentSerializer S_LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
