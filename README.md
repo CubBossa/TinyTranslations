@@ -1,219 +1,133 @@
 # Translations
 
-A translation framework to easily translate chat messages and GUI ItemStacks.
-This framework requires [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
-<br>This is the way!
+A translation framework to translate chat messages.
+This framework builds upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
 
----
+Translations are split into global server-wide translations and local application translations.
+Translations always come with a set of styles, which must not necessarily be used.
 
-### TODO
-- SQL Locale and Styles storage
-- YML Locale and Styles storage
-- Tests for <msg> placeholders
-- Test for color resolving
-- Test for .formatted() call
-- Test for overwriting translator configurations by main translations class
-
-### Content
-
-- [Requirements](#Requirements)
-- [Maven](#Maven)
-- [How to use](#How_to_use)
-
----
-
-## Requirements
-- [Kyori Adventure & MiniMessage](https://docs.adventure.kyori.net/minimessage/format.html)
-- [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
-
-## Maven
-
-Repo:
-```XML
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
+Example of the Server folder structure and how translations are included:
+```
+/Server
+  /plugins
+    
+    /Translations
+      styles.properties <--- global styling rules
+      en-US.yml <--- global messages (like the server name)
+    
+    /{your plugin}
+      /lang
+        styles.properties <--- application only styles
+        en-US.yml <--- application only messages
 ```
 
-Dependency:
-```XML
-<dependency>
-    <groupId>com.github.CubBossa</groupId>
-    <artifactId>Translations</artifactId>
-    <version>[VERSION]</version>
-</dependency>
+Styles are a simple map like the following:
+```Yaml
+# We use opening tags to define styles.
+text-light: "<white>"
+text: "<gray>"
+text-dark: "<dark-gray>"
 ```
 
----
+Messages can be stored in many ways, like SQL, Yaml or properties.
+In a properties file, messages would look like this:
+```properties
+some.example.message="<text-light>Some light text <aqua>that can also be styled directly</aqua></text-light>"
+some.example.reference="An embedded message: <msg:some.example-message>"
+```
 
-## How to use
+As can be seen in the example, messages can be embedded into each other, which
+allows you to simply create own messages and use them all over the place.
+Why is this useful? Think of the following example from my plugin:
+```properties
+# c-brand is a style for the main plugin color.
+# bg and bg-dark are global styles.
+prefix="<c-brand>PathFinder </c-brand><bg-dark>| </bg-dark><bg>"
+other.message="<msg:prefix>Hello."
+```
+Prefix is not a message that is enforced by the plugin.
+Users can simply create the entry and it will be loaded by the plugin and
+embeddedw in other messages.
 
-### Setup
+## Setup
 
 First, you have to initialize the TranslationHandler.
 
-```JAVA
-// Use your plugin main class as parameter.
-TranslationHandler th = new TranslationHandler(this);
-// Set fallback language
-th.setFallbackLanguage("en_US");
-// Choose if player client locales should be used
-th.setUseClientLanguage(true);
-// Save resources from your jar if needed
-// Should not be necessary when API used with Annotations
-th.saveResources(Locale.US);
-// Load all languages from [PLUGIN_DIR]/lang/
-th.loadLanguages();
+```Java
+// use your plugin name and plugin directory as parameters
+// it is important to use the actual plugin directory, because it will be
+// used to find the general plugins directory to place the Translations folder in.
+MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder(pl.getName(), pl.getDataFolder())
+        // The client locale will be read and used as player locale
+        .withPreferClientLanguage()
+        // The locale that will be used if all else fails
+        .withDefaultLocale(Locale.ENGLISH)
+        .withLogger(pl.getLogger())
+        // Define a storage for locale files.
+        // Here you could also provide different storages that e.g. support SQL
+        .withPropertiesStorage(dir)
+        // Define a storage for style files
+        .withPropertiesStyles(dir)
+        // All locales that are allowed. For every locale
+        // listed here there may be a locale file if any player has the
+        // according language as client language
+        .withEnabledLocales(Locale.getAvailableLocales())
+        .build();
 ```
-
-The fallback language will be used whenever a user requests a translation of a language that does not exist.
 
 ### Messages
 
-To send a message or customize a GUI, use the Message class.
+Messages can easily be set up as statics.
+Locale files can be generated from a class that holds Messages
+as static members.
+
+A fully defined message:
+```Java
+public static final Message ERR_NO_PLAYER = new MessageBuilder("error.must_be_player")
+        .withDefault("<c-negative>No player found: '<input>'.</c-negative>")
+        .withTranslation(Locale.GERMAN, "<c-negative>Spieler nicht gefunden: '<input>'.</c-negative>")
+        .withComment("Used to indicate if no player was found - who would have thought :P")
+        .withPlaceholder("input", "The used input that was supposed to be a playername.")
+        .build();
+```
+
+Or maybe just
+```Java
+public static final Message ERR_NO_PERM = new MessageBuilder("error.no_perm")
+        .withDefault("<c-negative>No permission!</c-negative>")
+        .build();
+```
+
+Don't forget to register all messages to your application!!
+```Java
+translations.addMessage(Messages.ERR_NO_PLAYER);
+translations.addMessage(Messages.ERR_NO_PERM);
+// or
+translations.addMessages(Messages.ERR_NO_PLAYER, Messages.ERR_NO_PERM);
+// or best:
+translations.addMessagesClass(Messages.class);
+```
+
+And now you can use the following code to get a translated component.
 
 ```Java
-public static final Message ERR_NO_PLAYER=new Message("error.must_be_player");
+// pass player audience to get a translation in player language
+Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER, myPlayerAudience);
+// if not, the Translator class will use the default language.
+Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER);
+// or format the message with placeholders
+Message formatted = Message.ERR_NO_PLAYER.formatted(
+    Placeholder.component("value1", componentabc),
+    Formatter.number("speed", playerSpeed)
+);
+Component myTranslatedComponent = translations.translate(formatted);
+// or inline
+Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER.formatted(
+    Placeholder.component("value1", componentabc),
+    Formatter.number("speed", playerSpeed)
+));
+
 ```
-
-Now you can use
-
-```Java
-TranslationHandler.getInstance().sendMessage(Messages.ERR_NO_PLAYER, player);
-```
-
-In inventories, use TranslatableItems to render items differently to everyone.
-
-You can also input a `FormattedMessage` object, which contains a message key but also an array of TagResolvers.
-TagResolvers are the way to go if you want to use custom placeholders like
-`<playername>`.
-
-All Messages require to be formatted with the MiniMessage formatting.
-Checkout [this site](https://docs.adventure.kyori.net/minimessage/format.html) for more information.
-
-### MessageFiles
-
-It becomes a horrible job to sync your [lang].yml and the class in which you store your Message Objects. Therefore, you
-can autogenerate the lang files for one language.
-
-First, you need to setup the class.
-
-```Java
-
-@MessageFile(
-		author = "CubBossa",
-		languageString = "en_US",
-		version = "1.0",
-		header = """
-				This is a long header
-				to demonstrate
-				the functionality.
-				"""
-)
-public class Messages {
-
-}
-```
-
-The provided information will be displayed as header information. You can use this space to inform the administrators
-about MiniMessage and how to use it.
-
-Now, let's add Messages with default values.
-
-```Java
-
-@MessageFile(author = "CubBossa")
-public class Messages {
-
-	@MessageMeta(
-			value = "This is just an example to demonstrate annotations.",
-			comment = {"multi", "line", "comment"},
-			placeholders = {"error", "player_name"})
-	public static final Message HELLO_WORLD = new Message("general.hello_world");
-
-	@MessageMeta(
-			value = "Another Example",
-			comment = "single line comment",
-			placeholders = "only_one"
-	)
-	public static final Message HELLO_SPACE = new Message("general.hello_space");
-}
-```
-
-You can also add group comments to sections, to prevent redundant information. E.g. if you have 10 messages for parsing,
-you could add a group comment for all 10 messages.
-
-Without Group Comment (placeholders in this case):
-
-```Java
-
-@MessageFile(author = "CubBossa")
-public class Messages {
-
-	@MessageMeta(value = "Error in format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_STRING = new Message("error.format.string");
-	@MessageMeta(value = "Error in number format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_INT = new Message("error.format.number");
-}
-```
-
-With Group Comment:
-
-```Java
-
-import de.cubbossa.translations.MessageGroupMeta;
-
-@MessageFile(author = "CubBossa")
-public class Messages {
-
-	@MessageGroupMeta(path = "error.format", placeholders = "format")
-	@MessageMeta(value = "Error in format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_STRING = new Message("error.format.string");
-	@MessageMeta(value = "Error in number format, please use <format>.", placeholders = "format")
-	public static final Message FORMAT_NUMBER = new Message("error.format.number");
-}
-```
-
-Result in comparison:
-<table>
-<tr><td>Without Group</td><td>With Group</td></tr>
-<tr>
-<td>
-
-```YML
-error:
-  format:
-    # Valid placeholders: <format>
-    string: "Error in format, please use <format>."
-    # Valid placeholders: <format>
-    number: "Error in number format, please use <format>."
-```
-
-</td>
-<td>
-
-```YML
-error:
-  # Valid placeholders: <format>
-  format:
-    string: "Error in format, please use <format>."
-    number: "Error in number format, please use <format>."
-```
-
-</td>
-</tr>
-</table>
-
-Finally, you have to generate your class. Use the following code to create your yml file. Call it before loading the
-languages if you want the language entries to be loaded instantly.
-
-```Java
-TranslationHandler.getInstance().registerAnnotatedLanguageClass(Messages.class);
-```
-
 
 
 

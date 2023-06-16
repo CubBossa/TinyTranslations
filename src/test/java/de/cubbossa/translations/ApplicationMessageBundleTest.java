@@ -2,6 +2,7 @@ package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class SimpleMessageBundleTest {
+class ApplicationMessageBundleTest {
 
     public static final File dir = new File("./src/test/resources/pf1");
 
@@ -30,10 +31,11 @@ class SimpleMessageBundleTest {
             .withDefault("Embedded: <msg:simple:true>a")
             .build();
 
-    static MessageBundle translations = GlobalTranslations.builder("test")
+    static MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("test", dir)
             .withDefaultLocale(Locale.ENGLISH)
             .withLogger(Logger.getLogger("TestLog"))
             .withPropertiesStorage(dir)
+            .withPropertiesStyles(dir)
             .withEnabledLocales(Locale.US, Locale.UK, Locale.GERMAN, Locale.ENGLISH, Locale.GERMANY, Locale.forLanguageTag("de-AT"))
             .build();
 

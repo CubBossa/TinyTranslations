@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 public class PluginTranslationsBuilder {
 
-    private final GlobalTranslations translations;
+    private final GlobalMessageBundle translations;
     private final String pluginName;
     private Logger logger = Logger.getLogger("Translations");
     private Locale defaultLanguage = Locale.US;
@@ -20,7 +20,7 @@ public class PluginTranslationsBuilder {
     private LocalesStorage localesStorage;
     private StylesStorage stylesStorage;
 
-    public PluginTranslationsBuilder(GlobalTranslations translations, String pluginName) {
+    public PluginTranslationsBuilder(GlobalMessageBundle translations, String pluginName) {
         this.translations = translations;
         this.pluginName = pluginName;
     }
@@ -66,7 +66,7 @@ public class PluginTranslationsBuilder {
                 .preferClientLanguage(preferClientLanguage)
                 .localeBundleStorage(localesStorage)
                 .stylesStorage(stylesStorage);
-        SimpleMessageBundle translations = new SimpleMessageBundle(this.translations, logger, c);
+        ApplicationMessageBundle translations = new ApplicationMessageBundle(this.translations, logger, c);
         this.translations.register(pluginName, translations);
         return translations;
     }

@@ -9,7 +9,7 @@ public interface StyleBundle {
 
   Map<String, Style> getStyles();
 
-  TagResolver getStylesAsResolver();
+  TagResolver getStylesResolver();
 
   void addStyle(String key, Style style);
 

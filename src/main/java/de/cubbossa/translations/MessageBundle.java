@@ -48,7 +48,7 @@ public interface MessageBundle extends Translator, StyleBundle {
 
     Locale getLocale(@Nullable Audience audience);
 
-    Collection<TagResolver> getResolvers();
+    TagResolver getBundleResolvers();
 
-    void addResolver(TagResolver resolver);
+    void addBundleResolver(TagResolver resolver);
 }

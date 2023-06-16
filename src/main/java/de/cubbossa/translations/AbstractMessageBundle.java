@@ -19,31 +19,66 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class SimpleMessageBundle implements MessageBundle {
+public abstract class AbstractMessageBundle implements MessageBundle {
 
-    private final GlobalTranslations translations;
+    protected final Map<String, Style> styleCache;
+    protected final Collection<TagResolver> styles;
+    protected final Collection<TagResolver> applicationResolvers;
     @Getter
-    private final Config config;
-    private final Map<String, Message> registeredMessages;
-    private final Map<Locale, Map<Message, String>> translationCache;
-    private final Map<String, Style> styleCache;
-    private final Collection<TagResolver> applicationResolvers;
-    private final Collection<TagResolver> styles;
-    private final Logger logger;
+    protected Config config;
+    protected final Map<String, Message> registeredMessages;
+    protected final Map<Locale, Map<Message, String>> translationCache;
+    protected final Logger logger;
 
-    public SimpleMessageBundle(GlobalTranslations translations, Logger logger) {
-        this(translations, logger, new Config());
-    }
-
-    public SimpleMessageBundle(GlobalTranslations translations, Logger logger, Config config) {
-        this.translations = translations;
+    public AbstractMessageBundle(Config config, Logger logger) {
+        this.styleCache = new HashMap<>();
+        this.styles = new HashSet<>();
+        this.applicationResolvers = new HashSet<>();
         this.config = config;
-        this.logger = logger;
         this.registeredMessages = new HashMap<>();
         this.translationCache = new HashMap<>();
-        this.styleCache = new HashMap<>();
-        this.applicationResolvers = new HashSet<>();
-        this.styles = new HashSet<>();
+        this.logger = logger;
+    }
+
+    @Override
+    public Map<String, Style> getStyles() {
+        return new HashMap<>(styleCache);
+    }
+
+    @Override
+    public TagResolver getStylesResolver() {
+        // TODO more caching
+        return TagResolver.resolver(styleCache.entrySet().stream()
+            .map(e -> TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(e.getValue()))))
+            .toList());
+    }
+
+    @Override
+    public void addStyle(String key, Style style) {
+        styleCache.put(key, style);
+    }
+
+    @Override
+    public void removeStyle(String key) {
+        styleCache.remove(key);
+    }
+
+    public CompletableFuture<Void> loadStyles() {
+        return CompletableFuture.runAsync(() -> {
+            StylesStorage handle = config.stylesStorage;
+            styles.clear();
+            styles.add(handle.loadStylesAsResolver());
+        });
+    }
+
+    @Override
+    public TagResolver getBundleResolvers() {
+        return TagResolver.resolver(applicationResolvers);
+    }
+
+    @Override
+    public void addBundleResolver(TagResolver resolver) {
+        applicationResolvers.add(resolver);
     }
 
     @Override
@@ -102,14 +137,6 @@ public class SimpleMessageBundle implements MessageBundle {
         });
     }
 
-    public CompletableFuture<Void> loadStyles() {
-        return CompletableFuture.runAsync(() -> {
-            StylesStorage handle = config.stylesStorage;
-            styles.clear();
-            styles.add(handle.loadStylesAsResolver());
-        });
-    }
-
     public void addMessage(Message message) {
         message.setTranslator(this);
         registeredMessages.put(message.getKey(), message);
@@ -140,17 +167,7 @@ public class SimpleMessageBundle implements MessageBundle {
         return registeredMessages.get(key);
     }
 
-    @Override
-    public Collection<TagResolver> getResolvers() {
-        return new HashSet<>(applicationResolvers);
-    }
-
-    @Override
-    public void addResolver(TagResolver resolver) {
-        applicationResolvers.add(resolver);
-    }
-
-    private String getTranslationRaw(Locale locale, Message message) {
+    protected String getTranslationRaw(Locale locale, Message message) {
         Map<Message, String> map = translationCache.get(locale);
         if (map == null || !map.containsKey(message)) {
             loadMessage(message, locale).join();
@@ -162,14 +179,13 @@ public class SimpleMessageBundle implements MessageBundle {
         return map.get(message);
     }
 
-    private Component getTranslation(Locale locale, Message message, Audience audience) {
+    protected Component getTranslation(Locale locale, Message message, Audience audience) {
         String translation = getTranslationRaw(locale, message);
         TagResolver resolver = TagResolver.builder()
                 .resolvers(message.getPlaceholderResolvers())
-                .resolvers(translations.getGlobalResolvers())
-                .resolver(translations.messageTags(this, message, audience))
-                .resolver(getStylesAsResolver())
-                .resolvers(applicationResolvers)
+                .resolver(getStylesResolver())
+                .resolver(getBundleResolvers())
+                .resolver(getMessageResolver(audience))
                 .build();
         return Message.Format.translate(translation, resolver);
     }
@@ -190,10 +206,10 @@ public class SimpleMessageBundle implements MessageBundle {
     }
 
     /**
-     * - Resolve default language
+     * - Resolve default locale
      * - Check if message is present in cache
      * - If not
-     * > create language file with all existing translations
+     * > create locale file with all existing translations
      * > Cache created translation
      * - return cache value
      *
@@ -215,26 +231,17 @@ public class SimpleMessageBundle implements MessageBundle {
         return getTranslation(supportedLocale(locale), message, null);
     }
 
-    @Override
-    public Map<String, Style> getStyles() {
-        return new HashMap<>(styleCache);
-    }
-
-    @Override
-    public TagResolver getStylesAsResolver() {
-        return TagResolver.resolver(styleCache.entrySet().stream()
-            .map(e -> TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(e.getValue()))))
-            .toList());
-    }
-
-    @Override
-    public void addStyle(String key, Style style) {
-        styleCache.put(key, style);
-    }
-
-    @Override
-    public void removeStyle(String key) {
-        styleCache.remove(key);
+    protected Locale supportedLocale(Locale anyLocale) {
+        // If locale supported then no issues
+        if (config.enabledLocales.contains(anyLocale)) {
+            return anyLocale;
+        }
+        // Have a look at locale without country
+        Locale reduced = Locale.forLanguageTag(anyLocale.getLanguage());
+        if (reduced == null || !config.enabledLocales.contains(reduced)) {
+            throw new IllegalStateException("Locale '" + anyLocale + "' is not supported by Translations.");
+        }
+        return reduced;
     }
 
     @Override
@@ -255,18 +262,5 @@ public class SimpleMessageBundle implements MessageBundle {
             // if player locale is not supported use default
             return getConfig().defaultLocale;
         }
-    }
-
-    private Locale supportedLocale(Locale anyLocale) {
-        // If locale supported then no issues
-        if (config.enabledLocales.contains(anyLocale)) {
-            return anyLocale;
-        }
-        // Have a look at language without country
-        Locale reduced = Locale.forLanguageTag(anyLocale.getLanguage());
-        if (reduced == null || !config.enabledLocales.contains(reduced)) {
-            throw new IllegalStateException("Locale '" + anyLocale + "' is not supported by Translations.");
-        }
-        return reduced;
     }
 }
