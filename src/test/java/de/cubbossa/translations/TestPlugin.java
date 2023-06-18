@@ -2,18 +2,24 @@ package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.util.FileUtil;
+import org.intellij.lang.annotations.RegExp;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Locale;
 import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final File dir = new File("./src/test/resources/pf");
+    public static final File dir = new File("./src/test/resources/plugins/pf");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -55,6 +61,27 @@ public class TestPlugin {
         Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalMessageBundle.applicationTranslationsBuilder("a", dir).build());
     }
 
+    private String fileContent(File file) {
+        try {
+            return new String(Files.readAllBytes(file.toPath()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void replaceInFile(File file, @RegExp String regex, String val) {
+        try {
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            String fileContent = new String (bytes);
+            fileContent = fileContent.replaceAll(regex, val);
+            try (FileWriter fw = new FileWriter(file)){
+                fw.write(fileContent);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     public void testFileCreation() {
         MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("testpl", dir)
@@ -71,6 +98,12 @@ public class TestPlugin {
 
         Assertions.assertTrue(dir.exists());
         Assertions.assertTrue(new File(dir, "en.properties").exists());
+
+        File en = new File(dir, "en.properties");
+        replaceInFile(en, "a", "e");
+        String before = fileContent(en);
+        translations.writeLocale(Locale.ENGLISH);
+        Assertions.assertEquals(before, fileContent(en));
     }
 
     @Test

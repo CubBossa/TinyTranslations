@@ -10,7 +10,10 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Getter
@@ -29,11 +32,12 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
             translations = new GlobalMessageBundle();
         }
         if (translations.config == null) {
+            translations.dataFolder = new File(pluginDir, "../Translations");
             translations.config = new Config()
                     .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), new File(pluginDir, "../Translations")))
                     .stylesStorage(new PropertiesStyles(new File(pluginDir, "../Translations/global_styles.properties")));
         }
-        return new PluginTranslationsBuilder(translations, pluginName);
+        return new PluginTranslationsBuilder(translations, pluginName, pluginDir);
     }
 
     public synchronized void register(String name, MessageBundle translations) {
@@ -47,19 +51,17 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
                     "key '" + name + "' already exists");
         }
         t.applicationMap.put(name, translations);
-
-
     }
 
+    @Getter
+    private File dataFolder;
     private final Map<String, MessageBundle> applicationMap;
-    private final Collection<TagResolver> bundleResolvers;
 
     public GlobalMessageBundle() {
         super(null, Logger.getLogger("Translations"));
         instance = this;
 
         this.applicationMap = new HashMap<>();
-        this.bundleResolvers = new ArrayList<>();
     }
 
     @Override

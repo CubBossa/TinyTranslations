@@ -96,7 +96,7 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
 
     private List<Entry> readFile(File file) {
 
-        Pattern keyValue = Pattern.compile("([a-zA-Z.]+)=((.)+)");
+        Pattern keyValue = Pattern.compile("^([a-zA-Z._-]+)=((.)+)$");
         List<Entry> entries = new ArrayList<>();
         List<String> comments = new ArrayList<>();
 

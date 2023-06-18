@@ -51,7 +51,7 @@ public class PropertiesStyles implements StylesStorage {
                 throw new RuntimeException(t);
             }
         }
-        Pattern keyValue = Pattern.compile("([a-zA-Z.]+)=((.)+)");
+        Pattern keyValue = Pattern.compile("([a-zA-Z._-]+)=((.)+)");
 
         Map<String, String> props = new HashMap<>();
 
@@ -78,9 +78,9 @@ public class PropertiesStyles implements StylesStorage {
         }
         MiniMessage miniMessage = MiniMessage.miniMessage();
         Map<String, Style> styles = new HashMap<>();
-        props.entrySet().forEach(e -> {
-            Component styleHolder = miniMessage.deserialize(e.getValue());
-            styles.put(e.getKey(), styleHolder.style());
+        props.forEach((key, value) -> {
+            Component styleHolder = miniMessage.deserialize(value);
+            styles.put(key, styleHolder.style());
         });
         return styles;
     }

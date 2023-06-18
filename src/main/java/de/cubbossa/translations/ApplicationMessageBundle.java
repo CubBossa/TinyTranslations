@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
@@ -7,20 +8,24 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.logging.Logger;
 
 public class ApplicationMessageBundle extends AbstractMessageBundle implements MessageBundle {
 
     private final GlobalMessageBundle global;
+    @Getter
+    private final File dataFolder;
 
-    public ApplicationMessageBundle(GlobalMessageBundle global, Logger logger) {
-        this(global, logger, new Config());
+    public ApplicationMessageBundle(GlobalMessageBundle global, File dataFolder, Logger logger) {
+        this(global, dataFolder, logger, new Config());
     }
 
-    public ApplicationMessageBundle(GlobalMessageBundle global, Logger logger, Config config) {
+    public ApplicationMessageBundle(GlobalMessageBundle global, File dataFolder, Logger logger, Config config) {
         super(config, logger);
         this.global = global;
+        this.dataFolder = dataFolder;
     }
 
     protected Component getTranslation(Locale locale, Message message, Audience audience) {

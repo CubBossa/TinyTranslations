@@ -5,6 +5,7 @@ import de.cubbossa.translations.persistent.StylesStorage;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.pointer.Pointer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -21,9 +22,11 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractMessageBundle implements MessageBundle {
 
+
+    protected boolean stylesCached = false;
     protected final Map<String, Style> styleCache;
-    protected final Collection<TagResolver> styles;
-    protected final Collection<TagResolver> applicationResolvers;
+    protected TagResolver styleResolverCache;
+    protected final Collection<TagResolver> bundleResolvers;
     @Getter
     protected Config config;
     protected final Map<String, Message> registeredMessages;
@@ -32,8 +35,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
 
     public AbstractMessageBundle(Config config, Logger logger) {
         this.styleCache = new HashMap<>();
-        this.styles = new HashSet<>();
-        this.applicationResolvers = new HashSet<>();
+        this.bundleResolvers = new HashSet<>();
         this.config = config;
         this.registeredMessages = new HashMap<>();
         this.translationCache = new HashMap<>();
@@ -42,15 +44,21 @@ public abstract class AbstractMessageBundle implements MessageBundle {
 
     @Override
     public Map<String, Style> getStyles() {
+        if (!stylesCached) {
+            loadStyles().join();
+        }
         return new HashMap<>(styleCache);
     }
 
     @Override
     public TagResolver getStylesResolver() {
-        // TODO more caching
-        return TagResolver.resolver(styleCache.entrySet().stream()
+        if (styleResolverCache != null) {
+            return styleResolverCache;
+        }
+        styleResolverCache = TagResolver.resolver(getStyles().entrySet().stream()
             .map(e -> TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(e.getValue()))))
             .toList());
+        return styleResolverCache;
     }
 
     @Override
@@ -66,42 +74,53 @@ public abstract class AbstractMessageBundle implements MessageBundle {
     public CompletableFuture<Void> loadStyles() {
         return CompletableFuture.runAsync(() -> {
             StylesStorage handle = config.stylesStorage;
-            styles.clear();
-            styles.add(handle.loadStylesAsResolver());
+            if (handle == null) {
+                return;
+            }
+            Map<String, Style> styleMap = handle.loadStyles();
+
+            styleCache.putAll(styleMap);
+        }).exceptionally(throwable -> {
+            logger.log(Level.SEVERE, "Error while loading styles", throwable);
+            return null;
         });
     }
 
     @Override
     public TagResolver getBundleResolvers() {
-        return TagResolver.resolver(applicationResolvers);
+        return TagResolver.resolver(bundleResolvers);
     }
 
     @Override
     public void addBundleResolver(TagResolver resolver) {
-        applicationResolvers.add(resolver);
+        bundleResolvers.add(resolver);
     }
 
     @Override
     public void clearCache() {
         translationCache.clear();
+        styleCache.clear();
+        styleResolverCache = null;
+        stylesCached = false;
     }
 
     @Override
     public CompletableFuture<Void> writeLocale(Locale locale) {
-        if (!config.enabledLocales.contains(locale)) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException("Unsupported locale: " + locale));
+        if (!config.generateMissingFiles.test(locale)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Cannot generate locale '" + locale + "'."));
         }
-        return CompletableFuture.runAsync(() -> {
+        return loadLocale(locale).thenRun(() -> {
             LocalesStorage handle = config.localeBundleStorage;
-            handle.writeMessages(registeredMessages.values().stream()
-                            .collect(Collectors.toMap(Function.identity(), m -> m.getDefaultTranslations().getOrDefault(locale, m.getDefaultValue()))),
-                    locale
-            );
+            Map<Message, String> map = new HashMap<>();
+            map.putAll(registeredMessages.values().stream()
+                    .collect(Collectors.toMap(Function.identity(), m -> m.getDefaultTranslations().getOrDefault(locale, m.getDefaultValue()))));
+            map.putAll(translationCache.get(locale));
+            handle.writeMessages(map, locale);
         });
     }
 
     public CompletableFuture<Void> loadLocale(Locale locale) {
-        if (!config.enabledLocales.contains(locale)) {
+        if (!config.localePredicate.test(locale)) {
             locale = Locale.US;
         }
         final Locale fLocale = locale;
@@ -124,7 +143,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
                 String s = message.getDefaultTranslations().get(supportedLocale);
                 if (s == null) {
                     Locale reduced = Locale.forLanguageTag(supportedLocale.getLanguage());
-                    if (config.enabledLocales.contains(reduced)) {
+                    if (config.localePredicate.test(reduced)) {
                         s = message.getDefaultTranslations().get(Locale.forLanguageTag(supportedLocale.getLanguage()));
                     }
                 }
@@ -157,7 +176,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
             try {
                 addMessage((Message) messageField.get(messageClass));
             } catch (Throwable t) {
-                logger.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName());
+                logger.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName(), t);
             }
         }
     }
@@ -233,12 +252,12 @@ public abstract class AbstractMessageBundle implements MessageBundle {
 
     protected Locale supportedLocale(Locale anyLocale) {
         // If locale supported then no issues
-        if (config.enabledLocales.contains(anyLocale)) {
+        if (config.localePredicate.test(anyLocale)) {
             return anyLocale;
         }
         // Have a look at locale without country
         Locale reduced = Locale.forLanguageTag(anyLocale.getLanguage());
-        if (reduced == null || !config.enabledLocales.contains(reduced)) {
+        if (reduced == null || !config.localePredicate.test(reduced)) {
             throw new IllegalStateException("Locale '" + anyLocale + "' is not supported by Translations.");
         }
         return reduced;
@@ -248,19 +267,19 @@ public abstract class AbstractMessageBundle implements MessageBundle {
     public Locale getLocale(@Nullable Audience audience) {
         // no specified audience -> default locale
         if (audience == null) {
-            return getConfig().defaultLocale;
-        }
-        // all audiences will receive the same locale -> default locale
-        if (!getConfig().preferClientLanguage) {
-            return getConfig().defaultLocale;
+            return config.defaultLocale;
         }
         // check actual client locale
-        Locale client = audience.getOrDefault(Identity.LOCALE, Locale.US);
+        Locale client = config.playerLocaleFunction.apply(audience);
+        if (client.equals(UNDEFINED)) {
+            logger.log(Level.WARNING, "Could not read locale of player '" + audience.getOrDefault(Identity.UUID, null) + "', fallback used.");
+            return config.defaultLocale;
+        }
         try {
             return supportedLocale(client);
         } catch (IllegalStateException e) {
             // if player locale is not supported use default
-            return getConfig().defaultLocale;
+            return config.defaultLocale;
         }
     }
 }

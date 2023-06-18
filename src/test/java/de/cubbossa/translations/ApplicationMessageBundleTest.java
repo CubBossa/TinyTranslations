@@ -45,7 +45,7 @@ class ApplicationMessageBundleTest {
       .withDefaultLocale(Locale.ENGLISH)
       .withLogger(Logger.getLogger("TestLog"))
       .withPropertiesStorage(dir)
-            .withPropertiesStyles(dir)
+      .withPropertiesStyles(new File(dir, "styles.properties"))
       .withEnabledLocales(Locale.US, Locale.UK, Locale.GERMAN, Locale.ENGLISH, Locale.GERMANY, Locale.forLanguageTag("de-AT"))
       .build();
 
