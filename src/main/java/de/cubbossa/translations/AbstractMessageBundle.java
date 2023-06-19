@@ -251,6 +251,9 @@ public abstract class AbstractMessageBundle implements MessageBundle {
     }
 
     protected Locale supportedLocale(Locale anyLocale) {
+        if (anyLocale == null || anyLocale.toLanguageTag().equals("und")) {
+            return config.defaultLocale;
+        }
         // If locale supported then no issues
         if (config.localePredicate.test(anyLocale)) {
             return anyLocale;
@@ -272,7 +275,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
         // check actual client locale
         Locale client = config.playerLocaleFunction.apply(audience);
         if (client.equals(UNDEFINED)) {
-            logger.log(Level.WARNING, "Could not read locale of player '" + audience.getOrDefault(Identity.UUID, null) + "', fallback used.");
+            logger.log(Level.WARNING, "Could not read locale of player '" + audience.getOrDefault(Identity.UUID, null) + "', " + config.defaultLocale.toLanguageTag() + " used.");
             return config.defaultLocale;
         }
         try {

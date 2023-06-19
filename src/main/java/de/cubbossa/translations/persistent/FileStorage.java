@@ -39,9 +39,7 @@ public abstract class FileStorage {
 
     void mkDir() {
         if (!directory.exists()) {
-            if (!directory.mkdirs()) {
-                throw new RuntimeException("Could not create locale directory");
-            }
+            directory.mkdirs();
         }
     }
 

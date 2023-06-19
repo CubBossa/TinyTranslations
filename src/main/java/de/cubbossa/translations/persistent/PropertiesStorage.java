@@ -3,6 +3,7 @@ package de.cubbossa.translations.persistent;
 import de.cubbossa.translations.Message;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,7 +71,7 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
     private void writeFile(File file, List<Entry> entries) {
         BufferedWriter writer;
         try {
-            writer = new BufferedWriter(new FileWriter(file));
+            writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
             for (Entry entry : entries) {
                 if (entry.comment() != null) {
                     if (!(entry.comment().isEmpty() || entry.comment().isBlank())) {
@@ -101,7 +102,7 @@ public class PropertiesStorage extends FileStorage implements LocalesStorage {
         List<String> comments = new ArrayList<>();
 
         int lineIndex = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lineIndex++;

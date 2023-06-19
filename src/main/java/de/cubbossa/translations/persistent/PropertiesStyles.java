@@ -21,7 +21,7 @@ public class PropertiesStyles implements StylesStorage {
             try {
                 file.createNewFile();
             } catch (Throwable t) {
-                throw new IllegalStateException("Could not create properties file.");
+                throw new IllegalStateException("Could not create properties file.", t);
             }
         }
         if (file.isDirectory()) {

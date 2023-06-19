@@ -32,10 +32,10 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
             translations = new GlobalMessageBundle();
         }
         if (translations.config == null) {
-            translations.dataFolder = new File(pluginDir, "../Translations");
+            translations.dataFolder = new File(pluginDir, "../lang");
             translations.config = new Config()
-                    .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), new File(pluginDir, "../Translations")))
-                    .stylesStorage(new PropertiesStyles(new File(pluginDir, "../Translations/global_styles.properties")));
+                    .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), translations.dataFolder))
+                    .stylesStorage(new PropertiesStyles(new File(translations.dataFolder, "global_styles.properties")));
         }
         return new PluginTranslationsBuilder(translations, pluginName, pluginDir);
     }

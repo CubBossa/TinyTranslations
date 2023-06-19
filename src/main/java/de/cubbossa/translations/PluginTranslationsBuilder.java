@@ -97,6 +97,10 @@ public class PluginTranslationsBuilder {
     }
 
     public MessageBundle build() {
+        if (defaultLanguage == null || defaultLanguage.toLanguageTag().equals("und")) {
+            throw new IllegalArgumentException("Default locale must be valid: " + (defaultLanguage == null
+                ? null : defaultLanguage.toLanguageTag()));
+        }
         MessageBundle.Config c = new MessageBundle.Config()
                 .defaultLocale(defaultLanguage)
                 .localePredicate(localeFilter)
