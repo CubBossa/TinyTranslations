@@ -30,6 +30,15 @@ public interface MessageBundle extends Translator, StyleBundle {
         protected Function<Audience, Locale> playerLocaleFunction = audience -> defaultLocale;
         protected LocalesStorage localeBundleStorage;
         protected StylesStorage stylesStorage;
+
+        public Config defaultLocale(Locale defaultLocale) {
+            if (defaultLocale == null || defaultLocale.toLanguageTag().equals("und")) {
+                throw new IllegalArgumentException("Default locale must be valid: " + (defaultLocale == null
+                    ? null : defaultLocale.toLanguageTag()));
+            }
+            this.defaultLocale = defaultLocale;
+            return this;
+        }
     }
 
     File getDataFolder();
