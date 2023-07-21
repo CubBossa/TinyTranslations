@@ -4,12 +4,16 @@ import de.cubbossa.translations.persistent.PropertiesStorage;
 import de.cubbossa.translations.persistent.PropertiesStyles;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +30,7 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
         return instance;
     }
 
+    @SneakyThrows
     public static PluginTranslationsBuilder applicationTranslationsBuilder(String pluginName, File pluginDir) {
         GlobalMessageBundle translations = GlobalMessageBundle.get();
         if (translations == null) {
@@ -33,6 +38,15 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
         }
         if (translations.config == null) {
             translations.dataFolder = new File(pluginDir, "../lang");
+            translations.dataFolder.mkdirs();
+            File readme = new File(translations.dataFolder, "README.txt");
+            readme.createNewFile();
+            InputStream is = translations.getClass().getResourceAsStream("/README.txt");
+            FileOutputStream os = new FileOutputStream(readme);
+            os.write(is.readAllBytes());
+            os.close();
+            is.close();
+
             translations.config = new Config()
                     .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), translations.dataFolder))
                     .stylesStorage(new PropertiesStyles(new File(translations.dataFolder, "global_styles.properties")));

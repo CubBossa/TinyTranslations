@@ -28,10 +28,10 @@ public abstract class FileStorage {
         File global = GlobalMessageBundle.get().getDataFolder();
 
         try {
-            Files.createSymbolicLink(new File(global, directory.getParentFile().getName()).toPath(), directory.toPath());
-            Files.createSymbolicLink(new File(directory, global.getName()).toPath(), global.toPath());
-        } catch (FileSystemException ignored) {
-        } catch (IOException e) {
+            // TODO the following code creates undeletable files on linux and no files at all on windows
+            // Files.createSymbolicLink(new File(global, directory.getParentFile().getName()).toPath(), directory.toPath());
+            // Files.createSymbolicLink(new File(directory, global.getName()).toPath(), global.toPath());
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
