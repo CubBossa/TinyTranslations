@@ -5,9 +5,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.util.List;
@@ -20,8 +19,6 @@ import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ApplicationMessageBundleTest {
-
-  public static final File dir = new File("./src/test/resources/pf1");
 
   public static final Message SIMPLE = new MessageBuilder("simple")
       .withDefault("<red>Hello world")
@@ -41,28 +38,26 @@ class ApplicationMessageBundleTest {
       .withDefault("Hello\nworld")
       .build();
 
-  static MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("test", dir)
-      .withDefaultLocale(Locale.ENGLISH)
-      .withLogger(Logger.getLogger("TestLog"))
-      .withPropertiesStorage(dir)
-      .withPropertiesStyles(new File(dir, "styles.properties"))
-      .withEnabledLocales(Locale.US, Locale.UK, Locale.GERMAN, Locale.ENGLISH, Locale.GERMANY, Locale.forLanguageTag("de-AT"))
-      .build();
+  MessageBundle translations;
 
-  @BeforeAll
-  public static void beforeAll() {
-    translations.addMessage(SIMPLE);
-    translations.addMessage(EMBED);
-    translations.addMessage(EMBED_NO_BLEED);
-    translations.addMessage(NEW_LINE);
+  @BeforeEach
+  public void beforeEach(@TempDir File dir) {
+    translations = GlobalMessageBundle.applicationTranslationsBuilder("test", dir)
+            .withDefaultLocale(Locale.ENGLISH)
+            .withLogger(Logger.getLogger("TestLog"))
+            .withPropertiesStorage(dir)
+            .withPropertiesStyles(new File(dir, "styles.properties"))
+            .withEnabledLocales(Locale.US, Locale.UK, Locale.GERMAN, Locale.ENGLISH, Locale.GERMANY, Locale.forLanguageTag("de-AT"))
+            .build();
+    translations.addMessage(SIMPLE.clone(translations));
+    translations.addMessage(EMBED.clone(translations));
+    translations.addMessage(EMBED_NO_BLEED.clone(translations));
+    translations.addMessage(NEW_LINE.clone(translations));
   }
 
-  @AfterAll
-  public static void afterAll() {
-    for (File file : dir.listFiles()) {
-      file.delete();
-    }
-    dir.delete();
+  @AfterEach
+  public void afterEach() {
+    GlobalMessageBundle.get().unregister("test");
   }
 
   @Test

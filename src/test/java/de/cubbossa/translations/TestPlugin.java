@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,8 +19,6 @@ import java.util.Locale;
 import java.util.logging.Logger;
 
 public class TestPlugin {
-
-    public static final File dir = new File("./src/test/resources/plugins/pf");
 
     public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
@@ -40,23 +39,8 @@ public class TestPlugin {
     public static final Message TEST_A = new MessageBuilder("sorted.a")
             .withDefault("Abc").build();
 
-    @BeforeAll
-    public static void beforeAll() {
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        for (File file : dir.listFiles()) {
-            file.delete();
-        }
-        dir.delete();
-    }
-
     @Test
-    public void testPreventDuplicateKey() {
+    public void testPreventDuplicateKey(@TempDir File dir) {
         GlobalMessageBundle.applicationTranslationsBuilder("a", dir).build();
         Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalMessageBundle.applicationTranslationsBuilder("a", dir).build());
     }
@@ -83,7 +67,7 @@ public class TestPlugin {
     }
 
     @Test
-    public void testFileCreation() {
+    public void testFileCreation(@TempDir File dir) {
         MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("testpl", dir)
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
@@ -107,7 +91,7 @@ public class TestPlugin {
     }
 
     @Test
-    public void testLoad() {
+    public void testLoad(@TempDir File dir) {
 
         MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("testpl1", dir)
                 .withLogger(Logger.getLogger("testTranslations"))

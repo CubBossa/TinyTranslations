@@ -54,6 +54,17 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
         return new PluginTranslationsBuilder(translations, pluginName, pluginDir);
     }
 
+    @Getter
+    private File dataFolder;
+
+    private final Map<String, MessageBundle> applicationMap;
+    public GlobalMessageBundle() {
+        super(null, Logger.getLogger("Translations"));
+        instance = this;
+
+        this.applicationMap = new HashMap<>();
+    }
+
     public synchronized void register(String name, MessageBundle translations) {
         GlobalMessageBundle t = GlobalMessageBundle.get();
         if (t == null) {
@@ -67,15 +78,12 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
         t.applicationMap.put(name, translations);
     }
 
-    @Getter
-    private File dataFolder;
-    private final Map<String, MessageBundle> applicationMap;
-
-    public GlobalMessageBundle() {
-        super(null, Logger.getLogger("Translations"));
-        instance = this;
-
-        this.applicationMap = new HashMap<>();
+    public synchronized boolean unregister(String name) {
+        GlobalMessageBundle t = GlobalMessageBundle.get();
+        if (t == null) {
+            t = new GlobalMessageBundle();
+        }
+        return t.applicationMap.remove(name) != null;
     }
 
     @Override
