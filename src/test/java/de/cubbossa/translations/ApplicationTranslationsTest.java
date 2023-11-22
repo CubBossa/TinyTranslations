@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -14,11 +13,10 @@ import java.util.Locale;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ApplicationMessageBundleTest {
+class ApplicationTranslationsTest {
 
   public static final Message SIMPLE = new MessageBuilder("simple")
       .withDefault("<red>Hello world")
@@ -38,11 +36,11 @@ class ApplicationMessageBundleTest {
       .withDefault("Hello\nworld")
       .build();
 
-  MessageBundle translations;
+  MessageSet translations;
 
   @BeforeEach
   public void beforeEach(@TempDir File dir) {
-    translations = GlobalMessageBundle.applicationTranslationsBuilder("test", dir)
+    translations = GlobalTranslations.applicationTranslationsBuilder("test", dir)
             .withDefaultLocale(Locale.ENGLISH)
             .withLogger(Logger.getLogger("TestLog"))
             .withPropertiesStorage(dir)
@@ -57,7 +55,7 @@ class ApplicationMessageBundleTest {
 
   @AfterEach
   public void afterEach() {
-    GlobalMessageBundle.get().unregister("test");
+    GlobalTranslations.get().unregister("test");
   }
 
   @Test

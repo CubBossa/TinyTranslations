@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class YamlStorage extends FileStorage implements LocalesStorage {
+public class YamlStorage extends FileStorage implements MessageStorage {
 
     private final Yaml yaml;
 

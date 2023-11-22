@@ -2,16 +2,12 @@ package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.util.FileUtil;
 import org.intellij.lang.annotations.RegExp;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,8 +37,8 @@ public class TestPlugin {
 
     @Test
     public void testPreventDuplicateKey(@TempDir File dir) {
-        GlobalMessageBundle.applicationTranslationsBuilder("a", dir).build();
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalMessageBundle.applicationTranslationsBuilder("a", dir).build());
+        GlobalTranslations.applicationTranslationsBuilder("a", dir).build();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalTranslations.applicationTranslationsBuilder("a", dir).build());
     }
 
     private String fileContent(File file) {
@@ -68,7 +64,7 @@ public class TestPlugin {
 
     @Test
     public void testFileCreation(@TempDir File dir) {
-        MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("testpl", dir)
+        MessageSet translations = GlobalTranslations.applicationTranslationsBuilder("testpl", dir)
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
                 .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
@@ -93,7 +89,7 @@ public class TestPlugin {
     @Test
     public void testLoad(@TempDir File dir) {
 
-        MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder("testpl1", dir)
+        MessageSet translations = GlobalTranslations.applicationTranslationsBuilder("testpl1", dir)
                 .withLogger(Logger.getLogger("testTranslations"))
                 .withDefaultLocale(Locale.ENGLISH)
                 .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)

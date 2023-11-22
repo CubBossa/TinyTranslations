@@ -1,9 +1,9 @@
 package de.cubbossa.translations;
 
-import de.cubbossa.translations.persistent.LocalesStorage;
+import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.PropertiesStorage;
-import de.cubbossa.translations.persistent.PropertiesStyles;
-import de.cubbossa.translations.persistent.StylesStorage;
+import de.cubbossa.translations.persistent.PropertiesStyleStorage;
+import de.cubbossa.translations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 public class PluginTranslationsBuilder {
 
-    private final GlobalMessageBundle translations;
+    private final GlobalTranslations translations;
     private final String pluginName;
     private final File dataFolder;
     private Logger logger = Logger.getLogger("Translations");
@@ -25,10 +25,10 @@ public class PluginTranslationsBuilder {
     private Predicate<Locale> localeFilter = enabledLocales::contains;
     private Predicate<Locale> fileGenerationFilter = generationLocales::contains;
     private Function<Audience, Locale> localeSupplier = audience -> defaultLanguage;
-    private LocalesStorage localesStorage;
-    private StylesStorage stylesStorage;
+    private MessageStorage messageStorage;
+    private StyleStorage styleStorage;
 
-    public PluginTranslationsBuilder(GlobalMessageBundle translations, String pluginName, File dataFolder) {
+    public PluginTranslationsBuilder(GlobalTranslations translations, String pluginName, File dataFolder) {
         this.translations = translations;
         this.pluginName = pluginName;
         this.dataFolder = dataFolder;
@@ -87,25 +87,25 @@ public class PluginTranslationsBuilder {
     }
 
     public PluginTranslationsBuilder withPropertiesStorage(File directory) {
-        this.localesStorage = new PropertiesStorage(logger, directory);
+        this.messageStorage = new PropertiesStorage(logger, directory);
         return this;
     }
 
     public PluginTranslationsBuilder withPropertiesStyles(File styleFile) {
-        this.stylesStorage = new PropertiesStyles(styleFile);
+        this.styleStorage = new PropertiesStyleStorage(styleFile);
         return this;
     }
 
-    public MessageBundle build() {
+    public MessageSet build() {
 
-        MessageBundle.Config c = new MessageBundle.Config()
+        MessageSet.Config c = new MessageSet.Config()
                 .defaultLocale(defaultLanguage)
                 .localePredicate(localeFilter)
                 .generateMissingFiles(fileGenerationFilter)
                 .playerLocaleFunction(localeSupplier)
-                .localeBundleStorage(localesStorage)
-                .stylesStorage(stylesStorage);
-        ApplicationMessageBundle translations = new ApplicationMessageBundle(this.translations, dataFolder, logger, c);
+                .localeBundleStorage(messageStorage)
+                .styleStorage(styleStorage);
+        ApplicationTranslations translations = new ApplicationTranslations(this.translations, dataFolder, logger, c);
         this.translations.register(pluginName, translations);
         return translations;
     }

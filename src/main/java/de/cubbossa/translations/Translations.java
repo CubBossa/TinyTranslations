@@ -1,22 +1,21 @@
 package de.cubbossa.translations;
 
-import de.cubbossa.translations.persistent.FileStorage;
-import de.cubbossa.translations.persistent.LocalesStorage;
-import de.cubbossa.translations.persistent.StylesStorage;
+import de.cubbossa.translations.persistent.MessageStorage;
+import de.cubbossa.translations.persistent.StyleStorage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.jetbrains.annotations.Nullable;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.io.File;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface MessageBundle extends Translator, StyleBundle {
+public interface Translations extends Translator {
 
     Locale UNDEFINED = Locale.forLanguageTag("und");
 
@@ -28,42 +27,55 @@ public interface MessageBundle extends Translator, StyleBundle {
         protected Predicate<Locale> generateMissingFiles = locale -> Arrays.asList(Locale.getAvailableLocales()).contains(locale);
         protected Predicate<Locale> localePredicate = locale -> true;
         protected Function<Audience, Locale> playerLocaleFunction = audience -> defaultLocale;
-        protected LocalesStorage localeBundleStorage;
-        protected StylesStorage stylesStorage;
 
         public Config defaultLocale(Locale defaultLocale) {
             if (defaultLocale == null || defaultLocale.toLanguageTag().equals("und")) {
                 throw new IllegalArgumentException("Default locale must be valid: " + (defaultLocale == null
-                    ? null : defaultLocale.toLanguageTag()));
+                        ? null : defaultLocale.toLanguageTag()));
             }
             this.defaultLocale = defaultLocale;
             return this;
         }
     }
 
-    File getDataFolder();
+    static Translations global() {
 
-    void clearCache();
+    }
 
-    CompletableFuture<Void> loadStyles();
+    static PluginTranslationsBuilder application(String name, File directory) {
+        return new PluginTranslationsBuilder(global(), name, directory);
+    }
 
-    CompletableFuture<Void> writeLocale(Locale locale);
+    void loadStyles();
 
-    CompletableFuture<Void> loadLocale(Locale locale);
+    void saveStyles();
 
-    void addMessage(Message message);
+    void loadLocale(Locale locale);
 
-    void addMessages(Message...messages);
+    void saveLocale(Locale locale);
 
-    void addMessagesClass(Class<?> fromClass);
 
-    Message getMessage(String key);
+    MiniMessage getMiniMessage();
 
-    Config getConfig();
+    void setMiniMessage(MiniMessage miniMessage);
 
-    Locale getLocale(@Nullable Audience audience);
 
-    TagResolver getBundleResolvers();
+    MessageSet getMessageSet();
 
-    void addBundleResolver(TagResolver resolver);
+    void setMessageSet(MessageSet set);
+
+    MessageStorage getMessageStorage();
+
+    void setMessageStorage(MessageStorage storage);
+
+    StyleSet getStyleSet();
+
+    void setStyleSet(StyleSet set);
+
+    StyleStorage getStyleStorage();
+
+    void setStyleStorage(StyleStorage storage);
+
+
+    Locale getUserLocale(UUID user);
 }

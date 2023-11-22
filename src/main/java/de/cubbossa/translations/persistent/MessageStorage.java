@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-public interface LocalesStorage {
+public interface MessageStorage {
 
     Optional<String> readMessage(Message message, Locale locale);
 

@@ -1,11 +1,9 @@
 package de.cubbossa.translations.persistent;
 
-import de.cubbossa.translations.GlobalMessageBundle;
+import de.cubbossa.translations.GlobalTranslations;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -25,7 +23,7 @@ public abstract class FileStorage {
         this.directory = directory;
         this.fileSuffix = suffix;
 
-        File global = GlobalMessageBundle.get().getDataFolder();
+        File global = GlobalTranslations.get().getDataFolder();
 
         try {
             // TODO the following code creates undeletable files on linux and no files at all on windows

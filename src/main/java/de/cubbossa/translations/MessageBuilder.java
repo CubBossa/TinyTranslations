@@ -60,7 +60,7 @@ public class MessageBuilder {
     }
 
     public Message build() {
-        Message message = new Message(key, GlobalMessageBundle.get());
+        Message message = new Message(key, GlobalTranslations.get());
         message.setComment(String.join("\n", comments));
         message.setDefaultValue(defaultValue);
         message.setDefaultTranslations(translations);

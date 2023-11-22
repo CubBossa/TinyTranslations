@@ -12,13 +12,12 @@ import java.io.FileReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class PropertiesStyles implements StylesStorage {
+public class PropertiesStyleStorage implements StyleStorage {
 
     private final File file;
 
-    public PropertiesStyles(File file) {
+    public PropertiesStyleStorage(File file) {
         if (!file.exists()) {
             try {
                 file.createNewFile();

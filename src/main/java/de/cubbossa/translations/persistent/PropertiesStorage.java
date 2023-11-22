@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PropertiesStorage extends FileStorage implements LocalesStorage {
+public class PropertiesStorage extends FileStorage implements MessageStorage {
 
 
     public PropertiesStorage(Logger logger, File directory) {

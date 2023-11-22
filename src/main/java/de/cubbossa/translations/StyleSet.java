@@ -4,9 +4,8 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
-public interface StyleBundle {
+public interface StyleSet {
 
   Map<String, Style> getStyles();
 

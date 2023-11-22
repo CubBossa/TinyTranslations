@@ -1,11 +1,10 @@
 package de.cubbossa.translations;
 
-import de.cubbossa.translations.persistent.LocalesStorage;
-import de.cubbossa.translations.persistent.StylesStorage;
+import de.cubbossa.translations.persistent.MessageStorage;
+import de.cubbossa.translations.persistent.StyleStorage;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
-import net.kyori.adventure.pointer.Pointer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -20,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public abstract class AbstractMessageBundle implements MessageBundle {
+public abstract class AbstractMessageSet implements MessageSet {
 
 
     protected boolean stylesCached = false;
@@ -33,7 +32,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
     protected final Map<Locale, Map<Message, String>> translationCache;
     protected final Logger logger;
 
-    public AbstractMessageBundle(Config config, Logger logger) {
+    public AbstractMessageSet(Config config, Logger logger) {
         this.styleCache = new HashMap<>();
         this.bundleResolvers = new HashSet<>();
         this.config = config;
@@ -73,7 +72,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
 
     public CompletableFuture<Void> loadStyles() {
         return CompletableFuture.runAsync(() -> {
-            StylesStorage handle = config.stylesStorage;
+            StyleStorage handle = config.styleStorage;
             if (handle == null) {
                 return;
             }
@@ -110,7 +109,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Cannot generate locale '" + locale + "'."));
         }
         return loadLocale(locale).thenRun(() -> {
-            LocalesStorage handle = config.localeBundleStorage;
+            MessageStorage handle = config.localeBundleStorage;
             Map<Message, String> map = new HashMap<>();
             map.putAll(registeredMessages.values().stream()
                     .collect(Collectors.toMap(Function.identity(), m -> m.getDefaultTranslations().getOrDefault(locale, m.getDefaultValue()))));
@@ -125,7 +124,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
         }
         final Locale fLocale = locale;
         return CompletableFuture.runAsync(() -> {
-            LocalesStorage handle = config.localeBundleStorage;
+            MessageStorage handle = config.localeBundleStorage;
             translationCache.computeIfAbsent(fLocale, x -> new HashMap<>()).putAll(
                     handle.readMessages(registeredMessages.values(), fLocale)
             );
@@ -135,7 +134,7 @@ public abstract class AbstractMessageBundle implements MessageBundle {
     public CompletableFuture<Void> loadMessage(Message message, Locale locale) {
         return CompletableFuture.runAsync(() -> {
             Locale supportedLocale = supportedLocale(locale);
-            LocalesStorage handle = config.localeBundleStorage;
+            MessageStorage handle = config.localeBundleStorage;
             Optional<String> translation = handle.readMessage(message, supportedLocale);
             if (translation.isPresent()) {
                 translationCache.computeIfAbsent(supportedLocale, x -> new HashMap<>()).put(message, translation.get());

@@ -1,7 +1,7 @@
 package de.cubbossa.translations;
 
 import de.cubbossa.translations.persistent.PropertiesStorage;
-import de.cubbossa.translations.persistent.PropertiesStyles;
+import de.cubbossa.translations.persistent.PropertiesStyleStorage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -11,7 +11,6 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -22,19 +21,19 @@ import java.util.logging.Logger;
 
 @Getter
 @Setter
-public class GlobalMessageBundle extends AbstractMessageBundle implements MessageBundle {
+public class GlobalTranslations extends AbstractMessageSet implements MessageSet {
 
-    private static GlobalMessageBundle instance;
+    private static GlobalTranslations instance;
 
-    public static GlobalMessageBundle get() {
+    public static GlobalTranslations get() {
         return instance;
     }
 
     @SneakyThrows
     public static PluginTranslationsBuilder applicationTranslationsBuilder(String pluginName, File pluginDir) {
-        GlobalMessageBundle translations = GlobalMessageBundle.get();
+        GlobalTranslations translations = GlobalTranslations.get();
         if (translations == null) {
-            translations = new GlobalMessageBundle();
+            translations = new GlobalTranslations();
         }
         if (translations.config == null) {
             translations.dataFolder = new File(pluginDir, "../lang");
@@ -49,7 +48,7 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
 
             translations.config = new Config()
                     .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), translations.dataFolder))
-                    .stylesStorage(new PropertiesStyles(new File(translations.dataFolder, "global_styles.properties")));
+                    .styleStorage(new PropertiesStyleStorage(new File(translations.dataFolder, "global_styles.properties")));
         }
         return new PluginTranslationsBuilder(translations, pluginName, pluginDir);
     }
@@ -57,18 +56,18 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
     @Getter
     private File dataFolder;
 
-    private final Map<String, MessageBundle> applicationMap;
-    public GlobalMessageBundle() {
+    private final Map<String, MessageSet> applicationMap;
+    public GlobalTranslations() {
         super(null, Logger.getLogger("Translations"));
         instance = this;
 
         this.applicationMap = new HashMap<>();
     }
 
-    public synchronized void register(String name, MessageBundle translations) {
-        GlobalMessageBundle t = GlobalMessageBundle.get();
+    public synchronized void register(String name, MessageSet translations) {
+        GlobalTranslations t = GlobalTranslations.get();
         if (t == null) {
-            t = new GlobalMessageBundle();
+            t = new GlobalTranslations();
         }
 
         if (t.applicationMap.containsKey(name)) {
@@ -79,9 +78,9 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
     }
 
     public synchronized boolean unregister(String name) {
-        GlobalMessageBundle t = GlobalMessageBundle.get();
+        GlobalTranslations t = GlobalTranslations.get();
         if (t == null) {
-            t = new GlobalMessageBundle();
+            t = new GlobalTranslations();
         }
         return t.applicationMap.remove(name) != null;
     }
@@ -102,11 +101,11 @@ public class GlobalMessageBundle extends AbstractMessageBundle implements Messag
                 .orElseGet(() -> getMessage(key));
     }
 
-    private Optional<MessageBundle> getApplicationFromKey(String messageKey) {
+    private Optional<MessageSet> getApplicationFromKey(String messageKey) {
         return Optional.ofNullable(applicationMap.get(messageKey.split("\\.")[0]));
     }
 
-    private Optional<MessageBundle> getApplicationFromKey(Message message) {
+    private Optional<MessageSet> getApplicationFromKey(Message message) {
         return getApplicationFromKey(message.getKey());
     }
 

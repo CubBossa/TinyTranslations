@@ -40,6 +40,7 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
         private final String prefix;
 
         private final BiFunction<String, TagResolver, Component> translator;
+
         Format() {
             this.prefix = toString().toLowerCase();
             this.translator = (s, tagResolver) -> Component.text(s);
@@ -86,10 +87,20 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
 	private String defaultValue;
 	private Map<Locale, String> defaultTranslations;
-	private String comment;
-	private Map<String, Optional<String>> placeholderTags;
-	private Collection<TagResolver> placeholderResolvers;
-	private Translator translator;
+    private Map<String, Optional<String>> placeholderTags;
+    private String comment;
+    private Translator translator;
+
+    private Collection<TagResolver> placeholderResolvers;
+    private Audience audience;
+
+    public Message(String key) {
+        this(key, GlobalTranslations.get());
+    }
+
+    public Message(String key, String defaultValue) {
+        this(key, defaultValue, GlobalTranslations.get());
+    }
 
     public Message(String key, Translator translator) {
         this(key, "No default translation present", translator);
@@ -105,19 +116,31 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
     }
 
     public void setTranslator(Translator translator) {
-        if (this.translator != null && !this.translator.equals(translator)) {
-            throw new IllegalStateException("Cannot add message to two different translators. Create a new message instance instead or use .clone().");
-        }
         this.translator = translator;
     }
 
     @Override
     public @NotNull Component asComponent() {
-        return translator.translate(this);
+        return audience == null
+                ? translator.translate(this)
+                : translator.translate(this, audience);
     }
 
     public Component asComponent(Audience audience) {
         return translator.translate(this, audience);
+    }
+
+    public Audience getAudience() {
+        return audience;
+    }
+
+    public void setAudience(Audience audience) {
+        this.audience = audience;
+    }
+
+    public Message format(Audience audience) {
+        this.audience = audience;
+        return this;
     }
 
     public Message format(TagResolver... resolver) {
