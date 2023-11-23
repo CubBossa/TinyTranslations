@@ -15,5 +15,5 @@ public interface MessageStorage {
 
     boolean writeMessage(Message message, Locale locale, String translation);
 
-    Collection<Message> writeMessages(Map<Message, String> messages, Locale locale);
+    Collection<Message> writeMessages(Collection<Message> messages, Locale locale);
 }

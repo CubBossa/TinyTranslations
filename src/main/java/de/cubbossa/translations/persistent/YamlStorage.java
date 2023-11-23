@@ -46,15 +46,15 @@ public class YamlStorage extends FileStorage implements MessageStorage {
 
     @Override
     public boolean writeMessage(Message message, Locale locale, String translation) {
-        return writeMessages(Map.of(message, translation), locale).contains(message);
+        return writeMessages(Set.of(message), locale).contains(message);
     }
 
     @Override
-    public Collection<Message> writeMessages(Map<Message, String> messages, Locale locale) {
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
         Map<String, Object> result = new HashMap<>();
         Collection<Message> success = new HashSet<>();
 
-        messages.forEach((message, s) -> {
+        messages.forEach(message -> {
             String[] keys = message.getKey().split("\\.");
             Map<String, Object> current = result;
 
@@ -75,7 +75,7 @@ public class YamlStorage extends FileStorage implements MessageStorage {
                     current = (Map<String, Object>) map;
                 }
             }
-            current.put(keys[keys.length - 1], s);
+            current.put(keys[keys.length - 1], message.getDefaultTranslations().get(locale));
             success.add(message);
         });
         return success;

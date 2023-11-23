@@ -18,45 +18,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ApplicationTranslationsTest {
 
-  public static final Message SIMPLE = new MessageBuilder("simple")
+  public static final Translations translations = Translations.application("test");
+
+  public static final Message SIMPLE = translations.messageBuilder("simple")
       .withDefault("<red>Hello world")
       .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
       .withTranslation(Locale.GERMAN, "Hallo welt - Deutsch")
       .withComment("abc")
       .build();
 
-  public static final Message EMBED = new MessageBuilder("embedded")
+  public static final Message EMBED = translations.messageBuilder("embedded")
       .withDefault("Embedded: <msg:simple>a")
       .build();
-  public static final Message EMBED_NO_BLEED = new MessageBuilder("embedded_complex")
+  public static final Message EMBED_NO_BLEED = translations.messageBuilder("embedded_complex")
       .withDefault("Embedded: <msg:simple:true>a")
       .build();
 
-  public static final Message NEW_LINE = new MessageBuilder("new_line")
+  public static final Message NEW_LINE = translations.messageBuilder("new_line")
       .withDefault("Hello\nworld")
       .build();
-
-  MessageSet translations;
-
-  @BeforeEach
-  public void beforeEach(@TempDir File dir) {
-    translations = GlobalTranslations.applicationTranslationsBuilder("test", dir)
-            .withDefaultLocale(Locale.ENGLISH)
-            .withLogger(Logger.getLogger("TestLog"))
-            .withPropertiesStorage(dir)
-            .withPropertiesStyles(new File(dir, "styles.properties"))
-            .withEnabledLocales(Locale.US, Locale.UK, Locale.GERMAN, Locale.ENGLISH, Locale.GERMANY, Locale.forLanguageTag("de-AT"))
-            .build();
-    translations.addMessage(SIMPLE.clone(translations));
-    translations.addMessage(EMBED.clone(translations));
-    translations.addMessage(EMBED_NO_BLEED.clone(translations));
-    translations.addMessage(NEW_LINE.clone(translations));
-  }
-
-  @AfterEach
-  public void afterEach() {
-    GlobalTranslations.get().unregister("test");
-  }
 
   @Test
   void newLine() {
@@ -116,27 +96,27 @@ class ApplicationTranslationsTest {
 
     assertEquals(
         2,
-        ComponentSplit.split(translations.translate(NEW_LINE), "\n").size()
+        ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
     );
   }
 
   @Test
   void translate() {
-    assertEquals(text("Hello world", NamedTextColor.RED), translations.translate(SIMPLE));
-    assertEquals(text("Hallo welt - Deutschland"), translations.translate(SIMPLE, Locale.GERMANY));
-    assertEquals(text("Hallo welt - Deutsch"), translations.translate(SIMPLE, Locale.GERMAN));
-    assertEquals(text("Hallo welt - Deutsch"), translations.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
+    assertEquals(text("Hello world", NamedTextColor.RED), translations.process(SIMPLE));
+    assertEquals(text("Hallo welt - Deutschland"), translations.process(SIMPLE, Locale.GERMANY));
+    assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.GERMAN));
+    assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.forLanguageTag("de-AT")));
 
     assertEquals(
         text("Embedded: ")
             .append(text("Hello worlda", NamedTextColor.RED)),
-        translations.translate(EMBED, Locale.US)
+        translations.process(EMBED, Locale.US)
     );
     assertEquals(
         text("Embedded: ")
             .append(text("Hello world", NamedTextColor.RED))
             .append(text("a")),
-        translations.translate(EMBED_NO_BLEED, Locale.US)
+        translations.process(EMBED_NO_BLEED, Locale.US)
     );
   }
 

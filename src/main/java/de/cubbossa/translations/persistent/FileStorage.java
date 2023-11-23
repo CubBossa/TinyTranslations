@@ -1,6 +1,7 @@
 package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.GlobalTranslations;
+import de.cubbossa.translations.Translations;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +23,6 @@ public abstract class FileStorage {
         this.logger = logger;
         this.directory = directory;
         this.fileSuffix = suffix;
-
-        File global = GlobalTranslations.get().getDataFolder();
 
         try {
             // TODO the following code creates undeletable files on linux and no files at all on windows

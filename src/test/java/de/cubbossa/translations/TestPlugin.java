@@ -16,29 +16,31 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final Message TEST_1 = new MessageBuilder("examples.test.first")
+    public static final Translations translations = TranslationsFramework.application("test");
+
+    public static final Message TEST_1 = translations.messageBuilder("examples.test.first")
             .withComment("Lets test this")
             .withPlaceholder("red", "The color red")
             .withPlaceholders("green", "blue")
             .withDefault("<red>Hello \nworld!")
             .withTranslation(Locale.GERMAN, "<red>Hallo Welt!")
             .build();
-    public static final Message TEST_2 = new MessageBuilder("examples.test.second")
+    public static final Message TEST_2 = translations.messageBuilder("examples.test.second")
             .withComment("Another test with\nline break\n\ncomments")
             .withPlaceholder("abc")
             .withDefault("<green>Luke - I am your father!")
             .build();
-    public static final Message TEST_C = new MessageBuilder("sorted.c")
+    public static final Message TEST_C = translations.messageBuilder("sorted.c")
             .withDefault("abC").build();
-    public static final Message TEST_B = new MessageBuilder("sorted.b")
+    public static final Message TEST_B = translations.messageBuilder("sorted.b")
             .withDefault("aBc").build();
-    public static final Message TEST_A = new MessageBuilder("sorted.a")
+    public static final Message TEST_A = translations.messageBuilder("sorted.a")
             .withDefault("Abc").build();
 
     @Test
-    public void testPreventDuplicateKey(@TempDir File dir) {
-        GlobalTranslations.applicationTranslationsBuilder("a", dir).build();
-        Assertions.assertThrows(IllegalArgumentException.class, () -> GlobalTranslations.applicationTranslationsBuilder("a", dir).build());
+    public void testPreventDuplicateKey() {
+        translations.fork("a");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> translations.fork("a"));
     }
 
     private String fileContent(File file) {
@@ -64,17 +66,9 @@ public class TestPlugin {
 
     @Test
     public void testFileCreation(@TempDir File dir) {
-        MessageSet translations = GlobalTranslations.applicationTranslationsBuilder("testpl", dir)
-                .withLogger(Logger.getLogger("testTranslations"))
-                .withDefaultLocale(Locale.ENGLISH)
-                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
-                .withPropertiesStorage(dir)
-                .withPropertiesStyles(new File(dir, "styles.properties"))
-                .build();
 
         translations.loadStyles();
-        translations.addMessagesClass(this.getClass());
-        translations.writeLocale(Locale.ENGLISH);
+        translations.saveLocale(Locale.ENGLISH);
 
         Assertions.assertTrue(dir.exists());
         Assertions.assertTrue(new File(dir, "en.properties").exists());
@@ -82,29 +76,20 @@ public class TestPlugin {
         File en = new File(dir, "en.properties");
         replaceInFile(en, "a", "e");
         String before = fileContent(en);
-        translations.writeLocale(Locale.ENGLISH);
+        translations.saveLocale(Locale.ENGLISH);
         Assertions.assertEquals(before, fileContent(en));
     }
 
     @Test
     public void testLoad(@TempDir File dir) {
 
-        MessageSet translations = GlobalTranslations.applicationTranslationsBuilder("testpl1", dir)
-                .withLogger(Logger.getLogger("testTranslations"))
-                .withDefaultLocale(Locale.ENGLISH)
-                .withEnabledLocales(Locale.ENGLISH, Locale.GERMANY, Locale.GERMAN)
-                .withPropertiesStorage(dir)
-                .build();
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
+        Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.process(TEST_1, Locale.GERMAN));
 
-        translations.addMessagesClass(this.getClass());
+        translations.saveLocale(Locale.ENGLISH);
+        translations.loadLocale(Locale.ENGLISH);
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
 
-        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.translate(TEST_1));
-        Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.translate(TEST_1, Locale.GERMAN));
-
-        translations.writeLocale(Locale.ENGLISH).join();
-        translations.clearCache();
-        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.translate(TEST_1));
-
-        Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.translate(TEST_2));
+        Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.process(TEST_2));
     }
 }

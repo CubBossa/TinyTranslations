@@ -21,170 +21,168 @@ import java.util.regex.Pattern;
 @Setter
 public final class Message implements ComponentLike, Cloneable, Comparable<Message> {
 
-    private static final MiniMessage S_MM = MiniMessage.builder()
-        .build();
-    private static final GsonComponentSerializer S_GSON = GsonComponentSerializer.gson();
-    private static final LegacyComponentSerializer S_LEGACY = LegacyComponentSerializer.legacySection();
-    private static final LegacyComponentSerializer S_LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
+  private static final MiniMessage S_MM = MiniMessage.builder()
+      .build();
+  private static final GsonComponentSerializer S_GSON = GsonComponentSerializer.gson();
+  private static final LegacyComponentSerializer S_LEGACY = LegacyComponentSerializer.legacySection();
+  private static final LegacyComponentSerializer S_LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
 
-    public enum Format {
+  public enum Format {
 
-        GSON("nbt", S_GSON::deserialize),
-        MINI_MESSAGE("minimessage", (s, r) -> S_MM.deserialize(s, r)),
-        LEGACY("paragraph", S_LEGACY::deserialize),
-        LEGACY_AMP("ampersand", S_LEGACY_AMP::deserialize),
-        PLAIN;
+    GSON("nbt", S_GSON::deserialize),
+    MINI_MESSAGE("minimessage", (s, r) -> S_MM.deserialize(s, r)),
+    LEGACY("paragraph", S_LEGACY::deserialize),
+    LEGACY_AMP("ampersand", S_LEGACY_AMP::deserialize),
+    PLAIN;
 
-        private static final Pattern PREFIX = Pattern.compile("^(!!([a-z_]+): )?((.|\n)*)");
+    private static final Pattern PREFIX = Pattern.compile("^(!!([a-z_]+): )?((.|\n)*)");
 
-        private final String prefix;
+    private final String prefix;
 
-        private final BiFunction<String, TagResolver, Component> translator;
+    private final BiFunction<String, TagResolver, Component> translator;
 
-        Format() {
-            this.prefix = toString().toLowerCase();
-            this.translator = (s, tagResolver) -> Component.text(s);
+    Format() {
+      this.prefix = toString().toLowerCase();
+      this.translator = (s, tagResolver) -> Component.text(s);
+    }
+
+    Format(String prefix, Function<String, Component> translator) {
+      this.prefix = prefix;
+      this.translator = (s, tagResolver) -> translator.apply(s);
+    }
+
+    Format(String prefix, BiFunction<String, TagResolver, Component> translator) {
+      this.prefix = prefix;
+      this.translator = translator;
+    }
+
+    public String toPrefix() {
+      return "!!" + prefix + ": ";
+    }
+
+    public static Component translate(String message, TagResolver resolver) {
+      Matcher matcher = PREFIX.matcher(message);
+      if (!matcher.find()) {
+        throw new IllegalArgumentException("Message is invalid");
+      }
+      String prefix = matcher.group(2);
+      String m = matcher.group(3);
+      Format format = m == null
+          ? MINI_MESSAGE
+          : fromPrefix(prefix).orElse(MINI_MESSAGE);
+      return format.translator.apply(m == null ? prefix : m, resolver);
+    }
+
+    public static Optional<Format> fromPrefix(String prefix) {
+      for (Format value : Format.values()) {
+        if (value.prefix.equals(prefix)) {
+          return Optional.of(value);
         }
-
-        Format(String prefix, Function<String, Component> translator) {
-            this.prefix = prefix;
-            this.translator = (s, tagResolver) -> translator.apply(s);
-        }
-
-        Format(String prefix, BiFunction<String, TagResolver, Component> translator) {
-            this.prefix = prefix;
-            this.translator = translator;
-        }
-
-        public String toPrefix() {
-            return "!!" + prefix + ": ";
-        }
-
-        public static Component translate(String message, TagResolver resolver) {
-            Matcher matcher = PREFIX.matcher(message);
-            if (!matcher.find()) {
-                throw new IllegalArgumentException("Message is invalid");
-            }
-            String prefix = matcher.group(2);
-            String m = matcher.group(3);
-            Format format = m == null
-                    ? MINI_MESSAGE
-                    : fromPrefix(prefix).orElse(MINI_MESSAGE);
-            return format.translator.apply(m == null ? prefix : m, resolver);
-        }
-
-        public static Optional<Format> fromPrefix(String prefix) {
-            for (Format value : Format.values()) {
-                if (value.prefix.equals(prefix)) {
-                    return Optional.of(value);
-                }
-            }
-            return Optional.empty();
-        }
-
-	}
-    private final String key;
-
-	private String defaultValue;
-	private Map<Locale, String> defaultTranslations;
-    private Map<String, Optional<String>> placeholderTags;
-    private String comment;
-    private Translator translator;
-
-    private Collection<TagResolver> placeholderResolvers;
-    private Audience audience;
-
-    public Message(String key) {
-        this(key, GlobalTranslations.get());
+      }
+      return Optional.empty();
     }
 
-    public Message(String key, String defaultValue) {
-        this(key, defaultValue, GlobalTranslations.get());
+  }
+
+  private final Translations translations;
+  private final String key;
+
+  private String defaultValue;
+  private Map<Locale, String> defaultTranslations;
+  private Map<String, Optional<String>> placeholderTags;
+  private String comment;
+
+  private Collection<TagResolver> placeholderResolvers;
+  private Audience audience;
+
+  public Message(Translations translations, String key) {
+    this(translations, key, "No default translation present");
+  }
+
+  public Message(Translations translations, String key, String defaultValue) {
+    this.translations = translations;
+    this.translations.getMessageSet().put(this.getKey(), this);
+    this.key = key;
+    this.defaultValue = defaultValue;
+    this.defaultTranslations = new HashMap<>();
+    this.placeholderTags = new HashMap<>();
+    this.placeholderResolvers = new HashSet<>();
+  }
+
+  public String getNamespacedKey() {
+    return translations.getPath() + ":" + key;
+  }
+
+  @Override
+  public @NotNull Component asComponent() {
+    return audience == null
+        ? translations.process(this)
+        : translations.process(this, audience);
+  }
+
+  public Component asComponent(Audience audience) {
+    return translations.process(this, audience);
+  }
+
+  public Audience getAudience() {
+    return audience;
+  }
+
+  public void setAudience(Audience audience) {
+    this.audience = audience;
+  }
+
+  public Message format(Audience audience) {
+    this.audience = audience;
+    return this;
+  }
+
+  public Message format(TagResolver... resolver) {
+    this.placeholderResolvers.add(TagResolver.resolver(resolver));
+    return this;
+  }
+
+  public Message formatted(Audience audience) {
+    return this.clone().format(audience);
+  }
+
+  public Message formatted(TagResolver... resolver) {
+    return this.clone().format(resolver);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public Message(String key, Translator translator) {
-        this(key, "No default translation present", translator);
-    }
+    Message message = (Message) o;
+    return key.equals(message.key);
+  }
 
-    public Message(String key, String defaultValue, Translator translator) {
-        this.key = key;
-        this.defaultValue = defaultValue;
-        this.defaultTranslations = new HashMap<>();
-        this.placeholderTags = new HashMap<>();
-        this.placeholderResolvers = new HashSet<>();
-        this.translator = translator;
-    }
+  @Override
+  public int hashCode() {
+    return key.hashCode();
+  }
 
-    public void setTranslator(Translator translator) {
-        this.translator = translator;
-    }
+  public Message clone(Translations translations) {
+    Message message = new Message(translations, key, defaultValue);
+    message.setPlaceholderTags(new HashMap<>(placeholderTags));
+    message.setPlaceholderResolvers(new HashSet<>(placeholderResolvers));
+    message.setComment(comment);
+    return message;
+  }
 
-    @Override
-    public @NotNull Component asComponent() {
-        return audience == null
-                ? translator.translate(this)
-                : translator.translate(this, audience);
-    }
+  @Override
+  public Message clone() {
+    return clone(translations);
+  }
 
-    public Component asComponent(Audience audience) {
-        return translator.translate(this, audience);
-    }
-
-    public Audience getAudience() {
-        return audience;
-    }
-
-    public void setAudience(Audience audience) {
-        this.audience = audience;
-    }
-
-    public Message format(Audience audience) {
-        this.audience = audience;
-        return this;
-    }
-
-    public Message format(TagResolver... resolver) {
-        this.placeholderResolvers.add(TagResolver.resolver(resolver));
-        return this;
-    }
-
-    public Message formatted(TagResolver... resolver) {
-        return this.clone().format(resolver);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Message message = (Message) o;
-        return key.equals(message.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return key.hashCode();
-    }
-
-    public Message clone(Translator translator) {
-        Message message = new Message(key, defaultValue, translator);
-        message.setPlaceholderTags(new HashMap<>(placeholderTags));
-        message.setPlaceholderResolvers(new HashSet<>(placeholderResolvers));
-        message.setComment(comment);
-        return message;
-    }
-
-    @Override
-    public Message clone() {
-        return clone(translator);
-    }
-
-	@Override
-	public int compareTo(@NotNull Message o) {
-		return getKey().compareTo(o.getKey());
-	}
+  @Override
+  public int compareTo(@NotNull Message o) {
+    return getKey().compareTo(o.getKey());
+  }
 }

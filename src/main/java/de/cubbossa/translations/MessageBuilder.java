@@ -7,14 +7,16 @@ import java.util.stream.Collectors;
 
 public class MessageBuilder {
 
+    private final Translations owner;
     private final String key;
     private String defaultValue;
     private final Map<Locale, String> translations;
     private final List<String> comments;
     private final Map<String, Placeholder> placeholderMap;
 
-    public MessageBuilder(String key) {
+    public MessageBuilder(Translations translations, String key) {
         this.key = key;
+        this.owner = translations;
         this.comments = new ArrayList<>();
         this.translations = new HashMap<>();
         this.placeholderMap = new HashMap<>();
@@ -60,7 +62,7 @@ public class MessageBuilder {
     }
 
     public Message build() {
-        Message message = new Message(key, GlobalTranslations.get());
+        Message message = new Message(owner, key);
         message.setComment(String.join("\n", comments));
         message.setDefaultValue(defaultValue);
         message.setDefaultTranslations(translations);

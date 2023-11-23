@@ -10,10 +10,10 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PropertiesStorage extends FileStorage implements MessageStorage {
+public class PropertiesMessageStorage extends FileStorage implements MessageStorage {
 
 
-    public PropertiesStorage(Logger logger, File directory) {
+    public PropertiesMessageStorage(Logger logger, File directory) {
         super(logger, directory, ".properties");
     }
 
@@ -31,7 +31,7 @@ public class PropertiesStorage extends FileStorage implements MessageStorage {
         entries.forEach(entry -> entryMap.put(entry.key(), entry.value()));
 
         Map<Message, String> result = new HashMap<>();
-        Map<Message, String> toWrite = new HashMap<>();
+        Set<Message> toWrite = new HashSet<>();
         for (Message message : messages) {
             if (!entryMap.containsKey(message.getKey())) {
                 String t = message.getDefaultTranslations().get(locale);
@@ -39,7 +39,7 @@ public class PropertiesStorage extends FileStorage implements MessageStorage {
                     continue;
                 }
                 result.put(message, t);
-                toWrite.put(message, t);
+                toWrite.add(message);
                 continue;
             }
             result.put(message, entryMap.get(message.getKey()));
@@ -50,22 +50,22 @@ public class PropertiesStorage extends FileStorage implements MessageStorage {
 
     @Override
     public boolean writeMessage(Message message, Locale locale, String translation) {
-        return writeMessages(Map.of(message, translation), locale).contains(message);
+        return writeMessages(Set.of(message), locale).contains(message);
     }
 
     @Override
-    public Collection<Message> writeMessages(Map<Message, String> messages, Locale locale) {
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
         File file = localeFile(locale);
 
         List<Entry> entries = readFile(file);
-        for (Map.Entry<Message, String> e : messages.entrySet()) {
-            entries.add(new Entry(e.getKey().getKey(), e.getValue(), e.getKey().getComment()));
+        for (Message msg : messages) {
+            entries.add(new Entry(msg.getNamespacedKey(), msg.getDefaultTranslations().get(locale), msg.getComment()));
         }
         entries = new ArrayList<>(new HashSet<>(entries));
         entries.sort(Comparator.comparing(o -> o.key));
 
         writeFile(file, entries);
-        return messages.keySet();
+        return messages;
     }
 
     private void writeFile(File file, List<Entry> entries) {

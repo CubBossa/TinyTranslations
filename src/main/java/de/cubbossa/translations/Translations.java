@@ -6,45 +6,72 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface Translations extends Translator {
+public interface Translations {
 
-    Locale UNDEFINED = Locale.forLanguageTag("und");
+    String getPath();
 
-    @Getter
-    @Setter
-    @Accessors(fluent = true, chain = true)
-    class Config {
-        protected Locale defaultLocale = Locale.US;
-        protected Predicate<Locale> generateMissingFiles = locale -> Arrays.asList(Locale.getAvailableLocales()).contains(locale);
-        protected Predicate<Locale> localePredicate = locale -> true;
-        protected Function<Audience, Locale> playerLocaleFunction = audience -> defaultLocale;
+    void shutdown();
 
-        public Config defaultLocale(Locale defaultLocale) {
-            if (defaultLocale == null || defaultLocale.toLanguageTag().equals("und")) {
-                throw new IllegalArgumentException("Default locale must be valid: " + (defaultLocale == null
-                        ? null : defaultLocale.toLanguageTag()));
-            }
-            this.defaultLocale = defaultLocale;
-            return this;
-        }
-    }
+    void remove(String name);
 
-    static Translations global() {
+    /**
+     * Gets a reference to the parent Translations. This parent must only be null for the global Translations.
+     * All other Translations refer to the global translations or to any successor of global.
+     * @return The parent instance or null for global Translations.
+     */
+    @Nullable Translations getParent();
 
-    }
+    /**
+     * Create a sub Translations instance for the current instance.
+     * The new produced fork inherits all styles and all messages as tags. Meaning msg:x.y.z will be resolved from
+     * this Translations message set or from the parents message set.
+     *
+     * Storages are not inherited and must be set manually again.
+     *
+     * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
+     * @return The forked instance.
+     */
+    Translations fork(String name);
 
-    static PluginTranslationsBuilder application(String name, File directory) {
-        return new PluginTranslationsBuilder(global(), name, directory);
-    }
+    /**
+     * Similar to {@link #fork(String)}, but also inherits storages.
+     *
+     * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
+     * @return The forked instance.
+     */
+    Translations forkWithStorage(String name);
+
+
+    Message message(String key);
+
+    MessageBuilder messageBuilder(String key);
+
+
+    Component process(Message message);
+
+    Component process(Message message, Audience target);
+
+    Component process(Message message, Locale locale);
+
+    Component process(String raw);
+
+    Component process(String raw, Audience target);
+
+    Component process(String raw, Locale locale);
+
+    TagResolver getResolvers(Locale locale);
+
 
     void loadStyles();
 
@@ -60,22 +87,23 @@ public interface Translations extends Translator {
     void setMiniMessage(MiniMessage miniMessage);
 
 
-    MessageSet getMessageSet();
+    Map<String, Message> getMessageSet();
 
-    void setMessageSet(MessageSet set);
+    @Nullable MessageStorage getMessageStorage();
 
-    MessageStorage getMessageStorage();
+    void setMessageStorage(@Nullable MessageStorage storage);
 
-    void setMessageStorage(MessageStorage storage);
+    Map<String, Style> getStyleSet();
 
-    StyleSet getStyleSet();
+    @Nullable StyleStorage getStyleStorage();
 
-    void setStyleSet(StyleSet set);
-
-    StyleStorage getStyleStorage();
-
-    void setStyleStorage(StyleStorage storage);
+    void setStyleStorage(@Nullable StyleStorage storage);
 
 
-    Locale getUserLocale(UUID user);
+    /**
+     * Provides a Locale for each user. This might be the same Locale for all Users.
+     * @param user An audience individually representing each user
+     * @return The locale
+     */
+    Locale getUserLocale(@Nullable Audience user);
 }

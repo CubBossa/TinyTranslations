@@ -1,155 +1,46 @@
 package de.cubbossa.translations;
 
-import de.cubbossa.translations.persistent.PropertiesStorage;
+import de.cubbossa.translations.persistent.PropertiesMessageStorage;
 import de.cubbossa.translations.persistent.PropertiesStyleStorage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 @Getter
 @Setter
-public class GlobalTranslations extends AbstractMessageSet implements MessageSet {
-
-    private static GlobalTranslations instance;
-
-    public static GlobalTranslations get() {
-        return instance;
-    }
+public class GlobalTranslations extends AppTranslations implements Translations {
 
     @SneakyThrows
-    public static PluginTranslationsBuilder applicationTranslationsBuilder(String pluginName, File pluginDir) {
-        GlobalTranslations translations = GlobalTranslations.get();
-        if (translations == null) {
-            translations = new GlobalTranslations();
-        }
-        if (translations.config == null) {
-            translations.dataFolder = new File(pluginDir, "../lang");
-            translations.dataFolder.mkdirs();
-            File readme = new File(translations.dataFolder, "README.txt");
-            readme.createNewFile();
-            InputStream is = translations.getClass().getResourceAsStream("/README.txt");
-            FileOutputStream os = new FileOutputStream(readme);
-            os.write(is.readAllBytes());
-            os.close();
-            is.close();
+    protected GlobalTranslations(File dir) {
+        super(null, "global");
+        setMiniMessage(MiniMessage.miniMessage());
 
-            translations.config = new Config()
-                    .localeBundleStorage(new PropertiesStorage(Logger.getLogger("Translations"), translations.dataFolder))
-                    .styleStorage(new PropertiesStyleStorage(new File(translations.dataFolder, "global_styles.properties")));
-        }
-        return new PluginTranslationsBuilder(translations, pluginName, pluginDir);
-    }
+        Logger logger = Logger.getLogger("Translations");
+        dir.mkdirs();
+        setMessageStorage(new PropertiesMessageStorage(logger, dir));
+        setStyleStorage(new PropertiesStyleStorage(new File(dir, "global_styles.properties")));
 
-    @Getter
-    private File dataFolder;
-
-    private final Map<String, MessageSet> applicationMap;
-    public GlobalTranslations() {
-        super(null, Logger.getLogger("Translations"));
-        instance = this;
-
-        this.applicationMap = new HashMap<>();
-    }
-
-    public synchronized void register(String name, MessageSet translations) {
-        GlobalTranslations t = GlobalTranslations.get();
-        if (t == null) {
-            t = new GlobalTranslations();
-        }
-
-        if (t.applicationMap.containsKey(name)) {
-            throw new IllegalArgumentException("Could not register new PluginTranslations, another translation with" +
-                    "key '" + name + "' already exists");
-        }
-        t.applicationMap.put(name, translations);
-    }
-
-    public synchronized boolean unregister(String name) {
-        GlobalTranslations t = GlobalTranslations.get();
-        if (t == null) {
-            t = new GlobalTranslations();
-        }
-        return t.applicationMap.remove(name) != null;
+        File readme = new File(dir, "README.txt");
+        readme.createNewFile();
+        InputStream is = getClass().getResourceAsStream("/README.txt");
+        FileOutputStream os = new FileOutputStream(readme);
+        os.write(is.readAllBytes());
+        os.close();
+        is.close();
     }
 
     @Override
-    protected Locale supportedLocale(Locale anyLocale) {
-        return translationCache.containsKey(anyLocale) ? anyLocale : config.defaultLocale;
-    }
-
-    @Override
-    public TagResolver getBundleResolvers() {
-        return TagResolver.resolver(bundleResolvers);
-    }
-
-    private Message getAppOrGlobalMessage(String key) {
-        return getApplicationFromKey(key)
-                .map(bundle -> bundle.getMessage(key.substring(key.indexOf('.') + 1)))
-                .orElseGet(() -> getMessage(key));
-    }
-
-    private Optional<MessageSet> getApplicationFromKey(String messageKey) {
-        return Optional.ofNullable(applicationMap.get(messageKey.split("\\.")[0]));
-    }
-
-    private Optional<MessageSet> getApplicationFromKey(Message message) {
-        return getApplicationFromKey(message.getKey());
-    }
-
-    @Override
-    public TagResolver getMessageResolver(Audience audience) {
-        // TODO proper loop detection
-        return TagResolver.resolver("gmsg", (queue, ctx) -> {
-            String messageKey = queue.popOr("The message tag requires a message key, like <gmsg:myplugin.error.no_permission>.").value();
-            boolean preventBleed = queue.hasNext() && queue.pop().isTrue();
-
-            Message msg = getAppOrGlobalMessage(messageKey);
-            return preventBleed
-                    ? Tag.selfClosingInserting(msg.getTranslator().translate(msg, audience))
-                    : Tag.preProcessParsed(msg.getTranslator().translateRaw(msg, audience));
-        });
-    }
-
-    @Override
-    public String translateRaw(Message message) {
-        return getApplicationFromKey(message).orElseThrow().translateRaw(message);
-    }
-
-    @Override
-    public String translateRaw(Message message, Audience audience) {
-        return getApplicationFromKey(message).orElseThrow().translateRaw(message, audience);
-    }
-
-    @Override
-    public String translateRaw(Message message, Locale locale) {
-        return getApplicationFromKey(message).orElseThrow().translateRaw(message, locale);
-    }
-
-    @Override
-    public Component translate(Message message) {
-        return getApplicationFromKey(message).orElseThrow().translate(message);
-    }
-
-    @Override
-    public Component translate(Message message, Audience audience) {
-        return getApplicationFromKey(message).orElseThrow().translate(message, audience);
-    }
-
-    @Override
-    public Component translate(Message message, Locale locale) {
-        return getApplicationFromKey(message).orElseThrow().translate(message, locale);
+    public Locale getUserLocale(@Nullable Audience user) {
+        return Locale.ENGLISH;
     }
 }
