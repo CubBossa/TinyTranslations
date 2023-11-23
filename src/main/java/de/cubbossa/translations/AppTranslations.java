@@ -35,8 +35,16 @@ public class AppTranslations implements Translations {
         this.parent = parent;
         this.name = name;
 
-        this.messageSet = new HashMap<>();
         this.messageStorage = null;
+        this.styleStorage = null;
+
+        this.messageSet = new HashMap<>() {
+            @Override
+            public Message put(String key, Message value) {
+                value.setOwner(AppTranslations.this);
+                return super.put(key, value);
+            }
+        };
         this.styleSet = new HashMap<>() {
             @Override
             public Style put(String key, Style value) {
@@ -50,7 +58,6 @@ public class AppTranslations implements Translations {
                 return super.remove(key, value);
             }
         };
-        this.styleStorage = null;
     }
 
     @Override

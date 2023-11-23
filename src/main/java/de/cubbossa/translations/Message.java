@@ -84,9 +84,9 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
   }
 
-  private final Translations translations;
   private final String key;
 
+  private Translations translations;
   private String defaultValue;
   private Map<Locale, String> defaultTranslations;
   private Map<String, Optional<String>> placeholderTags;
@@ -95,8 +95,16 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
   private Collection<TagResolver> placeholderResolvers;
   private Audience audience;
 
+  public Message(String key) {
+    this((Translations) null, key);
+  }
+
   public Message(Translations translations, String key) {
     this(translations, key, "No default translation present");
+  }
+
+  public Message(String key, String defaultValue) {
+    this(null, key, defaultValue);
   }
 
   public Message(Translations translations, String key, String defaultValue) {
@@ -111,6 +119,10 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
   public String getNamespacedKey() {
     return translations.getPath() + ":" + key;
+  }
+
+  public void setOwner(Translations translations) {
+    this.translations = translations;
   }
 
   @Override

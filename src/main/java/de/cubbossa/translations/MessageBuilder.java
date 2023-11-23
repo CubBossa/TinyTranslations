@@ -14,6 +14,10 @@ public class MessageBuilder {
     private final List<String> comments;
     private final Map<String, Placeholder> placeholderMap;
 
+    public MessageBuilder(String key) {
+        this(null, key);
+    }
+
     public MessageBuilder(Translations translations, String key) {
         this.key = key;
         this.owner = translations;

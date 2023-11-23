@@ -16,29 +16,32 @@ import java.util.logging.Logger;
 
 public class TestPlugin {
 
-    public static final Translations translations = TranslationsFramework.application("test");
-
-    public static final Message TEST_1 = translations.messageBuilder("examples.test.first")
+    public static final Message TEST_1 = new MessageBuilder("examples.test.first")
             .withComment("Lets test this")
             .withPlaceholder("red", "The color red")
             .withPlaceholders("green", "blue")
             .withDefault("<red>Hello \nworld!")
             .withTranslation(Locale.GERMAN, "<red>Hallo Welt!")
             .build();
-    public static final Message TEST_2 = translations.messageBuilder("examples.test.second")
+    public static final Message TEST_2 = new MessageBuilder("examples.test.second")
             .withComment("Another test with\nline break\n\ncomments")
             .withPlaceholder("abc")
             .withDefault("<green>Luke - I am your father!")
             .build();
-    public static final Message TEST_C = translations.messageBuilder("sorted.c")
+    public static final Message TEST_C = new MessageBuilder("sorted.c")
             .withDefault("abC").build();
-    public static final Message TEST_B = translations.messageBuilder("sorted.b")
+    public static final Message TEST_B = new MessageBuilder("sorted.b")
             .withDefault("aBc").build();
-    public static final Message TEST_A = translations.messageBuilder("sorted.a")
+    public static final Message TEST_A = new MessageBuilder("sorted.a")
             .withDefault("Abc").build();
 
     @Test
-    public void testPreventDuplicateKey() {
+    public void testPreventDuplicateKey(@TempDir File dir) {
+        TranslationsFramework.enable(dir);
+        Translations translations = TranslationsFramework.application("test");
+        for (Message message : TranslationsFramework.messageFieldsFromClass(TestPlugin.class)) {
+            translations.getMessageSet().put(message.getKey(), message);
+        }
         translations.fork("a");
         Assertions.assertThrows(IllegalArgumentException.class, () -> translations.fork("a"));
     }

@@ -18,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ApplicationTranslationsTest {
 
-  public static final Translations translations = Translations.application("test");
-
   public static final Message SIMPLE = translations.messageBuilder("simple")
       .withDefault("<red>Hello world")
       .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
