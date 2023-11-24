@@ -3,12 +3,15 @@ package de.cubbossa.translations;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class TranslationsFramework {
 
   private TranslationsFramework() {}
+
+  public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
   private static Translations global;
 
@@ -42,8 +45,8 @@ public final class TranslationsFramework {
     return global().fork(name);
   }
 
-  public static void enable(File rootDir) {
-    global = new GlobalTranslations(rootDir);
+  public static void enable(File pluginDirectory) {
+    global = new GlobalTranslations(pluginDirectory);
   }
 
   public static void disable() {

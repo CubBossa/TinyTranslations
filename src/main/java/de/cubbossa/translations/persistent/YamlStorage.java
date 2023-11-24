@@ -75,7 +75,7 @@ public class YamlStorage extends FileStorage implements MessageStorage {
                     current = (Map<String, Object>) map;
                 }
             }
-            current.put(keys[keys.length - 1], message.getDefaultTranslations().get(locale));
+            current.put(keys[keys.length - 1], message.getDictionary().get(locale));
             success.add(message);
         });
         return success;

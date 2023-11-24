@@ -2,6 +2,7 @@ package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.GlobalTranslations;
 import de.cubbossa.translations.Translations;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +39,14 @@ public abstract class FileStorage {
         if (!directory.exists()) {
             directory.mkdirs();
         }
+    }
+
+    @Nullable File localeFileIfExists(Locale locale) {
+        File file = new File(directory, locale.toLanguageTag() + fileSuffix);
+        if (!file.exists()) {
+            return null;
+        }
+        return file;
     }
 
     File localeFile(Locale locale) {

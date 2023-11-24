@@ -27,11 +27,13 @@ public class GlobalTranslations extends AppTranslations implements Translations 
         setMiniMessage(MiniMessage.miniMessage());
 
         Logger logger = Logger.getLogger("Translations");
-        dir.mkdirs();
-        setMessageStorage(new PropertiesMessageStorage(logger, dir));
-        setStyleStorage(new PropertiesStyleStorage(new File(dir, "global_styles.properties")));
+        File globalLangDir = new File(dir, "/lang/");
+        globalLangDir.mkdirs();
 
-        File readme = new File(dir, "README.txt");
+        setMessageStorage(new PropertiesMessageStorage(logger, globalLangDir));
+        setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
+
+        File readme = new File(globalLangDir, "README.txt");
         readme.createNewFile();
         InputStream is = getClass().getResourceAsStream("/README.txt");
         FileOutputStream os = new FileOutputStream(readme);

@@ -24,27 +24,33 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
 
     @Override
     public Map<Message, String> readMessages(Collection<Message> messages, Locale locale) {
-        File file = localeFile(locale);
+        File file = localeFileIfExists(locale);
+        if (file == null) {
+            return new HashMap<>();
+        }
 
         List<Entry> entries = readFile(file);
         Map<String, String> entryMap = new HashMap<>();
         entries.forEach(entry -> entryMap.put(entry.key(), entry.value()));
 
         Map<Message, String> result = new HashMap<>();
-        Set<Message> toWrite = new HashSet<>();
         for (Message message : messages) {
             if (!entryMap.containsKey(message.getKey())) {
-                String t = message.getDefaultTranslations().get(locale);
+                String t = message.getDictionary().get(locale);
                 if (t == null) {
                     continue;
                 }
                 result.put(message, t);
-                toWrite.add(message);
                 continue;
             }
             result.put(message, entryMap.get(message.getKey()));
         }
-        writeMessages(toWrite, locale);
+        entryMap.forEach((key, val) -> {
+            if (result.get(key) != null) {
+                return;
+            }
+            result.put(new Message(key), val);
+        });
         return result;
     }
 
@@ -59,7 +65,9 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
 
         List<Entry> entries = readFile(file);
         for (Message msg : messages) {
-            entries.add(new Entry(msg.getNamespacedKey(), msg.getDefaultTranslations().get(locale), msg.getComment()));
+            if (msg.getDictionary().containsKey(locale)) {
+                entries.add(new Entry(msg.getKey(), msg.getDictionary().get(locale), msg.getComment()));
+            }
         }
         entries = new ArrayList<>(new HashSet<>(entries));
         entries.sort(Comparator.comparing(o -> o.key));

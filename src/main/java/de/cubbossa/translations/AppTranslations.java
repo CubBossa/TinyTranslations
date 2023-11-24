@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Getter
 @Setter
@@ -26,6 +26,8 @@ public class AppTranslations implements Translations {
 
     private MiniMessage miniMessage;
     private TagResolver styleResolverCache = null;
+
+    private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
     private final Map<String, Message> messageSet;
     private final Map<String, Style> styleSet;
@@ -123,9 +125,15 @@ public class AppTranslations implements Translations {
 
     @Override
     public Component process(Message message, Locale locale) {
-        String raw = message.getDefaultTranslations().get(locale);
+        String raw = message.getDictionary().get(locale);
+        if (raw == null && !"".equals(locale.getVariant())) {
+            raw = message.getDictionary().get(new Locale(locale.getLanguage(), locale.getCountry()));
+        }
+        if (raw == null && !"".equals(locale.getCountry())) {
+            raw = message.getDictionary().get(new Locale(locale.getLanguage()));
+        }
         if (raw == null) {
-            raw = message.getDefaultValue();
+            raw = message.getDictionary().get(TranslationsFramework.DEFAULT_LOCALE);
         }
         if (raw == null) {
             raw = "<missing translation: " + message.getNamespacedKey() + ">";
@@ -145,34 +153,52 @@ public class AppTranslations implements Translations {
 
     @Override
     public Component process(String raw, Locale locale) {
-        return getMiniMessage().deserialize(raw, getResolvers(locale));
+        return Message.Format.translate(raw, getResolvers(locale));
     }
 
     @Override
     public TagResolver getResolvers(Locale locale) {
-        TagResolver x = parent == null ? TagResolver.empty() : parent.getResolvers(locale);
-        return TagResolver.resolver(getStylesResolver(), getMessageResolver(locale), x);
+        return TagResolver.resolver(getStylesResolver(), getMessageResolver(locale));
     }
 
     private TagResolver getStylesResolver() {
         if (styleResolverCache != null) {
             return styleResolverCache;
         }
-        styleResolverCache = TagResolver.resolver(styleSet.entrySet().stream()
-            .map(e -> TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(e.getValue()))))
-            .toList());
+        Map<String, TagResolver> styles = new HashMap<>();
+
+        Translations t = this;
+        while (t != null) {
+            t.getStyleSet().forEach((key, value) -> {
+                if (styles.containsKey(key)) return;
+                var res = TagResolver.resolver(key, Tag.styling(style -> style.merge(value)));
+                styles.put(key, res);
+            });
+            t = t.getParent();
+        }
+        styleResolverCache = TagResolver.resolver(styles.values());
         return styleResolverCache;
     }
 
     private TagResolver getMessageResolver(Locale locale) {
         return TagResolver.resolver("msg", (queue, ctx) -> {
-            String messageKey = queue.popOr("The message tag requires a message key, like <msg:error.no_permission>.").value();
-            boolean preventBleed = queue.hasNext() && queue.pop().isTrue();
-
-            // TODO loop detection
-            return preventBleed
-                ? Tag.selfClosingInserting(process(getMessage(messageKey), locale))
-                : Tag.inserting(process(getMessage(messageKey), locale));
+            String nameSpace;
+            String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission>.").value();
+            if (queue.hasNext()) {
+                nameSpace = key;
+                key = queue.pop().value();
+            } else {
+                Message msg = getMessageInParentTree(key);
+                if (msg == null) {
+                    return Tag.inserting(Component.text("<msg-not-found:" + key + ">"));
+                }
+                return Tag.inserting(process(msg, locale));
+            }
+            Message msg = getMessageByNamespace(nameSpace, key);
+            if (msg == null) {
+                return Tag.inserting(Component.text("<msg-not-found:" + key + ">"));
+            }
+            return Tag.inserting(process(msg, locale));
         });
     }
 
@@ -180,12 +206,58 @@ public class AppTranslations implements Translations {
         return miniMessage == null ? parent.getMiniMessage() : miniMessage;
     }
 
-    private Message getMessage(String key) {
+    @Override
+    public @Nullable Message getMessage(String key) {
         return messageSet.get(key);
     }
 
     @Override
+    public @Nullable Message getMessageInParentTree(String key) {
+        Message msg = getMessage(key);
+        if (msg != null) return msg;
+        if (parent == null) return null;
+        return parent.getMessageInParentTree(key);
+    }
+
+    @Override
+    public @Nullable Message getMessageByNamespace(String namespace, String key) {
+        if (parent != null) {
+            return parent.getMessageByNamespace(namespace, key);
+        }
+        Translations translations = this;
+        String[] split = namespace.split("\\.");
+        Queue<String> path = new LinkedList<>(List.of(split));
+
+        // remove global from queue
+        path.poll();
+
+        while (!path.isEmpty()) {
+            String childName = path.poll();
+            translations = children.get(childName);
+            if (translations == null) {
+                return null;
+            }
+        }
+        return translations.getMessageInParentTree(key);
+    }
+
+    @Override
+    public void addMessage(Message message) {
+        messageSet.put(message.getKey(), message);
+    }
+
+    @Override
+    public void addMessages(Message... messages) {
+        for (Message message : messages) {
+            addMessage(message);
+        }
+    }
+
+    @Override
     public void loadStyles() {
+        if (parent != null) {
+            parent.loadStyles();
+        }
         if (styleStorage != null) {
             styleSet.putAll(styleStorage.loadStyles());
         }
@@ -199,9 +271,22 @@ public class AppTranslations implements Translations {
     }
 
     @Override
+    public void loadLocales() {
+        for (Locale availableLocale : Locale.getAvailableLocales()) {
+            loadLocale(availableLocale);
+        }
+    }
+
+    @Override
     public void loadLocale(Locale locale) {
+        if (parent != null) {
+            parent.loadLocale(locale);
+        }
         if (messageStorage != null) {
-            messageStorage.readMessages(messageSet.values(), locale);
+            messageStorage.readMessages(messageSet.values(), locale).forEach((message, s) -> {
+                message.getDictionary().put(locale, s);
+                addMessage(message);
+            });
         }
     }
 
@@ -213,7 +298,15 @@ public class AppTranslations implements Translations {
     }
 
     @Override
+    public void setLocaleProvider(Function<@Nullable Audience, @NotNull Locale> function) {
+        localeProvider = function;
+    }
+
+    @Override
     public @NotNull Locale getUserLocale(@Nullable Audience user) {
+        if (localeProvider != null) {
+            return localeProvider.apply(user);
+        }
         return parent == null ? Locale.ENGLISH : parent.getUserLocale(user);
     }
 }

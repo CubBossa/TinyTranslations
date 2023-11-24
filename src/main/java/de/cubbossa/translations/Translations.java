@@ -2,9 +2,6 @@ package de.cubbossa.translations;
 
 import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.StyleStorage;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
@@ -13,10 +10,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public interface Translations {
 
@@ -74,12 +69,38 @@ public interface Translations {
     TagResolver getResolvers(Locale locale);
 
 
+    /**
+     * Loads all styles from this application from file. Also propagates to global, so all parenting Translation
+     * instances reload their styles.
+     */
     void loadStyles();
 
+    /**
+     * Saves the styles to the styles storage if present. Does not propagate, style changes on parent Translations must
+     * be saved manually.
+     */
     void saveStyles();
 
+    /**
+     * Calls {@link #loadLocale(Locale)} for every existing locale. Locales that are not included in {@link Locale#getAvailableLocales()}
+     * must be loaded manually.
+     * Propagates to all parenting Translations.
+     */
+    void loadLocales();
+
+    /**
+     * Loads a locale from storage, if a storage instance is set. Propagates to all parenting Translations.
+     * It saves the results in the dictionary of all registered messages. So clones of a message will only be
+     * updated if the clone again is part of this Translations instance.
+     * @param locale A locale instance to load from a storage.
+     */
     void loadLocale(Locale locale);
 
+    /**
+     * Saves the current dictionary values for the given language and all registered messages of this Translations instance
+     * to a storage if a storage instance is set.
+     * @param locale A locale instance to save message values for.
+     */
     void saveLocale(Locale locale);
 
 
@@ -87,6 +108,16 @@ public interface Translations {
 
     void setMiniMessage(MiniMessage miniMessage);
 
+
+    @Nullable Message getMessage(String key);
+
+    @Nullable Message getMessageInParentTree(String key);
+
+    @Nullable Message getMessageByNamespace(String namespace, String key);
+
+    void addMessage(Message message);
+
+    void addMessages(Message... messages);
 
     Map<String, Message> getMessageSet();
 
@@ -100,6 +131,8 @@ public interface Translations {
 
     void setStyleStorage(@Nullable StyleStorage storage);
 
+
+    void setLocaleProvider(Function<@Nullable Audience, @NotNull Locale> function);
 
     /**
      * Provides a Locale for each user. This might be the same Locale for all Users.

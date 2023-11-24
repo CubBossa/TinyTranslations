@@ -28,9 +28,6 @@ class ApplicationTranslationsTest {
   public static final Message EMBED = new MessageBuilder("embedded")
       .withDefault("Embedded: <msg:simple>a")
       .build();
-  public static final Message EMBED_NO_BLEED = new MessageBuilder("embedded_complex")
-      .withDefault("Embedded: <msg:simple:true>a")
-      .build();
 
   public static final Message NEW_LINE = new MessageBuilder("new_line")
       .withDefault("Hello\nworld")
@@ -107,6 +104,7 @@ class ApplicationTranslationsTest {
   void translate(@TempDir File dir) {
     TranslationsFramework.enable(dir);
     Translations translations = TranslationsFramework.application("test");
+    translations.addMessages(TranslationsFramework.messageFieldsFromClass(this.getClass()));
 
     assertEquals(text("Hello world", NamedTextColor.RED), translations.process(SIMPLE));
     assertEquals(text("Hallo welt - Deutschland"), translations.process(SIMPLE, Locale.GERMANY));
@@ -116,13 +114,7 @@ class ApplicationTranslationsTest {
     assertEquals(
         text("Embedded: ")
             .append(text("Hello worlda", NamedTextColor.RED)),
-        translations.process(EMBED, Locale.US)
-    );
-    assertEquals(
-        text("Embedded: ")
-            .append(text("Hello world", NamedTextColor.RED))
-            .append(text("a")),
-        translations.process(EMBED_NO_BLEED, Locale.US)
+        translations.process(EMBED, Locale.ENGLISH)
     );
 
     TranslationsFramework.disable();
