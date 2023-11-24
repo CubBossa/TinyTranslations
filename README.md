@@ -4,39 +4,42 @@ A translation framework to translate chat messages.
 This framework builds upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
 
 Translations are split into global server-wide translations and local application translations.
-Translations always come with a set of styles, which must not necessarily be used.
+Translations exist in a treelike structure.
+The global root Translations instance allows to provide translation strings and styles for all following Translations instances.
+Each Translation instance can be forked into a child, which then uses all styles and messages of its parent but has some
+encapsuled translations on its own. Mostly, there will be one global Translations instance and one per plugin.
 
 Example of the Server folder structure and how translations are included:
-```
+```YML
 /Server
   /plugins
     
-    /Translations
-      styles.properties <--- global styling rules
-      en-US.yml <--- global messages (like the server name)
+    /lang
+      global_styles.properties # <--- global styling rules
+      en-US.yml # <--- global messages (like the server name)
     
     /{your plugin}
       /lang
-        styles.properties <--- application only styles
-        en-US.yml <--- application only messages
+        styles.properties # <--- application only styles
+        en-US.yml # <--- application only messages
 ```
 
 Styles are a simple map like the following:
-```Yaml
+```properties
 # We use opening tags to define styles.
-text-light: "<white>"
-text: "<gray>"
-text-dark: "<dark-gray>"
+text-light="<white>"
+text="<gray>"
+text-dark="<dark-gray>"
 ```
 
 Messages can be stored in many ways, like SQL, Yaml or properties.
 In a properties file, messages would look like this:
 ```properties
 some.example.message="<text-light>Some light text <aqua>that can also be styled directly</aqua></text-light>"
-some.example.reference="An embedded message: <msg:some.example-message>"
+some.example.reference="An embedded message: <msg:some.example.message>"
 ```
 
-As can be seen in the example, messages can be embedded into each other, which
+As you can see in the example, messages can be embedded into each other, which
 allows you to simply create own messages and use them all over the place.
 Why is this useful? Think of the following example from my plugin:
 ```properties
@@ -46,33 +49,36 @@ prefix="<c-brand>PathFinder </c-brand><bg-dark>| </bg-dark><bg>"
 other.message="<msg:prefix>Hello."
 ```
 Prefix is not a message that is enforced by the plugin.
-Users can simply create the entry and it will be loaded by the plugin and
-embeddedw in other messages.
+Users can simply create the entry, and it will be loaded by the plugin and
+embedded in other messages.
 
 ## Setup
 
-First, you have to initialize the TranslationHandler.
-
 ```Java
-// use your plugin name and plugin directory as parameters
-// it is important to use the actual plugin directory, because it will be
-// used to find the general plugins directory to place the Translations folder in.
-MessageBundle translations = GlobalMessageBundle.applicationTranslationsBuilder(pl.getName(), pl.getDataFolder())
-        // The client locale will be read and used as player locale
-        .withPreferClientLanguage()
-        // The locale that will be used if all else fails
-        .withDefaultLocale(Locale.ENGLISH)
-        .withLogger(pl.getLogger())
-        // Define a storage for locale files.
-        // Here you could also provide different storages that e.g. support SQL
-        .withPropertiesStorage(dir)
-        // Define a storage for style files
-        .withPropertiesStyles(dir)
-        // All locales that are allowed. For every locale
-        // listed here there may be a locale file if any player has the
-        // according language as client language
-        .withEnabledLocales(Locale.getAvailableLocales())
-        .build();
+class ExamplePlugin extends JavaPlugin {
+
+    Translations translations;
+
+    public void onEnable() {
+        TranslationsFramework.enable(new File(getDataFolder(), "/.."));
+        translations = TranslationsFramework.application("MyPlugin");
+
+        translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
+        translations.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
+
+        translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
+
+        translations.loadStyles();
+        translations.loadLocales();
+
+        translations.saveLocale(Locale.ENGLISH);
+        translations.saveLocale(Locale.GERMAN);
+    }
+
+    public void onDisable() {
+        TranslationsFramework.disable();
+    }
+}
 ```
 
 ### Messages
@@ -104,31 +110,76 @@ translations.addMessage(Messages.ERR_NO_PLAYER);
 translations.addMessage(Messages.ERR_NO_PERM);
 // or
 translations.addMessages(Messages.ERR_NO_PLAYER, Messages.ERR_NO_PERM);
-// or best:
-translations.addMessagesClass(Messages.class);
+// or just:
+translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 ```
 
 And now you can use the following code to get a translated component.
 
 ```Java
+
+// Not in player specific language
+Component myTranslatedComponent = Messages.ERR_NO_PLAYER.asComponent();
+
 // pass player audience to get a translation in player language
-Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER, myPlayerAudience);
-// if not, the Translator class will use the default language.
-Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER);
-// or format the message with placeholders
-Message formatted = Message.ERR_NO_PLAYER.formatted(
+Component myTranslatedComponent = Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).asComponent();
+
+// format the message with placeholders
+Component myTranslatedComponent = Message.ERR_NO_PLAYER.formatted(
     Placeholder.component("value1", componentabc),
     Formatter.number("speed", playerSpeed)
-);
-Component myTranslatedComponent = translations.translate(formatted);
-// or inline
-Component myTranslatedComponent = translations.translate(Messages.ERR_NO_PLAYER.formatted(
+).toComponent();
+
+// or both
+Component myTranslatedComponent = Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).formatted(
     Placeholder.component("value1", componentabc),
     Formatter.number("speed", playerSpeed)
-));
+).toComponent();
 
 ```
 
+Messages implement the ComponentLike interface, which means that you can use them in places that require components without
+explicitly converting them to a component.
+```Java
+player.sendMessage(Messages.ERR_NO_PLAYER);
+player.sendMessage(Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).formatted(...));
+```
 
+Keep in mind, that the first line is still in the default language and not in the player language.
 
+### Player Locales
+
+Player languages are not set up by default.
+You must specify for each Translation instance, how a players locale should be resolved. All sub Translations will inherit
+this behaviour.
+
+```Java
+class ExamplePlugin extends JavaPlugin {
+
+    Translations translations;
+
+    public void onEnable() {
+        // ...
+
+        translations.setLocaleProvider(audience -> {
+            Locale fallback;
+            try {
+                fallback = Locale.forLanguageTag(myConfig.fallbackLocale);
+            } catch (Throwable t) {
+                getLogger().log(Level.WARNING, "Could not parse locale tag '" + fileConfig.fallbackLocale + "'. Using 'en' instead.");
+                fallback = Locale.ENGLISH;
+            }
+
+            if (audience == null) {
+                return fallback;
+            }
+            if (!myConfig.usePlayerClientLocale) {
+                return fallback;
+            }
+            return audience.getOrDefault(Identity.LOCALE, fallback);
+        });
+    }
+    // ...
+}
+```
 
