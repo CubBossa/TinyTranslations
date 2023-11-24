@@ -36,11 +36,11 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withTranslation(Locale locale, String miniMessage) {
-        return this.withTranslation(locale, Message.Format.MINI_MESSAGE, miniMessage);
+        return this.withTranslation(locale, MessageCore.Format.MINI_MESSAGE, miniMessage);
     }
 
-    public MessageBuilder withTranslation(Locale locale, Message.Format format, String translation) {
-        this.translations.put(locale, (format == Message.Format.MINI_MESSAGE ? "" : format.toPrefix()) + translation);
+    public MessageBuilder withTranslation(Locale locale, MessageCore.Format format, String translation) {
+        this.translations.put(locale, (format == MessageCore.Format.MINI_MESSAGE ? "" : format.toPrefix()) + translation);
         return this;
     }
 
@@ -65,16 +65,15 @@ public class MessageBuilder {
     }
 
     public Message build() {
-        Message message = new Message(owner, key);
+        Message message = new MessageCore(owner, key);
         message.setComment(String.join("\n", comments));
-        message.setDictionary(translations);
-        message.setPlaceholderResolvers(placeholderMap.values().stream()
-                .map(Placeholder::resolver)
-                .filter(Optional::isPresent).map(Optional::get)
-                .collect(Collectors.toSet()));
+        message.getDictionary().putAll(translations);
         message.setPlaceholderTags(placeholderMap.values().stream()
                 .collect(Collectors.toMap(Placeholder::tag, Placeholder::desc)));
-        return message;
+        return message.formatted(placeholderMap.values().stream()
+                .map(Placeholder::resolver)
+                .filter(Optional::isPresent).map(Optional::get)
+                .toArray(TagResolver[]::new));
     }
 
     record Placeholder(String tag, Optional<String> desc, Optional<TagResolver> resolver) {

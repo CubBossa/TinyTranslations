@@ -43,6 +43,11 @@ public class GlobalTranslations extends AppTranslations implements Translations 
     }
 
     @Override
+    public Translations forkWithStorage(String name) {
+        throw new IllegalStateException("Cannot fork global Translations with storage. Use fork instead.");
+    }
+
+    @Override
     public @NotNull Locale getUserLocale(@Nullable Audience user) {
         return Locale.ENGLISH;
     }

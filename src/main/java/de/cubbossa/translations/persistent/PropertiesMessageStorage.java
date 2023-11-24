@@ -1,6 +1,7 @@
 package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.Message;
+import de.cubbossa.translations.MessageCore;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +50,7 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
             if (result.get(key) != null) {
                 return;
             }
-            result.put(new Message(key), val);
+            result.put(new MessageCore(key), val);
         });
         return result;
     }

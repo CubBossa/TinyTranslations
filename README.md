@@ -68,11 +68,12 @@ class ExamplePlugin extends JavaPlugin {
 
         translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 
-        translations.loadStyles();
-        translations.loadLocales();
-
+        // They will not overwrite pre-existing values.
         translations.saveLocale(Locale.ENGLISH);
         translations.saveLocale(Locale.GERMAN);
+        
+        translations.loadStyles();
+        translations.loadLocales();
     }
 
     public void onDisable() {

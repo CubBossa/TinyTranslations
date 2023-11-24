@@ -1,200 +1,50 @@
 package de.cubbossa.translations;
 
-import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
-@Getter
-@Setter
-public final class Message implements ComponentLike, Cloneable, Comparable<Message> {
-
-    private static final MiniMessage S_MM = MiniMessage.builder().build();
-    private static final GsonComponentSerializer S_GSON = GsonComponentSerializer.gson();
-    private static final LegacyComponentSerializer S_LEGACY = LegacyComponentSerializer.legacySection();
-    private static final LegacyComponentSerializer S_LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
-
-    public enum Format {
-
-        GSON("nbt", S_GSON::deserialize),
-        MINI_MESSAGE("minimessage", (s, r) -> S_MM.deserialize(s, r)),
-        LEGACY("paragraph", S_LEGACY::deserialize),
-        LEGACY_AMP("ampersand", S_LEGACY_AMP::deserialize),
-        PLAIN;
-
-        private static final Pattern PREFIX = Pattern.compile("^(!!([a-z_]+): )?((.|\n)*)");
-
-        private final String prefix;
-
-        private final BiFunction<String, TagResolver, Component> translator;
-
-        Format() {
-            this.prefix = toString().toLowerCase();
-            this.translator = (s, tagResolver) -> Component.text(s);
-        }
-
-        Format(String prefix, Function<String, Component> translator) {
-            this.prefix = prefix;
-            this.translator = (s, tagResolver) -> translator.apply(s);
-        }
-
-        Format(String prefix, BiFunction<String, TagResolver, Component> translator) {
-            this.prefix = prefix;
-            this.translator = translator;
-        }
-
-        public String toPrefix() {
-            return "!!" + prefix + ": ";
-        }
-
-        public static Component translate(String message, TagResolver resolver) {
-            Matcher matcher = PREFIX.matcher(message);
-            if (!matcher.find()) {
-                throw new IllegalArgumentException("Message is invalid");
-            }
-            String prefix = matcher.group(2);
-            String m = matcher.group(3);
-            Format format = m == null
-                    ? MINI_MESSAGE
-                    : fromPrefix(prefix).orElse(MINI_MESSAGE);
-            return format.translator.apply(m == null ? prefix : m, resolver);
-        }
-
-        public static Optional<Format> fromPrefix(String prefix) {
-            for (Format value : Format.values()) {
-                if (value.prefix.equals(prefix)) {
-                    return Optional.of(value);
-                }
-            }
-            return Optional.empty();
-        }
-
-    }
-
-    private final String key;
-
-    private Translations translations;
-    private Map<Locale, String> dictionary;
-    private Map<String, Optional<String>> placeholderTags;
-    private String comment;
-
-    private Collection<TagResolver> placeholderResolvers;
-    private Audience audience;
-
-    public Message(String key) {
-        this((Translations) null, key);
-    }
-
-    public Message(Translations translations, String key) {
-        this(translations, key, "No default translation present");
-    }
-
-    public Message(String key, String defaultValue) {
-        this(null, key, defaultValue);
-    }
-
-    public Message(Translations translations, String key, String defaultValue) {
-        this.translations = translations;
-        if (translations != null) {
-            this.translations.getMessageSet().put(this.getKey(), this);
-        }
-        this.key = key;
-        this.dictionary = new HashMap<>();
-        this.dictionary.put(TranslationsFramework.DEFAULT_LOCALE, defaultValue);
-        this.placeholderTags = new HashMap<>();
-        this.placeholderResolvers = new HashSet<>();
-    }
-
-    public String getNamespacedKey() {
-        return translations.getPath() + ":" + key;
-    }
-
-    public void setOwner(Translations translations) {
-        this.translations = translations;
-    }
+public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 
     @Override
-    public @NotNull Component asComponent() {
-        return audience == null
-                ? translations.process(this)
-                : translations.process(this, audience);
-    }
+    @NotNull Component asComponent();
 
-    public Component asComponent(Audience audience) {
-        return translations.process(this, audience);
-    }
+    @NotNull Component asComponent(Audience audience);
 
-    public Audience getAudience() {
-        return audience;
-    }
+    @Contract(pure = true)
+    Message formatted(Audience audience);
 
-    public void setAudience(Audience audience) {
-        this.audience = audience;
-    }
+    @Contract(pure = true)
+    Message formatted(TagResolver... resolver);
 
-    public Message format(Audience audience) {
-        this.audience = audience;
-        return this;
-    }
+    String getKey();
 
-    public Message format(TagResolver... resolver) {
-        this.placeholderResolvers.add(TagResolver.resolver(resolver));
-        return this;
-    }
+    String getNamespacedKey();
 
-    public Message formatted(Audience audience) {
-        return this.clone().format(audience);
-    }
+    @Nullable Translations getTranslations();
 
-    public Message formatted(TagResolver... resolver) {
-        return this.clone().format(resolver);
-    }
+    @Nullable Audience getTarget();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    Collection<TagResolver> getResolvers();
 
-        Message message = (Message) o;
-        return key.equals(message.key);
-    }
+    void setTranslations(@NotNull Translations translations);
 
-    @Override
-    public int hashCode() {
-        return key.hashCode();
-    }
+    Map<Locale, String> getDictionary();
 
-    public Message clone(Translations translations) {
-        Message message = new Message(translations, key);
-        message.setPlaceholderTags(new HashMap<>(placeholderTags));
-        message.setPlaceholderResolvers(new HashSet<>(placeholderResolvers));
-        message.setComment(comment);
-        return message;
-    }
+    Map<String, Optional<String>> getPlaceholderTags();
 
-    @Override
-    public Message clone() {
-        return clone(translations);
-    }
+    String getComment();
 
-    @Override
-    public int compareTo(@NotNull Message o) {
-        return getKey().compareTo(o.getKey());
-    }
+    void setPlaceholderTags(Map<String, Optional<String>> placeholderTags);
+
+    void setComment(String comment);
 }

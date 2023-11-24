@@ -97,7 +97,7 @@ class ApplicationTranslationsTest {
         ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
     );
 
-    TranslationsFramework.disable();
+    translations.shutdown();
   }
 
   @Test
@@ -117,7 +117,7 @@ class ApplicationTranslationsTest {
         translations.process(EMBED, Locale.ENGLISH)
     );
 
-    TranslationsFramework.disable();
+    translations.shutdown();
   }
 
   @Test

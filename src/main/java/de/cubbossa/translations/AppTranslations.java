@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 
 @Getter
@@ -22,7 +24,7 @@ public class AppTranslations implements Translations {
 
     private final Translations parent;
     private final String name;
-    private final HashMap<String, Translations> children = new HashMap<>();
+    private final Map<String, Translations> children;
 
     private MiniMessage miniMessage;
     private TagResolver styleResolverCache = null;
@@ -34,9 +36,13 @@ public class AppTranslations implements Translations {
     private @Nullable MessageStorage messageStorage;
     private @Nullable StyleStorage styleStorage;
 
+    private ReadWriteLock lock;
+
     public AppTranslations(Translations parent, String name) {
         this.parent = parent;
         this.name = name;
+
+        this.children = new ConcurrentHashMap<>();
 
         this.messageStorage = null;
         this.styleStorage = null;
@@ -44,7 +50,7 @@ public class AppTranslations implements Translations {
         this.messageSet = new HashMap<>() {
             @Override
             public Message put(String key, Message value) {
-                value.setOwner(AppTranslations.this);
+                value.setTranslations(AppTranslations.this);
                 return super.put(key, value);
             }
         };
@@ -104,7 +110,7 @@ public class AppTranslations implements Translations {
 
     @Override
     public Message message(String key) {
-        return new Message(this, key);
+        return new MessageCore(this, key);
     }
 
     @Override
@@ -153,7 +159,7 @@ public class AppTranslations implements Translations {
 
     @Override
     public Component process(String raw, Locale locale) {
-        return Message.Format.translate(raw, getResolvers(locale));
+        return MessageCore.Format.translate(raw, getResolvers(locale));
     }
 
     @Override

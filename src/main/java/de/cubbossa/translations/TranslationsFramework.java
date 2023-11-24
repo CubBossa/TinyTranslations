@@ -13,7 +13,35 @@ public final class TranslationsFramework {
 
   public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
-  private static Translations global;
+  private static volatile Translations global;
+  private static final Object mutex = new Object();
+
+  public static Translations global() {
+    Translations g = global;
+    if (g == null) {
+      throw new IllegalStateException("Accessing global without enabling TranslationsFramework.");
+    }
+    return g;
+  }
+
+  public static Translations application(String name) {
+    return global().fork(name);
+  }
+
+  public static void enable(File pluginDirectory) {
+    Translations g = global;
+    if (g == null) {
+      synchronized (mutex) {
+        g = global;
+        if (g == null) {
+          global = new GlobalTranslations(pluginDirectory);
+        }
+      }
+    }
+  }
+
+  public static void disable() {
+  }
 
   public static Message[] messageFieldsFromClass(Class<?> messageClass) {
     try {
@@ -22,8 +50,8 @@ public final class TranslationsFramework {
       t.printStackTrace();
     }
     Field[] fields = Arrays.stream(messageClass.getDeclaredFields())
-        .filter(field -> field.getType().equals(Message.class))
-        .toArray(Field[]::new);
+            .filter(field -> field.getType().equals(MessageCore.class))
+            .toArray(Field[]::new);
 
     Message[] messages = new Message[fields.length];
     int i = 0;
@@ -35,22 +63,5 @@ public final class TranslationsFramework {
       }
     }
     return messages;
-  }
-
-  public static Translations global() {
-    return global;
-  }
-
-  public static Translations application(String name) {
-    return global().fork(name);
-  }
-
-  public static void enable(File pluginDirectory) {
-    global = new GlobalTranslations(pluginDirectory);
-  }
-
-  public static void disable() {
-    global().shutdown();
-    global = null;
   }
 }
