@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -105,5 +106,5 @@ public interface Translations {
      * @param user An audience individually representing each user
      * @return The locale
      */
-    Locale getUserLocale(@Nullable Audience user);
+    @NotNull Locale getUserLocale(@Nullable Audience user);
 }

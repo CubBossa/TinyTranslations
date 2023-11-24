@@ -13,6 +13,11 @@ public final class TranslationsFramework {
   private static Translations global;
 
   public static Message[] messageFieldsFromClass(Class<?> messageClass) {
+    try {
+      TranslationsFramework.class.getClassLoader().loadClass(messageClass.getName());
+    } catch (Throwable t) {
+      t.printStackTrace();
+    }
     Field[] fields = Arrays.stream(messageClass.getDeclaredFields())
         .filter(field -> field.getType().equals(Message.class))
         .toArray(Field[]::new);

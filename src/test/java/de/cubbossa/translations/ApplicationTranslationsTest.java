@@ -18,26 +18,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ApplicationTranslationsTest {
 
-  public static final Message SIMPLE = translations.messageBuilder("simple")
+  public static final Message SIMPLE = new MessageBuilder("simple")
       .withDefault("<red>Hello world")
       .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
       .withTranslation(Locale.GERMAN, "Hallo welt - Deutsch")
       .withComment("abc")
       .build();
 
-  public static final Message EMBED = translations.messageBuilder("embedded")
+  public static final Message EMBED = new MessageBuilder("embedded")
       .withDefault("Embedded: <msg:simple>a")
       .build();
-  public static final Message EMBED_NO_BLEED = translations.messageBuilder("embedded_complex")
+  public static final Message EMBED_NO_BLEED = new MessageBuilder("embedded_complex")
       .withDefault("Embedded: <msg:simple:true>a")
       .build();
 
-  public static final Message NEW_LINE = translations.messageBuilder("new_line")
+  public static final Message NEW_LINE = new MessageBuilder("new_line")
       .withDefault("Hello\nworld")
       .build();
 
   @Test
-  void newLine() {
+  void newLine(@TempDir File dir) {
 
     PlainTextComponentSerializer serializer = PlainTextComponentSerializer.plainText();
 
@@ -92,14 +92,22 @@ class ApplicationTranslationsTest {
         ComponentSplit.split(c, "\n").stream().map(serializer::serialize).collect(Collectors.toList())
     );
 
+    TranslationsFramework.enable(dir);
+    Translations translations = TranslationsFramework.application("test");
+
     assertEquals(
         2,
         ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
     );
+
+    TranslationsFramework.disable();
   }
 
   @Test
-  void translate() {
+  void translate(@TempDir File dir) {
+    TranslationsFramework.enable(dir);
+    Translations translations = TranslationsFramework.application("test");
+
     assertEquals(text("Hello world", NamedTextColor.RED), translations.process(SIMPLE));
     assertEquals(text("Hallo welt - Deutschland"), translations.process(SIMPLE, Locale.GERMANY));
     assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.GERMAN));
@@ -116,6 +124,8 @@ class ApplicationTranslationsTest {
             .append(text("a")),
         translations.process(EMBED_NO_BLEED, Locale.US)
     );
+
+    TranslationsFramework.disable();
   }
 
   @Test

@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -70,7 +71,7 @@ public class AppTranslations implements Translations {
 
     @Override
     public void shutdown() {
-        children.forEach((s, translations) -> translations.shutdown());
+        new HashMap<>(children).forEach((s, translations) -> translations.shutdown());
         if (parent != null) {
             parent.remove(this.name);
         }
@@ -123,6 +124,12 @@ public class AppTranslations implements Translations {
     @Override
     public Component process(Message message, Locale locale) {
         String raw = message.getDefaultTranslations().get(locale);
+        if (raw == null) {
+            raw = message.getDefaultValue();
+        }
+        if (raw == null) {
+            raw = "<missing translation: " + message.getNamespacedKey() + ">";
+        }
         return process(raw, locale);
     }
 
@@ -206,7 +213,7 @@ public class AppTranslations implements Translations {
     }
 
     @Override
-    public Locale getUserLocale(@Nullable Audience user) {
-        return parent.getUserLocale(user);
+    public @NotNull Locale getUserLocale(@Nullable Audience user) {
+        return parent == null ? Locale.ENGLISH : parent.getUserLocale(user);
     }
 }

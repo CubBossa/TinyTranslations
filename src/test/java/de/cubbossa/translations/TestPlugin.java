@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.persistent.PropertiesMessageStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.intellij.lang.annotations.RegExp;
@@ -70,6 +71,10 @@ public class TestPlugin {
     @Test
     public void testFileCreation(@TempDir File dir) {
 
+        TranslationsFramework.enable(dir);
+        Translations translations = TranslationsFramework.application("test");
+        translations.setMessageStorage(new PropertiesMessageStorage(Logger.getLogger("Translations"), dir));
+
         translations.loadStyles();
         translations.saveLocale(Locale.ENGLISH);
 
@@ -81,10 +86,15 @@ public class TestPlugin {
         String before = fileContent(en);
         translations.saveLocale(Locale.ENGLISH);
         Assertions.assertEquals(before, fileContent(en));
+
+        TranslationsFramework.disable();
     }
 
     @Test
     public void testLoad(@TempDir File dir) {
+
+        TranslationsFramework.enable(dir);
+        Translations translations = TranslationsFramework.application("test");
 
         Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
         Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.process(TEST_1, Locale.GERMAN));
@@ -94,5 +104,7 @@ public class TestPlugin {
         Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
 
         Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.process(TEST_2));
+
+        TranslationsFramework.disable();
     }
 }

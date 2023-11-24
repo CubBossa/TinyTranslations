@@ -109,7 +109,9 @@ public final class Message implements ComponentLike, Cloneable, Comparable<Messa
 
   public Message(Translations translations, String key, String defaultValue) {
     this.translations = translations;
-    this.translations.getMessageSet().put(this.getKey(), this);
+    if (translations != null) {
+      this.translations.getMessageSet().put(this.getKey(), this);
+    }
     this.key = key;
     this.defaultValue = defaultValue;
     this.defaultTranslations = new HashMap<>();

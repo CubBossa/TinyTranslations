@@ -8,6 +8,7 @@ import lombok.SneakyThrows;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -40,7 +41,7 @@ public class GlobalTranslations extends AppTranslations implements Translations 
     }
 
     @Override
-    public Locale getUserLocale(@Nullable Audience user) {
+    public @NotNull Locale getUserLocale(@Nullable Audience user) {
         return Locale.ENGLISH;
     }
 }
