@@ -3,6 +3,7 @@ package de.cubbossa.translations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ApplicationTranslationsTest {
+class AppTranslationsTest {
 
   public static final Message SIMPLE = new MessageBuilder("simple")
       .withDefault("<red>Hello world")
@@ -115,6 +116,17 @@ class ApplicationTranslationsTest {
             .append(text("Hello worlda", NamedTextColor.RED)),
         translations.process(EMBED, Locale.ENGLISH)
     );
+
+    translations.close();
+  }
+
+  @Test
+  void resolver(@TempDir File dir) {
+    TranslationsFramework.enable(dir);
+    Translations translations = TranslationsFramework.application("test");
+    Message m = translations.messageBuilder("a").withDefault("a <b>").build();
+
+    assertEquals(Component.text("a 1"), m.formatted(Formatter.number("b", 1)).asComponent());
 
     translations.close();
   }
