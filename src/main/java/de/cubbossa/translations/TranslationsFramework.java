@@ -50,7 +50,7 @@ public final class TranslationsFramework {
       t.printStackTrace();
     }
     Field[] fields = Arrays.stream(messageClass.getDeclaredFields())
-            .filter(field -> field.getType().isInstance(Message.class))
+            .filter(field -> Message.class.isAssignableFrom(field.getType()))
             .toArray(Field[]::new);
 
     Message[] messages = new Message[fields.length];
