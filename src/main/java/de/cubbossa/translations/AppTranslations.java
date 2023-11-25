@@ -268,6 +268,7 @@ public class AppTranslations implements Translations {
         }
         if (styleStorage != null) {
             styleSet.putAll(styleStorage.loadStyles());
+            styleResolverCache = null;
         }
     }
 
