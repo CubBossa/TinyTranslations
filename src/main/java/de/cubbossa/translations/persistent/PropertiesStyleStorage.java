@@ -6,16 +6,18 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class PropertiesStyleStorage implements StyleStorage {
 
     private final File file;
+    private static final MiniMessage styleMiniMessage = MiniMessage.miniMessage();
 
     public PropertiesStyleStorage(File file) {
         if (!file.exists()) {
@@ -34,34 +36,78 @@ public class PropertiesStyleStorage implements StyleStorage {
         this.file = file;
     }
 
+    private static String serialize(Style style) {
+        Component c = Component.text("&&&", style);
+        String s = styleMiniMessage.serialize(c);
+        return s.split("&&&")[0];
+    }
+
+    private static Style deserialize(String style) {
+        return styleMiniMessage.deserialize(style + "&&&").style();
+    }
+
     @Override
     public void writeStyles(Map<String, Style> styles) {
+        List<Line> lines = readStylesFile(file);
+        Map<String, Style> present = readStylesFromLines(lines);
+        Map<String, Style> toWrite = new LinkedHashMap<>();
 
+        for (var stylePair : styles.entrySet()) {
+            if (!present.containsKey(stylePair.getKey())) {
+                toWrite.put(stylePair.getKey(), stylePair.getValue());
+            }
+        }
+
+        toWrite.forEach((s, style) -> lines.add(new StyleLine(s, style)));
+        writeStyles(lines);
+    }
+
+    private void writeStyles(List<Line> lines) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
+
+            for (Line line : lines) {
+                writer.append(line.print()).append(System.getProperty("line.separator"));
+            }
+
+            writer.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Map<String, Style> loadStyles() {
-        if (!file.exists()) {
-            try {
-                file.mkdirs();
-                file.createNewFile();
-                if (!file.exists()) {
-                    throw new IllegalStateException("Could not create styles properties file.");
-                }
-            } catch (Throwable t) {
-                throw new RuntimeException(t);
-            }
-        }
-        Pattern keyValue = Pattern.compile("([a-zA-Z._-]+)=((.)+)");
+        return readStylesFromLines(readStylesFile(file));
+    }
 
-        Map<String, String> props = new LinkedHashMap<>();
+    private Map<String, Style> readStylesFromLines(List<Line> lines) {
+        return lines.stream()
+                .filter(line -> line instanceof StyleLine)
+                .map(line -> (StyleLine) line)
+                .collect(Collectors.toMap(StyleLine::key, StyleLine::style));
+    }
+
+    private List<Line> readStylesFile(File file) {
+        Pattern keyValue = Pattern.compile("^([a-zA-Z._-]+)=((.)+)$");
+        List<Line> lines = new ArrayList<>();
 
         int lineIndex = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lineIndex++;
-                if (line.isEmpty() || line.isBlank() || line.startsWith("#")) {
+                if (line.isEmpty() || line.isBlank()) {
+                    lines.add(new EmptyLine());
+                    continue;
+                }
+                if (line.startsWith("# ")) {
+                    lines.add(new CommentLine(line.substring(2)));
+                    continue;
+                }
+                if (line.startsWith("#")) {
+                    lines.add(new CommentLine(line.substring(1)));
                     continue;
                 }
                 Matcher matcher = keyValue.matcher(line);
@@ -69,23 +115,40 @@ public class PropertiesStyleStorage implements StyleStorage {
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
                     stripped = stripped.replace("\\n", "\n");
-                    props.put(matcher.group(1), stripped);
+
+                    lines.add(new StyleLine(matcher.group(1), deserialize(stripped)));
                     continue;
                 }
                 throw new RuntimeException("Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
             }
         } catch (Throwable t) {
-            throw new RuntimeException(t);
+            throw new RuntimeException("Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);
         }
-        MiniMessage miniMessage = MiniMessage.miniMessage();
-        Map<String, Style> styles = new LinkedHashMap<>();
-        Collection<TagResolver> resolvers = new ArrayList<>();
+        return lines;
+    }
 
-        for (Map.Entry<String, String> e : props.entrySet()) {
-            Component styleHolder = miniMessage.deserialize(e.getValue(), resolvers.toArray(TagResolver[]::new));
-            resolvers.add(TagResolver.resolver(e.getKey(), Tag.styling(style -> style.merge(styleHolder.style()))));
-            styles.put(e.getKey(), styleHolder.style());
+    private interface Line {
+        String print();
+    }
+
+    private record EmptyLine() implements Line {
+        @Override
+        public String print() {
+            return "";
         }
-        return styles;
+    }
+
+    private record CommentLine(String comment) implements Line {
+        @Override
+        public String print() {
+            return "# " + comment;
+        }
+    }
+
+    private record StyleLine(String key, Style style) implements Line {
+        @Override
+        public String print() {
+            return key + "=\"" + serialize(style) + "\"";
+        }
     }
 }

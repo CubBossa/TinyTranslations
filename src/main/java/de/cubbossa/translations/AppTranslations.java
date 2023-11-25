@@ -144,7 +144,7 @@ public class AppTranslations implements Translations {
         if (raw == null) {
             raw = "<missing translation: " + message.getNamespacedKey() + ">";
         }
-        return process(raw, locale, message.getResolvers().toArray(new TagResolver[0]));
+        return process(raw, locale, message.getResolvers().toArray(TagResolver[]::new));
     }
 
     @Override
