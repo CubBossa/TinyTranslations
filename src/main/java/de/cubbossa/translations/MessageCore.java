@@ -117,6 +117,9 @@ public final class MessageCore implements Message {
 
     @Override
     public String getNamespacedKey() {
+        if (translations == null) {
+            throw new IllegalStateException("Trying to access a Message before registering it to a Translations instance.");
+        }
         return translations.getPath() + ":" + key;
     }
 
@@ -127,11 +130,17 @@ public final class MessageCore implements Message {
 
     @Override
     public @NotNull Component asComponent() {
+        if (translations == null) {
+            throw new IllegalStateException("Trying to translate a Message before registering it to a Translations instance.");
+        }
         return translations.process(this);
     }
 
     @Override
     public @NotNull Component asComponent(Audience audience) {
+        if (translations == null) {
+            throw new IllegalStateException("Trying to translate a Message before registering it to a Translations instance.");
+        }
         return translations.process(this, audience);
     }
 
@@ -192,6 +201,9 @@ public final class MessageCore implements Message {
 
     @Override
     public Message clone() {
+        if (translations == null) {
+            throw new IllegalStateException("Trying to clone a Message before registering it to a Translations instance.");
+        }
         return clone(translations);
     }
 

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
@@ -97,7 +96,7 @@ class ApplicationTranslationsTest {
         ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
     );
 
-    translations.shutdown();
+    translations.close();
   }
 
   @Test
@@ -117,7 +116,7 @@ class ApplicationTranslationsTest {
         translations.process(EMBED, Locale.ENGLISH)
     );
 
-    translations.shutdown();
+    translations.close();
   }
 
   @Test

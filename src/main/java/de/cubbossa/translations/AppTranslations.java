@@ -78,8 +78,8 @@ public class AppTranslations implements Translations {
     }
 
     @Override
-    public void shutdown() {
-        new HashMap<>(children).forEach((s, translations) -> translations.shutdown());
+    public void close() {
+        new HashMap<>(children).forEach((s, translations) -> translations.close());
         if (parent != null) {
             parent.remove(this.name);
         }

@@ -46,7 +46,7 @@ public class TestPlugin {
         translations.fork("a");
         Assertions.assertThrows(IllegalArgumentException.class, () -> translations.fork("a"));
 
-        translations.shutdown();
+        translations.close();
     }
 
     private String fileContent(File file) {
@@ -89,7 +89,7 @@ public class TestPlugin {
         translations.saveLocale(Locale.ENGLISH);
         Assertions.assertEquals(before, fileContent(en));
 
-        translations.shutdown();
+        translations.close();
     }
 
     @Test
@@ -107,6 +107,6 @@ public class TestPlugin {
 
         Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.process(TEST_2));
 
-        translations.shutdown();
+        translations.close();
     }
 }
