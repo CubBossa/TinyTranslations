@@ -60,11 +60,11 @@ public interface Translations extends AutoCloseable {
 
     Component process(Message message, Locale locale);
 
-    Component process(String raw);
+    Component process(String raw, TagResolver... resolvers);
 
-    Component process(String raw, Audience target);
+    Component process(String raw, Audience target, TagResolver... resolvers);
 
-    Component process(String raw, Locale locale);
+    Component process(String raw, Locale locale, TagResolver... resolvers);
 
     TagResolver getResolvers(Locale locale);
 

@@ -148,18 +148,20 @@ public class AppTranslations implements Translations {
     }
 
     @Override
-    public Component process(String raw) {
-        return process(raw, (Audience) null);
+    public Component process(String raw, TagResolver... resolvers) {
+        return process(raw, (Audience) null, resolvers);
     }
 
     @Override
-    public Component process(String raw, Audience target) {
-        return process(raw, getUserLocale(target));
+    public Component process(String raw, Audience target, TagResolver... resolvers) {
+        return process(raw, getUserLocale(target), resolvers);
     }
 
     @Override
-    public Component process(String raw, Locale locale) {
-        return MessageCore.Format.translate(raw, getResolvers(locale));
+    public Component process(String raw, Locale locale, TagResolver... resolvers) {
+        return MessageCore.Format.translate(raw, TagResolver.builder()
+                .resolvers(resolvers)
+                .resolver(getResolvers(locale)).build());
     }
 
     @Override
