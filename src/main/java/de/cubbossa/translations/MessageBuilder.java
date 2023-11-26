@@ -36,11 +36,11 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withTranslation(Locale locale, String miniMessage) {
-        return this.withTranslation(locale, MessageCore.Format.MINI_MESSAGE, miniMessage);
+        return this.withTranslation(locale, MessageFormat.MINI_MESSAGE, miniMessage);
     }
 
-    public MessageBuilder withTranslation(Locale locale, MessageCore.Format format, String translation) {
-        this.translations.put(locale, (format == MessageCore.Format.MINI_MESSAGE ? "" : format.toPrefix()) + translation);
+    public MessageBuilder withTranslation(Locale locale, MessageFormat format, String translation) {
+        this.translations.put(locale, (format == MessageFormat.MINI_MESSAGE ? "" : format.toPrefix()) + translation);
         return this;
     }
 

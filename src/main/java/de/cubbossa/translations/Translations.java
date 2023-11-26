@@ -103,12 +103,6 @@ public interface Translations extends AutoCloseable {
      */
     void saveLocale(Locale locale);
 
-
-    MiniMessage getMiniMessage();
-
-    void setMiniMessage(MiniMessage miniMessage);
-
-
     @Nullable Message getMessage(String key);
 
     @Nullable Message getMessageInParentTree(String key);

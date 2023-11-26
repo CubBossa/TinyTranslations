@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.util.DefaultResolvers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;

@@ -42,15 +42,10 @@ public class FormattedMessage implements Message {
 
     @Override
     public @NotNull Component asComponent() {
-        return asComponent(message.getTarget());
-    }
-
-    @Override
-    public @NotNull Component asComponent(Audience audience) {
         if (message.getTranslations() == null) {
             throw new IllegalStateException("Trying to translate a Message before registering it to a Translations instance.");
         }
-        return message.getTranslations().process(this, audience);
+        return message.getTranslations().process(this, getTarget());
     }
 
     @Override

@@ -15,16 +15,6 @@ import java.util.Optional;
 
 public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 
-    @Override
-    @NotNull Component asComponent();
-
-    @NotNull Component asComponent(Audience audience);
-
-    @Contract(pure = true)
-    Message formatted(Audience audience);
-
-    @Contract(pure = true)
-    Message formatted(TagResolver... resolver);
 
     String getKey();
 
@@ -32,19 +22,31 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 
     @Nullable Translations getTranslations();
 
+    void setTranslations(@NotNull Translations translations);
+
+
+    @Override
+    @NotNull Component asComponent();
+
+
+    @Contract(pure = true)
+    Message formatted(Audience audience);
+
+    @Contract(pure = true)
+    Message formatted(TagResolver... resolver);
+
     @Nullable Audience getTarget();
 
     Collection<TagResolver> getResolvers();
 
-    void setTranslations(@NotNull Translations translations);
 
     Map<Locale, String> getDictionary();
 
     Map<String, Optional<String>> getPlaceholderTags();
 
-    String getComment();
-
     void setPlaceholderTags(Map<String, Optional<String>> placeholderTags);
+
+    String getComment();
 
     void setComment(String comment);
 }

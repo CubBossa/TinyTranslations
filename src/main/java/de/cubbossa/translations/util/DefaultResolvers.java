@@ -1,4 +1,4 @@
-package de.cubbossa.translations;
+package de.cubbossa.translations.util;
 
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;

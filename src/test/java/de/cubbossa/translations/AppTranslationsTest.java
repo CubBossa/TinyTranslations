@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.util.ComponentSplit;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;

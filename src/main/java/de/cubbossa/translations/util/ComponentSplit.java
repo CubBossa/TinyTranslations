@@ -1,4 +1,4 @@
-package de.cubbossa.translations;
+package de.cubbossa.translations.util;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;

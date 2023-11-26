@@ -26,7 +26,6 @@ public class AppTranslations implements Translations {
     private final String name;
     private final Map<String, Translations> children;
 
-    private MiniMessage miniMessage;
     private TagResolver styleResolverCache = null;
 
     private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
@@ -159,7 +158,7 @@ public class AppTranslations implements Translations {
 
     @Override
     public Component process(String raw, Locale locale, TagResolver... resolvers) {
-        return MessageCore.Format.translate(raw, TagResolver.builder()
+        return MessageFormat.translate(raw, TagResolver.builder()
                 .resolvers(resolvers)
                 .resolver(getResolvers(locale)).build());
     }
@@ -208,10 +207,6 @@ public class AppTranslations implements Translations {
             }
             return Tag.inserting(process(msg, locale));
         });
-    }
-
-    public MiniMessage getMiniMessage() {
-        return miniMessage == null ? parent.getMiniMessage() : miniMessage;
     }
 
     @Override
