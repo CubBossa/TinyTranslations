@@ -19,33 +19,18 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
     }
 
     @Override
-    public Optional<String> readMessage(Message message, Locale locale) {
-        return Optional.ofNullable(readMessages(Set.of(message), locale).get(message));
-    }
-
-    @Override
-    public Map<Message, String> readMessages(Collection<Message> messages, Locale locale) {
+    public Map<Message, String> readMessages(Locale locale) {
         File file = localeFileIfExists(locale);
         if (file == null) {
             return new HashMap<>();
         }
 
-        List<Entry> entries = readFile(file);
+        Map<String, Entry> entries = readFile(file);
         Map<String, String> entryMap = new HashMap<>();
-        entries.forEach(entry -> entryMap.put(entry.key(), entry.value()));
+        entries.forEach((key, value) -> entryMap.put(key, value.value()));
 
         Map<Message, String> result = new HashMap<>();
-        for (Message message : messages) {
-            if (!entryMap.containsKey(message.getKey())) {
-                String t = message.getDictionary().get(locale);
-                if (t == null) {
-                    continue;
-                }
-                result.put(message, t);
-                continue;
-            }
-            result.put(message, entryMap.get(message.getKey()));
-        }
+
         entryMap.forEach((key, val) -> {
             if (result.get(key) != null) {
                 return;
@@ -56,25 +41,25 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
     }
 
     @Override
-    public boolean writeMessage(Message message, Locale locale, String translation) {
-        return writeMessages(Set.of(message), locale).contains(message);
-    }
-
-    @Override
     public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
         File file = localeFile(locale);
 
-        List<Entry> entries = readFile(file);
+        Collection<Message> written = new HashSet<>();
+        Map<String, Entry> entries = readFile(file);
         for (Message msg : messages) {
             if (msg.getDictionary().containsKey(locale)) {
-                entries.add(new Entry(msg.getKey(), msg.getDictionary().get(locale), msg.getComment()));
+                if (entries.containsKey(msg.getKey())) {
+                    continue;
+                }
+                entries.put(msg.getKey(), new Entry(msg.getKey(), msg.getDictionary().get(locale), msg.getComment()));
+                written.add(msg);
             }
         }
-        entries = new ArrayList<>(new HashSet<>(entries));
-        entries.sort(Comparator.comparing(o -> o.key));
+        List<Entry> sortedEntries = new ArrayList<>(entries.values());
+        sortedEntries.sort(Comparator.comparing(o -> o.key));
 
-        writeFile(file, entries);
-        return messages;
+        writeFile(file, sortedEntries);
+        return written;
     }
 
     private void writeFile(File file, List<Entry> entries) {
@@ -104,10 +89,10 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
         }
     }
 
-    private List<Entry> readFile(File file) {
+    private Map<String, Entry> readFile(File file) {
 
         Pattern keyValue = Pattern.compile("^([a-zA-Z._-]+)=((.)+)$");
-        List<Entry> entries = new ArrayList<>();
+        Map<String, Entry> entries = new HashMap<>();
         List<String> comments = new ArrayList<>();
 
         int lineIndex = 0;
@@ -128,10 +113,11 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
                 }
                 Matcher matcher = keyValue.matcher(line);
                 if (matcher.find()) {
+                    String key = matcher.group(1);
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
                     stripped = stripped.replace("\\n", "\n");
-                    entries.add(new Entry(matcher.group(1), stripped, String.join("\n", comments)));
+                    entries.put(key.toLowerCase(), new Entry(key, stripped, String.join("\n", comments)));
                     comments.clear();
                     continue;
                 }

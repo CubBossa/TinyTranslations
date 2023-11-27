@@ -1,6 +1,7 @@
 package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.Message;
+import de.cubbossa.translations.MessageCore;
 import de.cubbossa.translations.Translations;
 import org.yaml.snakeyaml.Yaml;
 
@@ -21,33 +22,19 @@ public class YamlStorage extends FileStorage implements MessageStorage {
     }
 
     @Override
-    public Optional<String> readMessage(Message message, Locale locale) {
-        return Optional.ofNullable(readMessages(Set.of(message), locale).get(message));
-    }
-
-    @Override
-    public Map<Message, String> readMessages(Collection<Message> messages, Locale locale) {
+    public Map<Message, String> readMessages(Locale locale) {
         try {
             Map<Message, String> result = new HashMap<>();
             Map<String, Object> map = yaml.load(new FileInputStream(localeFile(locale)));
             map.forEach((s, o) -> {
-                Optional<Message> message = messages.stream().filter(m -> m.getKey().equals(s)).findFirst();
-                if (message.isEmpty()) {
-                    return;
-                }
-                if (o instanceof String translation) {
-                    result.put(message.get(), translation);
+                if (o instanceof String val) {
+                    result.put(new MessageCore(s), val);
                 }
             });
             return result;
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public boolean writeMessage(Message message, Locale locale, String translation) {
-        return writeMessages(Set.of(message), locale).contains(message);
     }
 
     @Override

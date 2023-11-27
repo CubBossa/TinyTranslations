@@ -287,9 +287,11 @@ public class AppTranslations implements Translations {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
-            messageStorage.readMessages(messageSet.values(), locale).forEach((message, s) -> {
-                message.getDictionary().put(locale, s);
-                addMessage(message);
+            messageStorage.readMessages(locale).forEach((message, s) -> {
+                messageSet.computeIfAbsent(message.getKey(), key -> {
+                    addMessage(message);
+                    return message;
+                }).getDictionary().put(locale, s);
             });
         }
     }
