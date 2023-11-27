@@ -49,6 +49,11 @@ public class FormattedMessage implements Message {
     }
 
     @Override
+    public String toString(MessageFormat format) {
+        return format.format(asComponent());
+    }
+
+    @Override
     public Message formatted(Audience audience) {
         FormattedMessage msg = new FormattedMessage(this);
         msg.audience = audience;

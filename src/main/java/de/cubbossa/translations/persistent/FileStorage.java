@@ -11,17 +11,15 @@ import java.util.logging.Logger;
 
 public abstract class FileStorage {
 
-    final Logger logger;
     final File directory;
     final String fileSuffix;
 
-    public FileStorage(Logger logger, File directory, String suffix) {
+    public FileStorage(File directory, String suffix) {
         directory.mkdirs();
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException("Language directory must not be a file.");
         }
 
-        this.logger = logger;
         this.directory = directory;
         this.fileSuffix = suffix;
 

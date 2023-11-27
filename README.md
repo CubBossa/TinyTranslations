@@ -3,11 +3,107 @@
 A translation framework to translate chat messages.
 This framework builds upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
 
+## Table of Contents
+- [Maven](#maven)
+- [Overview](#overview)
+- [Setup](#setup)
+  - [Messages](#messages)
+  - [Add Messages to Translations](#add-messages-to-translations)
+  - [Build Messages from Translations directly](#build-messages-from-translations-directly)
+  - [Turn Messages into Components](#message-as-component)
+  - [Other Formats like Legacy Chat](#other-formats)
+  - [Per Player Locale](#player-locales)
+
+## Maven
+
+Install the following repository and dependency in your pom.xml or your build.gradle.
+Make sure to use the latest version.
+
+```XML
+<repositories>
+    <repository>
+        <id>Translations</id>
+        <url>https://nexus.leonardbausenwein.de/repository/maven-public/</url>
+    </repository>
+</repositories>
+```
+
+```XML
+<dependencies>
+    <dependency>
+        <groupId>de.cubbossa</groupId>
+        <artifactId>Translations</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+    
+    <!-- All kyori dependencies if not yet present -->
+    <dependency>
+        <groupId>net.kyori</groupId>
+        <artifactId>adventure-api</artifactId>
+        <version>4.11.0</version>
+    </dependency>
+    <dependency>
+        <groupId>net.kyori</groupId>
+        <artifactId>adventure-platform-bukkit</artifactId>
+        <version>4.1.2</version>
+    </dependency>
+    <dependency>
+        <groupId>net.kyori</groupId>
+        <artifactId>adventure-text-minimessage</artifactId>
+        <version>4.11.0</version>
+    </dependency>
+</dependencies>
+```
+
+### Shading
+When shading, it is highly recommended to relocate the resource within your plugin.
+This assures that no other plugin loads outdated Translations classes before your
+plugin can load the latest classes. Occurring errors would potentially disable your plugin on startup. 
+
+```XML
+    <build>
+        <plugins>
+            ...
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>de.cubbossa.translations</pattern>
+                                    <shadedPattern>[yourpluginpath].libs.translations</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+```
+
+or with gradle:
+```groovy
+tasks.shadowJar {
+    minimize()
+    relocate 'de.cubbossa.translations', '[yourpluginpath].libs.translations'
+}
+```
+
+## Overview
+
 Translations are split into global server-wide translations and local application translations.
 Translations exist in a treelike structure.
 The global root Translations instance allows to provide translation strings and styles for all following Translations instances.
 Each Translation instance can be forked into a child, which then uses all styles and messages of its parent but has some
-encapsuled translations on its own. Mostly, there will be one global Translations instance and one per plugin.
+encapsulated translations on its own. Mostly, there will be one global Translations instance and one per plugin.
 
 Example of the Server folder structure and how translations are included:
 ```YML
@@ -18,7 +114,7 @@ Example of the Server folder structure and how translations are included:
       global_styles.properties # <--- global styling rules
       en-US.yml # <--- global messages (like the server name)
     
-    /{your plugin}
+    /YourPlugin
       /lang
         styles.properties # <--- application only styles
         en-US.yml # <--- application only messages
@@ -55,28 +151,56 @@ embedded in other messages.
 ## Setup
 
 ```Java
+import de.cubbossa.translations.MessageBuilder;
+
+class Messages {
+    public static final Message PREFIX = new MessageBuilder("prefix")
+            .withDefault("<gradient:#ff0000:#ffff00:#ff0000>My Awesome Plugin</gradient>: ")
+            .build();
+    public static final Message NO_PERM = new MessageBuilder("no_perm")
+            .withDefault("<red>No permissions!</red>")
+            .build();
+}
+
+
 class ExamplePlugin extends JavaPlugin {
 
     Translations translations;
 
     public void onEnable() {
+        // Enable Framework
         TranslationsFramework.enable(new File(getDataFolder(), "/.."));
+        // create a Translations instance for your plugin 
         translations = TranslationsFramework.application("MyPlugin");
 
+        // define the storage types for your plugins locale
         translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
         translations.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
 
+        // register all your messages to your Translations instance
+        // a message cannot be translated without a Translations instance, which works as
+        // translator.
+        translations.addMessages(messageA, messageB, messageC);
+        translations.addMessage(messageD);
+        // just load all public static final messages declared in Messages.class
         translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 
         // They will not overwrite pre-existing values.
+        // You only need to save values that you assigned programmatically, like from a
+        // message builder. You can also create a de.properties resource and save it as file instead.
+        // Then there is no need to write the german defaults to file here.
         translations.saveLocale(Locale.ENGLISH);
         translations.saveLocale(Locale.GERMAN);
-        
+
+        // load all styles and locales from file. This happens for all parent translations,
+        // so all changes to the global styles and translations will apply too.
         translations.loadStyles();
         translations.loadLocales();
     }
 
     public void onDisable() {
+        // close open Translations instance
+        translations.close();
         TranslationsFramework.disable();
     }
 }
@@ -105,6 +229,8 @@ public static final Message ERR_NO_PERM = new MessageBuilder("error.no_perm")
         .build();
 ```
 
+### Add Messages to Translations
+
 Don't forget to register all messages to your application!!
 ```Java
 translations.addMessage(Messages.ERR_NO_PLAYER);
@@ -115,8 +241,20 @@ translations.addMessages(Messages.ERR_NO_PLAYER, Messages.ERR_NO_PERM);
 translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 ```
 
-And now you can use the following code to get a translated component.
+### Build Messages from Translations directly
 
+If you use your translations instance to create a message, it will automatically be added
+to your translations.
+```Java
+ERR_NO_PERM = translations.message("error.no_perm");
+ERR_NO_PERM = translations.messageBuilder("error.no_perm")
+        .withDefault("<c-negative>No permission!</c-negative>")
+        .build();
+```
+
+### Message as Component
+
+And now you can use the following code to get a translated component.
 ```Java
 
 // Not in player specific language
@@ -142,11 +280,32 @@ Component myTranslatedComponent = Messages.ERR_NO_PLAYER.formatted(myPlayerAudie
 Messages implement the ComponentLike interface, which means that you can use them in places that require components without
 explicitly converting them to a component.
 ```Java
+// PaperMC only, for other platforms you still need to convert the player into an Audience.
+// See Kyori Docs for more information
+// https://docs.advntr.dev/platform/bukkit.html#usage
 player.sendMessage(Messages.ERR_NO_PLAYER);
 player.sendMessage(Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).formatted(...));
 ```
 
 Keep in mind, that the first line is still in the default language and not in the player language.
+
+### Other Formats
+
+You can also format a Message into any other format with like so:
+```Java
+Message ERR_NO_PERM = new MessageBuilder("err.no_perm")
+        .withDefault("<c-negative>No permissions!</c-negative>")
+        .build();
+
+String s = ERR_NO_PERM.toString(MessageFormat.LEGACY_PARAGRAPH);
+// -> §cNo permissions!
+String s = ERR_NO_PERM.toString(MessageFormat.LEGACY_AMPERSAND);
+// -> &cNo permissions!
+String s = ERR_NO_PERM.toString(MessageFormat.PLAIN);
+// -> No permissions!
+String s = ERR_NO_PERM.toString(MessageFormat.NBT);
+// -> {"text":"No permissions!","color":"red"}
+```
 
 ### Player Locales
 

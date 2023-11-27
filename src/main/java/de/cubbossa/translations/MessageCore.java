@@ -73,6 +73,11 @@ public final class MessageCore implements Message {
     }
 
     @Override
+    public String toString(MessageFormat format) {
+        return format.format(asComponent());
+    }
+
+    @Override
     public @Nullable Audience getTarget() {
         return null;
     }

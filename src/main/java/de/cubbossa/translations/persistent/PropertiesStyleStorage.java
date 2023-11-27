@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -119,7 +120,7 @@ public class PropertiesStyleStorage implements StyleStorage {
                     lines.add(new StyleLine(matcher.group(1), deserialize(stripped)));
                     continue;
                 }
-                throw new RuntimeException("Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
+                Logger.getLogger("Translations").log(Level.SEVERE, "Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
             }
         } catch (Throwable t) {
             throw new RuntimeException("Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);

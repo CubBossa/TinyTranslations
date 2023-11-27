@@ -75,7 +75,7 @@ public class TestPlugin {
 
         TranslationsFramework.enable(dir);
         Translations translations = TranslationsFramework.application("test");
-        translations.setMessageStorage(new PropertiesMessageStorage(Logger.getLogger("Translations"), dir));
+        translations.setMessageStorage(new PropertiesMessageStorage(dir));
 
         translations.loadStyles();
         translations.saveLocale(Locale.ENGLISH);

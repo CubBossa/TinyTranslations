@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 public class PropertiesMessageStorage extends FileStorage implements MessageStorage {
 
 
-    public PropertiesMessageStorage(Logger logger, File directory) {
-        super(logger, directory, ".properties");
+    public PropertiesMessageStorage(File directory) {
+        super(directory, ".properties");
     }
 
     @Override
@@ -135,11 +135,10 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
                     comments.clear();
                     continue;
                 }
-                throw new RuntimeException("Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
+                Logger.getLogger("Translations").log(Level.SEVERE, "Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
             }
         } catch (Throwable t) {
-            logger.log(Level.SEVERE, "Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);
-            throw new RuntimeException(t);
+            throw new RuntimeException("Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);
         }
         return entries;
     }

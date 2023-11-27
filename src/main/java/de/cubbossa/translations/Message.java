@@ -28,6 +28,8 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
     @Override
     @NotNull Component asComponent();
 
+    String toString(MessageFormat format);
+
 
     @Contract(pure = true)
     Message formatted(Audience audience);

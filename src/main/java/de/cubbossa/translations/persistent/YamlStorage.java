@@ -1,6 +1,7 @@
 package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.Message;
+import de.cubbossa.translations.Translations;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -15,7 +16,7 @@ public class YamlStorage extends FileStorage implements MessageStorage {
     private final Yaml yaml;
 
     public YamlStorage(Logger logger, File directory) {
-        super(logger, directory, ".yml");
+        super(directory, ".yml");
         this.yaml = new Yaml();
     }
 
@@ -69,7 +70,7 @@ public class YamlStorage extends FileStorage implements MessageStorage {
                     for (int j = 0; j < i; j++) {
                         x += keys[j];
                     }
-                    logger.log(Level.WARNING, "Clashing message keys: '" + x + "'.");
+                    Logger.getLogger("Translations").log(Level.WARNING, "Clashing message keys: '" + x + "'.");
                     return;
                 } else if(present instanceof Map<?, ?> map) {
                     current = (Map<String, Object>) map;
