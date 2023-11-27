@@ -80,7 +80,7 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
     private void writeFile(File file, List<Entry> entries) {
         BufferedWriter writer;
         try {
-            writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
+            writer = new BufferedWriter(new FileWriter(file));
             for (Entry entry : entries) {
                 if (entry.comment() != null) {
                     if (!(entry.comment().isEmpty() || entry.comment().isBlank())) {
@@ -111,7 +111,7 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
         List<String> comments = new ArrayList<>();
 
         int lineIndex = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lineIndex++;
