@@ -54,20 +54,69 @@ public interface Translations extends AutoCloseable {
     MessageBuilder messageBuilder(String key);
 
 
+    /**
+     * Turns a message into a component. All embedded messages or styles will be resolved.
+     * If the message has a target audience specified, it will be used to determine the locale.
+     * If the message has {@link TagResolver}s specified, these will be resolved in the process.
+     *
+     * @param message Any message instance.
+     * @return A component that resembles the message in the locale of the message audience.
+     */
     Component process(Message message);
 
+    /**
+     * Turns a message into a component. All embedded messages or styles will be resolved.
+     * If the message has {@link TagResolver}s specified, these will be resolved in the process.
+     *
+     * @param message Any message instance.
+     * @param target A target audience that will be used to determine the message locale.
+     * @return A component that resembles the message in the given audience's locale.
+     */
     Component process(Message message, Audience target);
 
+    /**
+     * Turns a message into a component. All embedded messages or styles will be resolved.
+     * If the message has {@link TagResolver}s specified, these will be resolved in the process.
+     *
+     * @param message Any message instance.
+     * @param locale A target locale that the message will be translated into.
+     * @return The message translated into a component.
+     */
     Component process(Message message, Locale locale);
 
+    /**
+     * Processes a raw string as if it were a translation value of a Message.
+     * The fallback locale ({@link #getUserLocale(Audience)} for null) will be used to resolve embedded messages.
+     *
+     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param resolvers A collection of resolvers to include into the resolving process.
+     * @return The processed Component that resembles the input string.
+     */
     Component process(String raw, TagResolver... resolvers);
 
+    /**
+     * Processes a raw string as if it were a translation value of a Message.
+     * The given audience's locale will be used to resolve embedded messages.
+     *
+     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param target A target audience that will be used to determine the locale.
+     * @param resolvers A collection of resolvers to include into the resolving process.
+     * @return The processed Component that resembles the input string.
+     */
     Component process(String raw, Audience target, TagResolver... resolvers);
 
+    /**
+     * Processes a raw string as if it were a translation value of a Message.
+     * The given locale will be used to resolve embedded messages.
+     *
+     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param locale A locale to use to resolve embedded messages.
+     * @param resolvers A collection of resolvers to include into the resolving process.
+     * @return The processed Component that resembles the input string.
+     */
     Component process(String raw, Locale locale, TagResolver... resolvers);
 
     TagResolver getResolvers(Locale locale);
-
 
     /**
      * Loads all styles from this application from file. Also propagates to global, so all parenting Translation
@@ -103,18 +152,64 @@ public interface Translations extends AutoCloseable {
      */
     void saveLocale(Locale locale);
 
+    /**
+     * Find a registered message by key.
+     * @param key The message key without namespace.
+     * @return A message instance if the message existed and otherwise null.
+     */
     @Nullable Message getMessage(String key);
 
+    /**
+     * Find a registered message on this Translations instance and if nothing found, search in parent tree.
+     * The method returns the message from the lowest Translations in the parent tree that contains the searched message key.
+     *
+     * @param key The message key without namespace.
+     * @return The found Message instance or null if none found.
+     */
     @Nullable Message getMessageInParentTree(String key);
 
+    /**
+     * Retrieve a message by namespace. Return an exact match, even if child Translations overwrite the message.
+     * Calling this method with the parameters 'global' and 'a', the global message by key 'a' will be returned even
+     * if a child Translation also has a translation by key 'a'.
+     *
+     * @param namespace The exact application path (global.A.B.C)
+     * @param key The exact message key (a.b.c)
+     * @return The found message instance or null if none found.
+     */
     @Nullable Message getMessageByNamespace(String namespace, String key);
 
+    /**
+     * Adds a message to this translations instance and sets the Translations instance of the message to this.
+     * If the message had a previous Translations instance, it gets informed about the change and the message will be
+     * removed from its MessageSet property.
+     *
+     * @param message Any message instance.
+     */
     void addMessage(Message message);
 
+    /**
+     * {@link #addMessage(Message)} for multiple Messages at once.
+     * @param messages An array of Messages to add
+     */
     void addMessages(Message... messages);
+
+    /**
+     * {@link #addMessage(Message)} for multiple Messages at once.
+     * @param messages An iterable of Messages to add
+     */
+    void addMessage(Iterable<Message> messages);
 
     Map<String, Message> getMessageSet();
 
+    /**
+     * Returns the potentially not existent MessageStorage instance of this Translation.
+     * If no storage is set, the Translation works in memory only and on restart, changes to
+     * Messages and Message dictionaries are gone.
+     * To persist changes if a MessageStorage is present, call {@link #saveLocale(Locale)}.
+     * 
+     * @return the MessageStorage instance or null if not present.
+     */
     @Nullable MessageStorage getMessageStorage();
 
     void setMessageStorage(@Nullable MessageStorage storage);

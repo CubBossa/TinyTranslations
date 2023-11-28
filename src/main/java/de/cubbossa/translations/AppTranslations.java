@@ -257,6 +257,13 @@ public class AppTranslations implements Translations {
     }
 
     @Override
+    public void addMessage(Iterable<Message> messages) {
+        for (Message message : messages) {
+            addMessage(message);
+        }
+    }
+
+    @Override
     public void loadStyles() {
         if (parent != null) {
             parent.loadStyles();
