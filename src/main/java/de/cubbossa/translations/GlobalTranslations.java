@@ -22,8 +22,6 @@ public class GlobalTranslations extends AppTranslations implements Translations 
     protected GlobalTranslations(File dir) {
         super(null, "global");
 
-        Logger logger = Logger.getLogger("Translations");
-
         if (!dir.exists()) {
             throw new IllegalArgumentException("Global translations directory must exist.");
         }
