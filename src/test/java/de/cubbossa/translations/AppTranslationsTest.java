@@ -1,142 +1,139 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.persistent.PropertiesMessageStorage;
 import de.cubbossa.translations.util.ComponentSplit;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AppTranslationsTest {
+class AppTranslationsTest extends TestBase {
 
-  public static final Message SIMPLE = new MessageBuilder("simple")
-      .withDefault("<red>Hello world")
-      .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
-      .withTranslation(Locale.GERMAN, "Hallo welt - Deutsch")
-      .withComment("abc")
-      .build();
+    public static final Message SIMPLE = new MessageBuilder("simple")
+            .withDefault("<red>Hello world")
+            .withTranslation(Locale.GERMANY, "Hallo welt - Deutschland")
+            .withTranslation(Locale.GERMAN, "Hallo welt - Deutsch")
+            .withComment("abc")
+            .build();
+    public static final Message EMBED = new MessageBuilder("embedded")
+            .withDefault("Embedded: <msg:simple>a")
+            .build();
+    public static final Message NEW_LINE = new MessageBuilder("new_line")
+            .withDefault("Hello\nworld")
+            .build();
+    public static final Message TEST_1 = new MessageBuilder("examples.test.first")
+            .withComment("Lets test this")
+            .withPlaceholder("red", "The color red")
+            .withPlaceholders("green", "blue")
+            .withDefault("<red>Hello \nworld!")
+            .withTranslation(Locale.GERMAN, "<red>Hallo Welt!")
+            .build();
+    public static final Message TEST_2 = new MessageBuilder("examples.test.second")
+            .withComment("Another test with\nline break\n\ncomments")
+            .withPlaceholder("abc")
+            .withDefault("<green>Luke - I am your father!")
+            .build();
+    public static final Message TEST_C = new MessageBuilder("sorted.c")
+            .withDefault("abC").build();
+    public static final Message TEST_B = new MessageBuilder("sorted.b")
+            .withDefault("aBc").build();
+    public static final Message TEST_A = new MessageBuilder("sorted.a")
+            .withDefault("Abc").build();
 
-  public static final Message EMBED = new MessageBuilder("embedded")
-      .withDefault("Embedded: <msg:simple>a")
-      .build();
+    @Test
+    void newLine() {
+        assertEquals(
+                2,
+                ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
+        );
+    }
 
-  public static final Message NEW_LINE = new MessageBuilder("new_line")
-      .withDefault("Hello\nworld")
-      .build();
+    @Test
+    void translate() {
+        translations.addMessages(TranslationsFramework.messageFieldsFromClass(this.getClass()));
 
-  @Test
-  void newLine(@TempDir File dir) {
+        assertEquals(text("Hello world", NamedTextColor.RED), translations.process(SIMPLE));
+        assertEquals(text("Hallo welt - Deutschland"), translations.process(SIMPLE, Locale.GERMANY));
+        assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.GERMAN));
+        assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.forLanguageTag("de-AT")));
 
-    PlainTextComponentSerializer serializer = PlainTextComponentSerializer.plainText();
+        assertEquals(
+                text("Embedded: ")
+                        .append(text("Hello worlda", NamedTextColor.RED)),
+                translations.process(EMBED, Locale.ENGLISH)
+        );
+    }
 
-    Component abc = Component.empty()
-        .append(Component.text("a")
-            .append(Component.text("b"))
-            .append(Component.newline()))
-        .append(Component.text("c"));
+    @Test
+    void resolver() {
+        Message m = translations.messageBuilder("a").withDefault("a <b>").build();
+        assertEquals(Component.text("a 1"), m.formatted(Formatter.number("b", 1)).asComponent());
+    }
 
-    assertEquals(
-        List.of("ab", "c"),
-        ComponentSplit.split(abc, "\n").stream().map(serializer::serialize).collect(Collectors.toList())
-    );
+    @Test
+    void getMessage() {
+        Assertions.assertNull(translations.getMessage("a"));
+        Message m1 = translations.messageBuilder("a").withDefault("A").build();
+        Assertions.assertEquals(m1, translations.getMessage("a"));
+    }
 
+    @Test
+    void getInParent() {
+        Message m1 = translations.messageBuilder("a").withDefault("A").build();
+        Message m2 = translations.getParent().messageBuilder("b").withDefault("B").build();
+        Assertions.assertEquals(m1, translations.getMessageInParentTree("a"));
+        Assertions.assertEquals(m2, translations.getMessageInParentTree("b"));
+        Assertions.assertNull(translations.getMessageInParentTree("x"));
+    }
 
-    assertEquals(
-        List.of("Hallo"),
-        ComponentSplit.split(Component.text("Hallo"), "\n").stream()
-            .map(serializer::serialize)
-            .toList()
-    );
+    @Test
+    void getByKey() {
+        Message m1 = translations.getParent().message("a");
+        Assertions.assertEquals(m1, translations.getMessageByNamespace("global", "a"));
+        Message m2 = translations.message("a");
+        Assertions.assertEquals(m1, translations.getMessageByNamespace("global", "a"));
+    }
 
-    assertEquals(
-        List.of("Hallo", "welt", "123"),
-        ComponentSplit.split(Component.text("Hallo\nwelt\n123"), "\n").stream()
-            .map(serializer::serialize)
-            .toList()
-    );
+    @Test
+    public void testFileCreation() {
 
-    Component cs = MiniMessage.miniMessage().deserialize("<gray>» <yellow>right-click air:</yellow> Open GUI</gray>"
-        .replaceAll("\\\\", "\\"));
+      File inner = new File(dir, "/TestApp/");
+      inner.mkdirs();
 
-    assertEquals(
-        List.of(
-            "» right-click air: Open GUI"
-        ),
-        ComponentSplit.split(cs, "\n").stream().map(serializer::serialize).collect(Collectors.toList())
-    );
+        translations.setMessageStorage(new PropertiesMessageStorage(inner));
+        translations.messageBuilder("key").withDefault("abcde").build();
 
-    Component c = MiniMessage.miniMessage().deserialize("<gray>Assign and remove multiple\n<gray>groups at once.\n\n<gray>» <yellow>right-click air:</yellow> Open GUI</gray>\n<gray>» <yellow>right-click node:</yellow> Add groups</gray>\n<gray>» <yellow>right-click node:</yellow> Remove groups</gray>"
-        .replaceAll("\\\\", "\\"));
+        translations.saveLocale(Locale.ENGLISH);
 
-    assertEquals(
-        List.of(
-            "Assign and remove multiple",
-            "groups at once.",
-            "",
-            "» right-click air: Open GUI",
-            "» right-click node: Add groups",
-            "» right-click node: Remove groups"
-        ),
-        ComponentSplit.split(c, "\n").stream().map(serializer::serialize).collect(Collectors.toList())
-    );
+      File en = new File(inner, "en.properties");
+      Assertions.assertTrue(inner.exists());
+      Assertions.assertTrue(en.exists());
 
-    TranslationsFramework.enable(dir);
-    Translations translations = TranslationsFramework.application("test");
+        replaceInFile(en, "a", "e");
+        String before = fileContent(en);
+        translations.saveLocale(Locale.ENGLISH);
+        Assertions.assertEquals(before, fileContent(en));
+    }
 
-    assertEquals(
-        2,
-        ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
-    );
+    @Test
+    public void testLoad() {
 
-    translations.close();
-  }
+        translations.addMessages(TEST_1, TEST_2);
 
-  @Test
-  void translate(@TempDir File dir) {
-    TranslationsFramework.enable(dir);
-    Translations translations = TranslationsFramework.application("test");
-    translations.addMessages(TranslationsFramework.messageFieldsFromClass(this.getClass()));
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
+        Assertions.assertEquals(Component.text("Hallo Welt!", NamedTextColor.RED), translations.process(TEST_1, Locale.GERMAN));
 
-    assertEquals(text("Hello world", NamedTextColor.RED), translations.process(SIMPLE));
-    assertEquals(text("Hallo welt - Deutschland"), translations.process(SIMPLE, Locale.GERMANY));
-    assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.GERMAN));
-    assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.forLanguageTag("de-AT")));
+        translations.saveLocale(Locale.ENGLISH);
+        translations.loadLocale(Locale.ENGLISH);
+        Assertions.assertEquals(Component.text("Hello \nworld!", NamedTextColor.RED), translations.process(TEST_1));
 
-    assertEquals(
-        text("Embedded: ")
-            .append(text("Hello worlda", NamedTextColor.RED)),
-        translations.process(EMBED, Locale.ENGLISH)
-    );
-
-    translations.close();
-  }
-
-  @Test
-  void resolver(@TempDir File dir) {
-    TranslationsFramework.enable(dir);
-    Translations translations = TranslationsFramework.application("test");
-    Message m = translations.messageBuilder("a").withDefault("a <b>").build();
-
-    assertEquals(Component.text("a 1"), m.formatted(Formatter.number("b", 1)).asComponent());
-
-    translations.close();
-  }
-
-  @Test
-  void getStylesAsResolver() {
-  }
-
-  @Test
-  void addStyle() {
-  }
+        Assertions.assertEquals(Component.text("Luke - I am your father!", NamedTextColor.GREEN), translations.process(TEST_2));
+    }
 }

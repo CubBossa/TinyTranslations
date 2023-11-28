@@ -3,7 +3,6 @@ package de.cubbossa.translations.persistent;
 import de.cubbossa.translations.Message;
 import de.cubbossa.translations.Translations;
 import de.cubbossa.translations.TranslationsFramework;
-import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +15,7 @@ import java.util.*;
 public abstract class MessageStorageTest {
 
     Translations translations;
-    MessageStorage messageStorage;
+    MessageStorage storage;
     Message a, b, c, d;
 
     abstract MessageStorage getMessageStorage(File dir);
@@ -29,8 +28,8 @@ public abstract class MessageStorageTest {
         TranslationsFramework.enable(gDir);
         translations = TranslationsFramework.application("TestApp");
 
-        messageStorage = getMessageStorage(new File(gDir, "/TestApp/"));
-        translations.setMessageStorage(messageStorage);
+        storage = getMessageStorage(new File(gDir, "/TestApp/"));
+        translations.setMessageStorage(storage);
         a = translations.messageBuilder("a").withDefault("A").build();
         b = translations.messageBuilder("b").withDefault("B").build();
         c = translations.messageBuilder("c").withDefault("C").build();
@@ -46,28 +45,28 @@ public abstract class MessageStorageTest {
 
     @Test
     void readMessage() {
-        Assertions.assertTrue(messageStorage.readMessages(Locale.ENGLISH).isEmpty());
-        messageStorage.writeMessages(Collections.singleton(a), Locale.ENGLISH);
-        Assertions.assertEquals("A", messageStorage.readMessages(Locale.ENGLISH).get(a));
+        Assertions.assertTrue(storage.readMessages(Locale.ENGLISH).isEmpty());
+        storage.writeMessages(Collections.singleton(a), Locale.ENGLISH);
+        Assertions.assertEquals("A", storage.readMessages(Locale.ENGLISH).get(a));
     }
 
     @Test
     void readMessages() {
-        Assertions.assertTrue(messageStorage.readMessages(Locale.ENGLISH).isEmpty());
-        messageStorage.writeMessages(Set.of(a, b), Locale.ENGLISH);
-        Assertions.assertEquals(2, messageStorage.readMessages(Locale.ENGLISH).size());
+        Assertions.assertTrue(storage.readMessages(Locale.ENGLISH).isEmpty());
+        storage.writeMessages(Set.of(a, b), Locale.ENGLISH);
+        Assertions.assertEquals(2, storage.readMessages(Locale.ENGLISH).size());
     }
 
     @Test
     void writeMessage() {
-        messageStorage.writeMessages(Set.of(a), Locale.ENGLISH);
-        Assertions.assertEquals(1, messageStorage.readMessages(Locale.ENGLISH).size());
-        messageStorage.writeMessages(Set.of(b), Locale.ENGLISH);
-        Assertions.assertEquals(2, messageStorage.readMessages(Locale.ENGLISH).size());
+        storage.writeMessages(Set.of(a), Locale.ENGLISH);
+        Assertions.assertEquals(1, storage.readMessages(Locale.ENGLISH).size());
+        storage.writeMessages(Set.of(b), Locale.ENGLISH);
+        Assertions.assertEquals(2, storage.readMessages(Locale.ENGLISH).size());
         a.getDictionary().put(Locale.ENGLISH, "AA");
-        Assertions.assertFalse(messageStorage.writeMessages(Set.of(a, c), Locale.ENGLISH).contains(a));
-        Assertions.assertEquals("A", messageStorage.readMessages(Locale.ENGLISH).get(a));
-        Assertions.assertEquals(3, messageStorage.readMessages(Locale.ENGLISH).size());
+        Assertions.assertFalse(storage.writeMessages(Set.of(a, c), Locale.ENGLISH).contains(a));
+        Assertions.assertEquals("A", storage.readMessages(Locale.ENGLISH).get(a));
+        Assertions.assertEquals(3, storage.readMessages(Locale.ENGLISH).size());
     }
 
     @Test
