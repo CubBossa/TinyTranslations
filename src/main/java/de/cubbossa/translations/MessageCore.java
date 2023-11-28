@@ -36,14 +36,15 @@ public final class MessageCore implements Message {
 
     public MessageCore(Translations translations, String key, String defaultValue) {
         this.translations = translations;
-        if (translations != null) {
-            this.translations.getMessageSet().put(this.getKey(), this);
-        }
         this.key = key;
         this.dictionary = new ConcurrentHashMap<>();
         this.dictionary.put(TranslationsFramework.DEFAULT_LOCALE, defaultValue);
 
         this.placeholderTags = new HashMap<>();
+
+        if (translations != null) {
+            this.translations.getMessageSet().put(key, this);
+        }
     }
 
     @Override
