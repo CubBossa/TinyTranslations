@@ -23,6 +23,7 @@ public class PropertiesStyleStorage implements StyleStorage {
     public PropertiesStyleStorage(File file) {
         if (!file.exists()) {
             try {
+                file.getParentFile().mkdirs();
                 file.createNewFile();
             } catch (Throwable t) {
                 throw new IllegalStateException("Could not create properties file.", t);
