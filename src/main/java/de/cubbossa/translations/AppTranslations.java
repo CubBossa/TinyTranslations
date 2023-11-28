@@ -246,6 +246,9 @@ public class AppTranslations implements Translations {
 
     @Override
     public void addMessage(Message message) {
+        if (message.getTranslations() != null) {
+            message.getTranslations().getMessageSet().remove(message.getKey());
+        }
         messageSet.put(message.getKey(), message);
     }
 
@@ -295,10 +298,7 @@ public class AppTranslations implements Translations {
         }
         if (messageStorage != null) {
             messageStorage.readMessages(locale).forEach((message, s) -> {
-                messageSet.computeIfAbsent(message.getKey(), key -> {
-                    addMessage(message);
-                    return message;
-                }).getDictionary().put(locale, s);
+                new HashMap<>(messageSet).computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
             });
         }
     }
