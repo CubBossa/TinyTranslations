@@ -1,6 +1,8 @@
 package de.cubbossa.translations.persistent;
 
+import de.cubbossa.translations.MessageStyle;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Map;
 
@@ -17,11 +19,11 @@ public interface StyleStorage {
      *
      * @param styles A map of styles with their tag as key.
      */
-    void writeStyles(Map<String, Style> styles);
+    void writeStyles(Map<String, MessageStyle> styles);
 
     /**
      * Loads a map of styles with their MiniMessage tag as key.
      * @return The loaded map.
      */
-    Map<String, Style> loadStyles();
+    Map<String, MessageStyle> loadStyles();
 }

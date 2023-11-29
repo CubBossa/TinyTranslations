@@ -1,5 +1,9 @@
 package de.cubbossa.translations.persistent;
 
+import de.cubbossa.translations.MessageStyle;
+import de.cubbossa.translations.MessageStyleImpl;
+import de.cubbossa.translations.StyleSerializer;
+import de.cubbossa.translations.StyleSerializerImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -18,9 +22,13 @@ import java.util.stream.Collectors;
 public class PropertiesStyleStorage implements StyleStorage {
 
     private final File file;
-    private static final MiniMessage styleMiniMessage = MiniMessage.miniMessage();
+    private final StyleSerializer styleSerializer;
 
     public PropertiesStyleStorage(File file) {
+        this(file, new StyleSerializerImpl());
+    }
+
+    public PropertiesStyleStorage(File file, StyleSerializer styleSerializer) {
         if (!file.exists()) {
             try {
                 file.getParentFile().mkdirs();
@@ -36,23 +44,14 @@ public class PropertiesStyleStorage implements StyleStorage {
             throw new IllegalArgumentException("PropertiesStyles requires a properties file as argument");
         }
         this.file = file;
-    }
-
-    private static String serialize(Style style) {
-        Component c = Component.text("&&&", style);
-        String s = styleMiniMessage.serialize(c);
-        return s.split("&&&")[0];
-    }
-
-    private static Style deserialize(String style) {
-        return styleMiniMessage.deserialize(style + "&&&").style();
+        this.styleSerializer = styleSerializer;
     }
 
     @Override
-    public void writeStyles(Map<String, Style> styles) {
+    public void writeStyles(Map<String, MessageStyle> styles) {
         List<Line> lines = readStylesFile(file);
-        Map<String, Style> present = readStylesFromLines(lines);
-        Map<String, Style> toWrite = new LinkedHashMap<>();
+        Map<String, MessageStyle> present = readStylesFromLines(lines);
+        Map<String, MessageStyle> toWrite = new LinkedHashMap<>();
 
         for (var stylePair : styles.entrySet()) {
             if (!present.containsKey(stylePair.getKey())) {
@@ -80,11 +79,11 @@ public class PropertiesStyleStorage implements StyleStorage {
     }
 
     @Override
-    public Map<String, Style> loadStyles() {
+    public Map<String, MessageStyle> loadStyles() {
         return readStylesFromLines(readStylesFile(file));
     }
 
-    private Map<String, Style> readStylesFromLines(List<Line> lines) {
+    private Map<String, MessageStyle> readStylesFromLines(List<Line> lines) {
         return lines.stream()
                 .filter(line -> line instanceof StyleLine)
                 .map(line -> (StyleLine) line)
@@ -114,11 +113,12 @@ public class PropertiesStyleStorage implements StyleStorage {
                 }
                 Matcher matcher = keyValue.matcher(line);
                 if (matcher.find()) {
+                    String key = matcher.group(1);
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
                     stripped = stripped.replace("\\n", "\n");
 
-                    lines.add(new StyleLine(matcher.group(1), deserialize(stripped)));
+                    lines.add(new StyleLine(key, new MessageStyleImpl(key, styleSerializer.deserialize(key, stripped), stripped)));
                     continue;
                 }
                 Logger.getLogger("Translations").log(Level.SEVERE, "Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");
@@ -147,10 +147,10 @@ public class PropertiesStyleStorage implements StyleStorage {
         }
     }
 
-    private record StyleLine(String key, Style style) implements Line {
+    private record StyleLine(String key, MessageStyle style) implements Line {
         @Override
         public String print() {
-            return key + "=\"" + serialize(style) + "\"";
+            return key + "=\"" + style.getStringBackup() + "\"";
         }
     }
 }

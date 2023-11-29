@@ -31,9 +31,9 @@ public abstract class MessageStorageTest {
         storage = getMessageStorage(new File(gDir, "/TestApp/"));
         translations.setMessageStorage(storage);
         a = translations.messageBuilder("a").withDefault("A").build();
-        b = translations.messageBuilder("b").withDefault("B").build();
-        c = translations.messageBuilder("c").withDefault("C").build();
-        d = translations.messageBuilder("d").withDefault("D").build();
+        b = translations.messageBuilder("h.b").withDefault("B").build();
+        c = translations.messageBuilder("h.a.c").withDefault("C").build();
+        d = translations.messageBuilder("h.b.d").withDefault("D").build();
     }
 
     @AfterEach

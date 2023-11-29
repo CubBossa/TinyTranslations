@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
@@ -12,15 +13,16 @@ import java.util.Queue;
 
 public class StyleSerializerImpl implements StyleSerializer {
 
-  private final Translations translations;
+  private static final String slotPlaceholder = "{slot}";
+  private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+  private final TagResolver otherStylesResolver;
 
-  public StyleSerializerImpl(Translations translations) {
-    this.translations = translations;
+  public StyleSerializerImpl() {
+    this(TagResolver.empty());
   }
 
-  @Override
-  public String serialize(Style style) {
-    return null;
+  public StyleSerializerImpl(TagResolver otherStylesResolver) {
+    this.otherStylesResolver = otherStylesResolver;
   }
 
   @Override
@@ -29,11 +31,11 @@ public class StyleSerializerImpl implements StyleSerializer {
       if (depth > 0) return Component.empty();
 
       // Parse the slot content
-      Component slot = translations.process(string);
-      return c.replaceText(TextReplacementConfig.builder()
-          .matchLiteral("{slot}")
-          .replacement(slot)
-          .build());
+      Component slot = miniMessage.deserialize(string, otherStylesResolver);
+      return slot.replaceText(TextReplacementConfig.builder()
+          .matchLiteral(slotPlaceholder)
+          .replacement(c)
+          .build()).compact();
     });
   }
 }

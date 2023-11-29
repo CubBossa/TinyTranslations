@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -31,11 +30,12 @@ public class AppTranslations implements Translations {
     private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
     private final Map<String, Message> messageSet;
-    private final Map<String, Style> styleSet;
+    private final Map<String, MessageStyle> styleSet;
     private @Nullable MessageStorage messageStorage;
     private @Nullable StyleStorage styleStorage;
 
     private ReadWriteLock lock;
+    private StyleSerializer styleSerializer;
 
     public AppTranslations(Translations parent, String name) {
         this.parent = parent;
@@ -55,7 +55,7 @@ public class AppTranslations implements Translations {
         };
         this.styleSet = new HashMap<>() {
             @Override
-            public Style put(String key, Style value) {
+            public MessageStyle put(String key, MessageStyle value) {
                 styleResolverCache = null;
                 return super.put(key, value);
             }
@@ -85,7 +85,10 @@ public class AppTranslations implements Translations {
     }
 
     public void remove(String application) {
-        children.remove(application);
+        var c = children.remove(application);
+        if (c != null) {
+            c.close();
+        }
     }
 
     @Override
@@ -178,8 +181,7 @@ public class AppTranslations implements Translations {
         while (t != null) {
             t.getStyleSet().forEach((key, value) -> {
                 if (styles.containsKey(key)) return;
-                var res = TagResolver.resolver(key, Tag.styling(style -> style.merge(value)));
-                styles.put(key, res);
+                styles.put(key, value.getResolver());
             });
             t = t.getParent();
         }

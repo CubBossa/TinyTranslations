@@ -214,7 +214,7 @@ public interface Translations extends AutoCloseable {
 
     void setMessageStorage(@Nullable MessageStorage storage);
 
-    Map<String, Style> getStyleSet();
+    Map<String, MessageStyle> getStyleSet();
 
     @Nullable StyleStorage getStyleStorage();
 

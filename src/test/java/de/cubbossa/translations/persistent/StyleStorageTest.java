@@ -1,9 +1,12 @@
 package de.cubbossa.translations.persistent;
 
+import de.cubbossa.translations.MessageStyleImpl;
 import de.cubbossa.translations.Translations;
 import de.cubbossa.translations.TranslationsFramework;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +47,7 @@ public abstract class StyleStorageTest {
 
         Assertions.assertTrue(storage.loadStyles().isEmpty());
         storage.writeStyles(Map.of(
-                "abc", Style.style(NamedTextColor.RED)
+                "abc", new MessageStyleImpl("abc", TagResolver.resolver("abc", Tag.styling(NamedTextColor.RED)), "<red>")
         ));
         Assertions.assertFalse(storage.loadStyles().isEmpty());
     }
