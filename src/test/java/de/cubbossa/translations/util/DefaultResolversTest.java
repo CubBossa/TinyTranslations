@@ -1,7 +1,8 @@
-package de.cubbossa.translations;
+package de.cubbossa.translations.util;
 
 import de.cubbossa.translations.util.DefaultResolvers;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -15,6 +16,31 @@ class DefaultResolversTest {
     MiniMessage miniMessage = MiniMessage.miniMessage();
     PlainTextComponentSerializer p = PlainTextComponentSerializer.plainText();
     Function<Component, String> plain = p::serialize;
+
+    @Test
+    void url1() {
+        String noUrl = "httbs://www.google.com/search?client=firefox-b-d&q=Component";
+        TagResolver resolver = TagResolver.resolver("url", DefaultResolvers.shortURL(0, 0));
+
+        Assertions.assertEquals(Component.text(noUrl), miniMessage.deserialize("<url>" + noUrl + "</url>", resolver));
+    }
+
+    @Test
+    void url2() {
+        String url = "https://www.google.com/search?client=firefox-b-d&q=Component";
+        String urlShort = "https://www.google.com/sea...ent";
+        TagResolver resolver = TagResolver.resolver("url", DefaultResolvers.shortURL(3, 3));
+
+        Assertions.assertEquals(Component.text(urlShort), miniMessage.deserialize("<url>" + url + "</url>", resolver));
+    }
+
+    @Test
+    void url3() {
+        String url = "https://www.google.com/search?client=firefox-b-d&q=Component";
+        TagResolver resolver = TagResolver.resolver("url", DefaultResolvers.shortURL(15, 23));
+
+        Assertions.assertEquals(Component.text(url), miniMessage.deserialize("<url>" + url + "</url>", resolver));
+    }
 
     @Test
     void preview() {

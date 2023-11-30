@@ -120,12 +120,21 @@ Example of the Server folder structure and how translations are included:
         en-US.yml # <--- application only messages
 ```
 
-Styles are a simple map like the following:
+Styles are a way to create new tag resolvers
 ```properties
-# We use opening tags to define styles.
+# We use opening tags to define simple styles.
 text-light="<white>"
 text="<gray>"
 text-dark="<dark-gray>"
+# Or slot based styles for more complex patterns
+# The list-el example will render "<list-el>abc</list-el>" as "- abc", where the "-" is gray and "abc" is white.
+list-el="<gray>- </gray><white>{slot}</white>\n"
+# the url tag renders only a short version but opens the whole url on click.
+#     https://docs.advntr.dev/minimessage/format.html
+# becomes
+#     https://docs.advntr.dev/min...tml
+# The first occurring '/' after the domain separates the tail, which will show its first and last three letters.
+url="<blue><u><click:open_url:"{slot}"><hover:show_text:"Click to open url"><shorten_url>{slot}</shorten_url></hover></click></u></blue>"
 ```
 
 Messages can be stored in many ways, like SQL, Yaml or properties.
