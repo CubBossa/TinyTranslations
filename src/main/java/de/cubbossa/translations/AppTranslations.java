@@ -2,6 +2,7 @@ package de.cubbossa.translations;
 
 import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.StyleStorage;
+import de.cubbossa.translations.util.DefaultResolvers;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -35,6 +36,7 @@ public class AppTranslations implements Translations {
 
     private ReadWriteLock lock;
     private StyleDeserializer styleDeserializer;
+    private TagResolver defaultResolvers;
 
     public AppTranslations(Translations parent, String name) {
         this.parent = parent;
@@ -65,6 +67,15 @@ public class AppTranslations implements Translations {
                 return super.remove(key, value);
             }
         };
+
+        this.defaultResolvers = TagResolver.resolver(
+                DefaultResolvers.repeat("repeat"),
+                DefaultResolvers.reverse("reverse"),
+                DefaultResolvers.upper("upper"),
+                DefaultResolvers.lower("lower"),
+                DefaultResolvers.shortUrl("shorturl"),
+                DefaultResolvers.preview("shorten")
+        );
     }
 
     @Override
@@ -167,7 +178,7 @@ public class AppTranslations implements Translations {
 
     @Override
     public TagResolver getResolvers(Locale locale) {
-        return TagResolver.resolver(getStylesResolver(), getMessageResolver(locale));
+        return TagResolver.resolver(getStylesResolver(), getMessageResolver(locale), defaultResolvers);
     }
 
     private TagResolver getStylesResolver() {
