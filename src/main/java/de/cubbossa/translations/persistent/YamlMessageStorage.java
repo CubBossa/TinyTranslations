@@ -4,9 +4,11 @@ import de.cubbossa.translations.Message;
 import de.cubbossa.translations.MessageCore;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class YamlMessageStorage extends FileStorage implements MessageStorage {

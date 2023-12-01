@@ -1,13 +1,10 @@
 package de.cubbossa.translations.persistent;
 
-import de.cubbossa.translations.GlobalTranslations;
-import de.cubbossa.translations.Translations;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
-import java.util.logging.Logger;
 
 public abstract class FileStorage {
 

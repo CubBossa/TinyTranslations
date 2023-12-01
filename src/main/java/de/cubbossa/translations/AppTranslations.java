@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -35,7 +34,7 @@ public class AppTranslations implements Translations {
     private @Nullable StyleStorage styleStorage;
 
     private ReadWriteLock lock;
-    private StyleSerializer styleSerializer;
+    private StyleDeserializer styleDeserializer;
 
     public AppTranslations(Translations parent, String name) {
         this.parent = parent;

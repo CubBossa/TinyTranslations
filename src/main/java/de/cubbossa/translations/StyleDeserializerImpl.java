@@ -1,27 +1,22 @@
 package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
-public class StyleSerializerImpl implements StyleSerializer {
+public class StyleDeserializerImpl implements StyleDeserializer {
 
   private static final String slotPlaceholder = "{slot}";
   private static final MiniMessage miniMessage = MiniMessage.miniMessage();
   private final TagResolver otherStylesResolver;
 
-  public StyleSerializerImpl() {
+  public StyleDeserializerImpl() {
     this(TagResolver.empty());
   }
 
-  public StyleSerializerImpl(TagResolver otherStylesResolver) {
+  public StyleDeserializerImpl(TagResolver otherStylesResolver) {
     this.otherStylesResolver = otherStylesResolver;
   }
 

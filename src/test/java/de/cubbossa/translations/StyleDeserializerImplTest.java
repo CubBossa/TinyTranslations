@@ -1,23 +1,21 @@
 package de.cubbossa.translations;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class StyleSerializerImplTest {
+class StyleDeserializerImplTest {
 
     MiniMessage miniMessage = MiniMessage.miniMessage();
-    StyleSerializer serializer;
+    StyleDeserializer serializer;
 
     @BeforeEach
     void beforeEach() {
-        serializer = new StyleSerializerImpl();
+        serializer = new StyleDeserializerImpl();
     }
 
     @Test

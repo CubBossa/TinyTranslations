@@ -4,7 +4,6 @@ import de.cubbossa.translations.Message;
 import de.cubbossa.translations.MessageCore;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;

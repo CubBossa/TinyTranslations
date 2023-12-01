@@ -2,17 +2,15 @@ package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.MessageStyle;
 import de.cubbossa.translations.MessageStyleImpl;
-import de.cubbossa.translations.StyleSerializer;
-import de.cubbossa.translations.StyleSerializerImpl;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import de.cubbossa.translations.StyleDeserializer;
+import de.cubbossa.translations.StyleDeserializerImpl;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -22,13 +20,13 @@ import java.util.stream.Collectors;
 public class PropertiesStyleStorage implements StyleStorage {
 
     private final File file;
-    private final StyleSerializer styleSerializer;
+    private final StyleDeserializer styleDeserializer;
 
     public PropertiesStyleStorage(File file) {
-        this(file, new StyleSerializerImpl());
+        this(file, new StyleDeserializerImpl());
     }
 
-    public PropertiesStyleStorage(File file, StyleSerializer styleSerializer) {
+    public PropertiesStyleStorage(File file, StyleDeserializer styleDeserializer) {
         if (!file.exists()) {
             try {
                 file.getParentFile().mkdirs();
@@ -44,7 +42,7 @@ public class PropertiesStyleStorage implements StyleStorage {
             throw new IllegalArgumentException("PropertiesStyles requires a properties file as argument");
         }
         this.file = file;
-        this.styleSerializer = styleSerializer;
+        this.styleDeserializer = styleDeserializer;
     }
 
     @Override
@@ -118,7 +116,7 @@ public class PropertiesStyleStorage implements StyleStorage {
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
                     stripped = stripped.replace("\\n", "\n");
 
-                    lines.add(new StyleLine(key, new MessageStyleImpl(key, styleSerializer.deserialize(key, stripped), stripped)));
+                    lines.add(new StyleLine(key, new MessageStyleImpl(key, styleDeserializer.deserialize(key, stripped), stripped)));
                     continue;
                 }
                 Logger.getLogger("Translations").log(Level.SEVERE, "Error while parsing line " + lineIndex++ + " of " + file.getName() + ".\n > '" + line + "'");

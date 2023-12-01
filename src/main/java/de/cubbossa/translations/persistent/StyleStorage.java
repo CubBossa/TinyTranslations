@@ -2,7 +2,6 @@ package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.MessageStyle;
 import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.Map;
 

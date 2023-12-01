@@ -4,7 +4,6 @@ import de.cubbossa.translations.MessageStyleImpl;
 import de.cubbossa.translations.Translations;
 import de.cubbossa.translations.TranslationsFramework;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.junit.jupiter.api.AfterEach;

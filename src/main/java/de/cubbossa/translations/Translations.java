@@ -4,13 +4,12 @@ import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 
 public interface Translations extends AutoCloseable {
