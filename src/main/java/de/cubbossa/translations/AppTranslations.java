@@ -30,7 +30,7 @@ public class AppTranslations implements Translations {
     private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
     private final Map<String, Message> messageSet;
-    private final Map<String, MessageStyle> styleSet;
+    private final StyleSet styleSet;
     private @Nullable MessageStorage messageStorage;
     private @Nullable StyleStorage styleStorage;
 
@@ -54,7 +54,7 @@ public class AppTranslations implements Translations {
                 return super.put(key, value);
             }
         };
-        this.styleSet = new HashMap<>() {
+        this.styleSet = new StyleSet() {
             @Override
             public MessageStyle put(String key, MessageStyle value) {
                 styleResolverCache = null;
