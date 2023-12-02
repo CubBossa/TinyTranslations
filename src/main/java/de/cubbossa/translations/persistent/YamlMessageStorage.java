@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class YamlMessageStorage extends FileStorage implements MessageStorage {
 
@@ -40,6 +41,10 @@ public class YamlMessageStorage extends FileStorage implements MessageStorage {
         map.forEach((s, o) -> {
             if (o instanceof String val) {
                 result.put(new MessageCore(s), val);
+            } else if (o instanceof List<?> list) {
+                result.put(new MessageCore(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
+            } else {
+                result.put(new MessageCore(s), o.toString());
             }
         });
         return result;
