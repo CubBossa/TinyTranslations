@@ -3,16 +3,20 @@
 A translation framework to translate chat messages.
 This framework builds upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
 
-## Table of Contents
-- [Maven](#maven)
-- [Overview](#overview)
-- [Setup](#setup)
-  - [Messages](#messages)
-  - [Add Messages to Translations](#add-messages-to-translations)
-  - [Build Messages from Translations directly](#build-messages-from-translations-directly)
-  - [Turn Messages into Components](#message-as-component)
-  - [Other Formats like Legacy Chat](#other-formats)
-  - [Per Player Locale](#player-locales)
+## Wiki
+- [Overview](https://github.com/CubBossa/Translations/wiki)
+- [Setup](https://github.com/CubBossa/Translations#maven)
+- Messages
+  - [Overview](https://github.com/CubBossa/Translations/wiki/Messages)
+  - [Using Placeholders](https://github.com/CubBossa/Translations/wiki/Placeholders)
+  - [Send or Use Messages](https://github.com/CubBossa/Translations/wiki/Send-or-Use-Messages)
+  - [Alternative Chat Formats](https://github.com/CubBossa/Translations/wiki/Legacy-Format-Support)
+  - [Per Player Locale](https://github.com/CubBossa/Translations/wiki/Per-Player-Locale)
+- [Styles](https://github.com/CubBossa/Translations/wiki/Styles)
+- Storages
+  - [Creating a Custom Storage](https://github.com/CubBossa/Translations/wiki/Creating-a--Custom-Storage)
+  - [YAML](https://github.com/CubBossa/Translations/wiki/Yaml-Storage)
+  - [Properties](https://github.com/CubBossa/Translations/wiki/Properties-Storage)
 
 ## Maven
 
@@ -33,7 +37,7 @@ Make sure to use the latest version.
     <dependency>
         <groupId>de.cubbossa</groupId>
         <artifactId>Translations</artifactId>
-        <version>3.0.0</version>
+        <version>[version]</version>
     </dependency>
     
     <!-- All kyori dependencies if not yet present -->
@@ -314,41 +318,5 @@ String s = ERR_NO_PERM.toString(MessageFormat.PLAIN);
 // -> No permissions!
 String s = ERR_NO_PERM.toString(MessageFormat.NBT);
 // -> {"text":"No permissions!","color":"red"}
-```
-
-### Player Locales
-
-Player languages are not set up by default.
-You must specify for each Translation instance, how a players locale should be resolved. All sub Translations will inherit
-this behaviour.
-
-```Java
-class ExamplePlugin extends JavaPlugin {
-
-    Translations translations;
-
-    public void onEnable() {
-        // ...
-
-        translations.setLocaleProvider(audience -> {
-            Locale fallback;
-            try {
-                fallback = Locale.forLanguageTag(myConfig.fallbackLocale);
-            } catch (Throwable t) {
-                getLogger().log(Level.WARNING, "Could not parse locale tag '" + fileConfig.fallbackLocale + "'. Using 'en' instead.");
-                fallback = Locale.ENGLISH;
-            }
-
-            if (audience == null) {
-                return fallback;
-            }
-            if (!myConfig.usePlayerClientLocale) {
-                return fallback;
-            }
-            return audience.getOrDefault(Identity.LOCALE, fallback);
-        });
-    }
-    // ...
-}
 ```
 
