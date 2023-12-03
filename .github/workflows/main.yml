@@ -32,6 +32,6 @@ jobs:
           password: ${{ secrets.NEXUS_PASSWORD }}
           format: maven2
           repository: maven-releases
-          coordinates: groupId=${{ env.RELEASE_GROUP }} artifactId=${{ env.RELEASE_ARTIFACT }} version=${{ env.RELEASE_VERSION }} classifier=jar
-          assets: extension=jar
+          coordinates: groupId=${{ env.RELEASE_GROUP }} artifactId=${{ env.RELEASE_ARTIFACT }} version=${{ env.RELEASE_VERSION }}
+          assets: extension=jar packaging=jar
           filename: ./target/${{ env.RELEASE_ARTIFACT }}-${{ env.RELEASE_VERSION }}.jar
