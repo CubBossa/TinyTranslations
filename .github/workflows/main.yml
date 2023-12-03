@@ -18,7 +18,7 @@ jobs:
           distribution: 'temurin'
           java-version: 16
       - name: Build with Maven
-        run: mvn package --file pom.xml -Dmaven.test.skip=true
+        run: mvn package --file pom.xml
       - name: Set Release version env variable
         run: |
           echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
@@ -33,5 +33,5 @@ jobs:
           format: maven2
           repository: maven-releases
           coordinates: groupId=${{ env.RELEASE_GROUP }} artifactId=${{ env.RELEASE_ARTIFACT }} version=${{ env.RELEASE_VERSION }}
-          assets: extension=jar
+          assets: extension=jar generatePom=true packaging=jar
           filename: ./target/${{ env.RELEASE_ARTIFACT }}-${{ env.RELEASE_VERSION }}.jar
