@@ -33,5 +33,5 @@ jobs:
           format: maven2
           repository: maven-releases
           coordinates: groupId=${{ env.RELEASE_GROUP }} artifactId=${{ env.RELEASE_ARTIFACT }} version=${{ env.RELEASE_VERSION }}
-          assets: packaging=jar
+          assets: extension=jar,generatePom=true,packaging=jar
           filename: ./target/${{ env.RELEASE_ARTIFACT }}-${{ env.RELEASE_VERSION }}.jar
