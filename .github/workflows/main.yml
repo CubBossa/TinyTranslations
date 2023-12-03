@@ -35,5 +35,4 @@ jobs:
           coordinates: groupId=${{ env.RELEASE_GROUP }} artifactId=${{ env.RELEASE_ARTIFACT }} version=${{ env.RELEASE_VERSION }}
           assets: extension=jar
           filename: ./target/${{ env.RELEASE_ARTIFACT }}-${{ env.RELEASE_VERSION }}.jar
-          generate-pom: true
-          packaging: jar
+          args: generate-pom=true packaging=jar
