@@ -44,17 +44,17 @@ Make sure to use the latest version.
     <dependency>
         <groupId>net.kyori</groupId>
         <artifactId>adventure-api</artifactId>
-        <version>4.11.0</version>
+        <version>4.14.0</version>
     </dependency>
     <dependency>
         <groupId>net.kyori</groupId>
         <artifactId>adventure-platform-bukkit</artifactId>
-        <version>4.1.2</version>
+        <version>4.3.1</version>
     </dependency>
     <dependency>
         <groupId>net.kyori</groupId>
         <artifactId>adventure-text-minimessage</artifactId>
-        <version>4.11.0</version>
+        <version>4.14.0</version>
     </dependency>
 </dependencies>
 ```
@@ -99,6 +99,21 @@ tasks.shadowJar {
     minimize()
     relocate 'de.cubbossa.translations', '[yourpluginpath].libs.translations'
 }
+```
+
+### Dependencies (Spigot Libraries)
+
+Your server must find and load the Kyori Adventure classes for Translations to work.
+Either also shade them or instead register them as Spigot Libraries.
+Therefore, go to your plugin.yml and add the section:
+```yml
+libraries:
+  - net.kyori:adventure-api:4.14.0
+  - net.kyori:adventure-platform-bukkit:4.3.1
+  - net.kyori:adventure-text-minimessage:4.14.0
+  - net.kyori:adventure-text-serializer-legacy:4.14.0
+  - net.kyori:adventure-text-serializer-gson:4.14.0
+  - net.kyori:adventure-text-serializer-plain:4.14.0
 ```
 
 ## Overview
