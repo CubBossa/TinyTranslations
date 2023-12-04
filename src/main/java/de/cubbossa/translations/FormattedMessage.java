@@ -111,4 +111,9 @@ public class FormattedMessage implements Message {
     public int compareTo(@NotNull Message o) {
         return message.compareTo(o);
     }
+
+    @Override
+    public String toString() {
+        return "Message<" + getNamespacedKey() + ">";
+    }
 }
