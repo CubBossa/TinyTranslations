@@ -154,7 +154,7 @@ public class AppTranslations implements Translations {
             raw = message.getDictionary().get(TranslationsFramework.DEFAULT_LOCALE);
         }
         if (raw == null) {
-            raw = "<missing translation: " + message.getNamespacedKey() + ">";
+            raw = "<no-translation-found:" + message.getNamespacedKey() + ">";
         }
         return process(raw, locale, message.getResolvers().toArray(TagResolver[]::new));
     }
@@ -215,7 +215,7 @@ public class AppTranslations implements Translations {
             }
             Message msg = getMessageByNamespace(nameSpace, key);
             if (msg == null) {
-                return Tag.inserting(Component.text("<msg-not-found:" + key + ">"));
+                return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + ">"));
             }
             return Tag.inserting(process(msg, locale));
         });
