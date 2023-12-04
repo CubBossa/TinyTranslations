@@ -19,6 +19,16 @@ class StyleDeserializerImplTest {
     }
 
     @Test
+    void deserialize0() {
+        String testString = "<a>red";
+        String style = "<red>";
+        Component expected = Component.text("red", NamedTextColor.RED);
+
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Assertions.assertEquals(expected, result);
+    }
+
+    @Test
     void deserialize1() {
         String testString = "ABC";
         String style = "a{slot}";

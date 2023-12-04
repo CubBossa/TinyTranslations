@@ -22,11 +22,12 @@ public class StyleDeserializerImpl implements StyleDeserializer {
 
   @Override
   public TagResolver deserialize(String key, String string) {
+    String s = string.contains(slotPlaceholder) ? string : (string + slotPlaceholder);
     return TagResolver.resolver(key, (argumentQueue, context) -> (Modifying) (c, depth) -> {
       if (depth > 0) return Component.empty();
 
       // Parse the slot content
-      Component slot = miniMessage.deserialize(string, otherStylesResolver);
+      Component slot = miniMessage.deserialize(s, otherStylesResolver);
       return slot.replaceText(TextReplacementConfig.builder()
           .matchLiteral(slotPlaceholder)
           .replacement(c)
