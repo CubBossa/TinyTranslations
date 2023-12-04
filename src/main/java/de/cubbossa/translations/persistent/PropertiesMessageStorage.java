@@ -25,17 +25,8 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
         }
 
         Map<String, Entry> entries = readFile(file);
-        Map<String, String> entryMap = new HashMap<>();
-        entries.forEach((key, value) -> entryMap.put(key, value.value()));
-
         Map<Message, String> result = new HashMap<>();
-
-        entryMap.forEach((key, val) -> {
-            if (result.get(key) != null) {
-                return;
-            }
-            result.put(new MessageCore(key), val);
-        });
+        entries.forEach((key, value) -> result.put(new MessageCore(key), value.value()));
         return result;
     }
 
