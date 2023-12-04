@@ -310,7 +310,7 @@ public class AppTranslations implements Translations {
         }
         if (messageStorage != null) {
             messageStorage.readMessages(locale).forEach((message, s) -> {
-                new HashMap<>(messageSet).computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
+                messageSet.computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
             });
         }
     }

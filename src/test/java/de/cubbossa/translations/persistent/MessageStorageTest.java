@@ -16,6 +16,7 @@ import java.util.Set;
 
 public abstract class MessageStorageTest {
 
+    File gDir;
     Translations translations;
     MessageStorage storage;
     Message a, b, c, d;
@@ -24,13 +25,13 @@ public abstract class MessageStorageTest {
 
     @BeforeEach
     void beforeEach(@TempDir File dir) {
-        File gDir = new File(dir, "/test/");
+        gDir = new File(dir, "/test/");
         gDir.mkdirs();
 
         TranslationsFramework.enable(gDir);
         translations = TranslationsFramework.application("TestApp");
 
-        storage = getMessageStorage(new File(gDir, "/TestApp/"));
+        storage = getMessageStorage(new File(gDir, "/TestApp/lang/"));
         translations.setMessageStorage(storage);
         a = translations.messageBuilder("a").withDefault("A").build();
         b = translations.messageBuilder("h.b").withDefault("B").build();

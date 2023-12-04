@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.Locale;
 
+import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -53,6 +54,31 @@ class AppTranslationsTest extends TestBase {
                 2,
                 ComponentSplit.split(translations.process(NEW_LINE), "\n").size()
         );
+    }
+
+    @Test
+    void globalMsg() {
+        Translations global = TranslationsFramework.global();
+        global.messageBuilder("brand").withDefault("<red>Prefix</red> ").build();
+
+        Message b = translations.messageBuilder("b").withDefault("<msg:global:brand>b").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" b")), translations.process(b).compact());
+
+        Message a = translations.messageBuilder("a").withDefault("<msg:brand>a").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" a")), translations.process(a).compact());
+    }
+
+    @Test
+    void globalMsgOverride() {
+        Translations global = TranslationsFramework.global();
+        global.messageBuilder("brand").withDefault("<red>Prefix</red> ").build();
+        translations.messageBuilder("brand").withDefault("<green>Prefix</green> ").build();
+
+        Message b = translations.messageBuilder("b").withDefault("<msg:global:brand>b").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" b")), translations.process(b).compact());
+
+        Message a = translations.messageBuilder("a").withDefault("<msg:brand>a").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.GREEN)).append(text(" a")), translations.process(a).compact());
     }
 
     @Test
