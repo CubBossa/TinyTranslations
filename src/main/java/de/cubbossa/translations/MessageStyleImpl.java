@@ -3,6 +3,8 @@ package de.cubbossa.translations;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class MessageStyleImpl implements MessageStyle {
 
     private final String key;
@@ -17,6 +19,19 @@ public class MessageStyleImpl implements MessageStyle {
         this.key = key;
         this.resolver = resolver;
         this.backup = backup;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MessageStyleImpl that = (MessageStyleImpl) o;
+        return Objects.equals(key, that.key);
+    }
+
+    @Override
+    public int hashCode() {
+        return key.hashCode();
     }
 
     @Override

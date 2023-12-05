@@ -4,6 +4,8 @@ import de.cubbossa.translations.Message;
 import de.cubbossa.translations.MessageCore;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +14,7 @@ import java.util.regex.Pattern;
 
 public class PropertiesMessageStorage extends FileStorage implements MessageStorage {
 
+    private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1 };
 
     public PropertiesMessageStorage(File directory) {
         super(directory, ".properties");
@@ -55,7 +58,7 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
     private void writeFile(File file, List<Entry> entries) {
         BufferedWriter writer;
         try {
-            writer = new BufferedWriter(new FileWriter(file));
+            writer = new BufferedWriter(new FileWriter(file, detectCharset(file, CHARSETS)));
             for (Entry entry : entries) {
                 if (entry.comment() != null) {
                     if (!(entry.comment().isEmpty() || entry.comment().isBlank())) {
@@ -86,7 +89,7 @@ public class PropertiesMessageStorage extends FileStorage implements MessageStor
         List<String> comments = new ArrayList<>();
 
         int lineIndex = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file, detectCharset(file, CHARSETS)))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lineIndex++;

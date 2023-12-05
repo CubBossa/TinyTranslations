@@ -1,13 +1,20 @@
 package de.cubbossa.translations.persistent;
 
+import de.cubbossa.translations.Message;
 import lombok.SneakyThrows;
+import net.kyori.adventure.text.Component;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
+
+import static net.kyori.adventure.text.Component.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class PropertiesMessageStorageTest extends MessageStorageTest {
 
@@ -40,6 +47,22 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
             t.printStackTrace();
         }
         translations.loadLocales();
-        Assertions.assertNotNull(translations.getMessage("no_perm"));
+        assertNotNull(translations.getMessage("no_perm"));
+    }
+
+    @Test
+    @SneakyThrows
+    void characters() {
+        File dir = new File(gDir, "/TestApp/lang/");
+        dir.mkdirs();
+        Files.copy(Path.of("src/test/resources/character_test_UTF-8.properties"), new File(dir, "en.properties").toPath());
+
+        translations.loadLocales();
+        Message a = translations.getMessage("char_a");
+        assertNotNull(a);
+        assertEquals(text("äöüß"), translations.process(a));
+        Message b = translations.getMessage("char_b");
+        assertNotNull(b);
+        assertEquals(text("ǮǬǱʁʀ"), translations.process(b));
     }
 }

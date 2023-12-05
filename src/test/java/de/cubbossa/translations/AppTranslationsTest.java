@@ -4,6 +4,8 @@ import de.cubbossa.translations.persistent.PropertiesMessageStorage;
 import de.cubbossa.translations.util.ComponentSplit;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -82,6 +84,23 @@ class AppTranslationsTest extends TestBase {
     }
 
     @Test
+    void globalStyle() {
+        Translations global = TranslationsFramework.global();
+        global.getStyleSet().put("negative", Style.style(NamedTextColor.RED));
+        Message m = translations.messageBuilder("a").withDefault("<negative>abc").build();
+        assertEquals(text("abc", NamedTextColor.RED), translations.process(m));
+    }
+
+    @Test
+    void globalStyleOverride() {
+        Translations global = TranslationsFramework.global();
+        global.getStyleSet().put("negative", Style.style(NamedTextColor.RED));
+        translations.getStyleSet().put("negative", Style.style(TextDecoration.UNDERLINED));
+        Message m = translations.messageBuilder("a").withDefault("<negative>abc").build();
+        assertEquals(text("abc").decorate(TextDecoration.UNDERLINED), translations.process(m));
+    }
+
+    @Test
     void translate() {
         translations.addMessages(TranslationsFramework.messageFieldsFromClass(this.getClass()));
 
@@ -91,8 +110,7 @@ class AppTranslationsTest extends TestBase {
         assertEquals(text("Hallo welt - Deutsch"), translations.process(SIMPLE, Locale.forLanguageTag("de-AT")));
 
         assertEquals(
-                text("Embedded: ")
-                        .append(text("Hello worlda", NamedTextColor.RED)),
+                text("Embedded: ").append(text("Hello worlda", NamedTextColor.RED)),
                 translations.process(EMBED, Locale.ENGLISH)
         );
     }
