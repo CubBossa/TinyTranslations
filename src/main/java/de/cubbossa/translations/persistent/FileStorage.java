@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 public abstract class FileStorage {
@@ -70,12 +71,11 @@ public abstract class FileStorage {
                 return result;
             }
         }
-        return null;
+        return StandardCharsets.UTF_8;
     }
 
     private Charset detectCharset(File f, Charset charset) {
-        try {
-            BufferedInputStream input = new BufferedInputStream(new FileInputStream(f));
+        try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(f))){
 
             CharsetDecoder decoder = charset.newDecoder();
             decoder.reset();
