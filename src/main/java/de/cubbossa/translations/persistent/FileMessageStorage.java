@@ -13,27 +13,21 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-public abstract class FileStorage {
+public abstract class FileMessageStorage {
 
     final File directory;
+    final String filePrefix;
     final String fileSuffix;
 
-    public FileStorage(File directory, String suffix) {
+    public FileMessageStorage(File directory, String prefix, String suffix) {
         directory.mkdirs();
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException("Language directory must not be a file.");
         }
 
         this.directory = directory;
+        this.filePrefix = prefix;
         this.fileSuffix = suffix;
-
-        try {
-            // TODO the following code creates undeletable files on linux and no files at all on windows
-            // Files.createSymbolicLink(new File(global, directory.getParentFile().getName()).toPath(), directory.toPath());
-            // Files.createSymbolicLink(new File(directory, global.getName()).toPath(), global.toPath());
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
     }
 
 

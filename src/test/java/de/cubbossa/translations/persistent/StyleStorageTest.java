@@ -20,7 +20,7 @@ public abstract class StyleStorageTest {
     Translations translations;
     StyleStorage storage;
 
-    abstract StyleStorage getStyleStorage(File dir);
+    abstract StyleStorage getStyleStorage(File dir, String name);
 
     @BeforeEach
     void beforeEach(@TempDir File dir) {
@@ -31,7 +31,7 @@ public abstract class StyleStorageTest {
         translations = TranslationsFramework.application("TestApp");
 
         new File(gDir, "/TestApp/").mkdirs();
-        storage = getStyleStorage(new File(gDir, "/TestApp/styles.properties"));
+        storage = getStyleStorage(new File(gDir, "/TestApp/"), "styles");
         translations.setStyleStorage(storage);
     }
 

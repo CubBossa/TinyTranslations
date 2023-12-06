@@ -12,12 +12,16 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PropertiesMessageStorage extends FileStorage implements MessageStorage {
+public class PropertiesMessageStorage extends FileMessageStorage implements MessageStorage {
 
     private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1 };
 
     public PropertiesMessageStorage(File directory) {
-        super(directory, ".properties");
+        this(directory, "", "");
+    }
+
+    public PropertiesMessageStorage(File directory, String prefix, String suffix) {
+        super(directory, prefix, suffix + ".properties");
     }
 
     @Override

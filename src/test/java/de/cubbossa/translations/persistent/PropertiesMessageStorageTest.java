@@ -37,12 +37,6 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
             } catch (Throwable t) {
                 t.printStackTrace();
             }
-            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    System.out.println(line);
-                }
-            }
         } catch (Throwable t) {
             t.printStackTrace();
         }

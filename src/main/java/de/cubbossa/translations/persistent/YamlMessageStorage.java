@@ -2,6 +2,8 @@ package de.cubbossa.translations.persistent;
 
 import de.cubbossa.translations.Message;
 import de.cubbossa.translations.MessageCore;
+import de.cubbossa.translations.util.YamlUtils;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -12,17 +14,31 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class YamlMessageStorage extends FileStorage implements MessageStorage {
+public class YamlMessageStorage extends FileMessageStorage implements MessageStorage {
 
     private final Yaml yaml;
 
     public YamlMessageStorage(File directory) {
-        super(directory, ".yml");
-        DumperOptions options = new DumperOptions();
-        options.setIndent(2);
-        options.setPrettyFlow(true);
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        this.yaml = new Yaml(options);
+        this(directory, "", "", null);
+    }
+
+    public YamlMessageStorage(File directory, String filePrefix, String fileSuffix) {
+        this(directory, filePrefix, fileSuffix, null);
+    }
+
+    public YamlMessageStorage(File directory, @Nullable DumperOptions dumperOptions) {
+        this(directory, "", "", dumperOptions);
+    }
+
+    public YamlMessageStorage(File directory, String filePrefix, String fileSuffix, @Nullable DumperOptions dumperOptions) {
+        super(directory, filePrefix, fileSuffix + ".yml");
+        if (dumperOptions == null) {
+            dumperOptions = new DumperOptions();
+            dumperOptions.setIndent(2);
+            dumperOptions.setPrettyFlow(true);
+            dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        }
+        this.yaml = new Yaml(dumperOptions);
     }
 
     @Override
@@ -34,7 +50,7 @@ public class YamlMessageStorage extends FileStorage implements MessageStorage {
         }
         Map<String, Object> map;
         try (FileInputStream fis = new FileInputStream(file)) {
-            map = toDotNotation(yaml.load(fis));
+            map = YamlUtils.toDotNotation(yaml.load(fis));
         } catch (IOException t) {
             throw new RuntimeException(t);
         }
@@ -58,7 +74,7 @@ public class YamlMessageStorage extends FileStorage implements MessageStorage {
         File file = localeFileIfExists(locale);
         if (file != null) {
             try (FileInputStream fis = new FileInputStream(file)) {
-                result = toDotNotation(yaml.load(fis));
+                result = YamlUtils.toDotNotation(yaml.load(fis));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -73,44 +89,10 @@ public class YamlMessageStorage extends FileStorage implements MessageStorage {
         }
         file = localeFile(locale);
         try (FileWriter writer = new FileWriter(file)) {
-            yaml.dump(fromDotNotation(result), writer);
+            yaml.dump(YamlUtils.fromDotNotation(result), writer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return success;
-    }
-
-    Map<String, Object> toDotNotation(Map<String, Object> map) {
-        Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, Object> e : map.entrySet()) {
-            if (e.getValue() instanceof Map inner) {
-                inner = toDotNotation(inner);
-                inner.forEach((o, o2) -> {
-                    result.put(e.getKey() + "." + o, o2);
-                });
-            } else {
-                result.put(e.getKey(), e.getValue());
-            }
-        }
-        return result;
-    }
-
-    Map<String, Object> fromDotNotation(Map<String, Object> map) {
-        Map<String, Object> result = new HashMap<>();
-        map.forEach((s, o) -> {
-            String[] splits = s.split("\\.");
-            LinkedList<String> keys = new LinkedList<>(List.of(Arrays.copyOfRange(splits, 0, splits.length - 1)));
-            Map<String, Object> m = result;
-            for (String key : keys) {
-                Object obj = m.computeIfAbsent(key, s1 -> new HashMap<>());
-                if (obj instanceof Map x) {
-                    m = x;
-                } else {
-                    throw new IllegalStateException("Map contains a value at a tree node that is no leaf.");
-                }
-            }
-            m.put(splits[splits.length - 1], o);
-        });
-        return result;
     }
 }
