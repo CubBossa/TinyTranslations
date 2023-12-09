@@ -30,7 +30,7 @@ public class FormattedMessage implements Message {
     public Collection<TagResolver> getResolvers() {
         Collection<TagResolver> result = new LinkedList<>(resolvers);
         if (message != null) {
-            result.addAll(resolvers);
+            result.addAll(message.getResolvers());
         }
         return result;
     }
