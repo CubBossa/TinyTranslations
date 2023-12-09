@@ -1,5 +1,7 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.annotation.KeyPattern;
+import de.cubbossa.translations.annotation.PathPattern;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -16,9 +18,9 @@ import java.util.Optional;
 public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 
 
-    String getKey();
+    @KeyPattern String getKey();
 
-    String getNamespacedKey();
+    @PathPattern String getNamespacedKey();
 
     @Nullable Translations getTranslations();
 

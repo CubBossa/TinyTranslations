@@ -1,5 +1,7 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.annotation.AppPathPattern;
+import de.cubbossa.translations.annotation.AppPattern;
 import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.StyleStorage;
 import de.cubbossa.translations.util.DefaultResolvers;
@@ -22,7 +24,7 @@ import java.util.function.Function;
 public class AppTranslations implements Translations {
 
     private final Translations parent;
-    private final String name;
+    private final @AppPattern String name;
     private final Map<String, Translations> children;
 
     private TagResolver styleResolverCache = null;
@@ -79,7 +81,7 @@ public class AppTranslations implements Translations {
     }
 
     @Override
-    public String getPath() {
+    public @AppPathPattern String getPath() {
         if (parent == null) {
             return name;
         }
@@ -235,7 +237,7 @@ public class AppTranslations implements Translations {
     }
 
     @Override
-    public @Nullable Message getMessageByNamespace(String namespace, String key) {
+    public @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key) {
         if (parent != null) {
             return parent.getMessageByNamespace(namespace, key);
         }
