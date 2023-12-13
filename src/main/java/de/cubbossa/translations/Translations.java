@@ -1,5 +1,7 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.annotation.AppPathPattern;
+import de.cubbossa.translations.annotation.AppPattern;
 import de.cubbossa.translations.persistent.MessageStorage;
 import de.cubbossa.translations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
@@ -14,6 +16,7 @@ import java.util.function.Function;
 
 public interface Translations extends AutoCloseable {
 
+    @AppPathPattern
     String getPath();
 
     void close();
@@ -37,7 +40,7 @@ public interface Translations extends AutoCloseable {
      * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
      * @return The forked instance.
      */
-    Translations fork(String name);
+    Translations fork(@AppPattern String name);
 
     /**
      * Similar to {@link #fork(String)}, but also inherits storages.
@@ -45,7 +48,7 @@ public interface Translations extends AutoCloseable {
      * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
      * @return The forked instance.
      */
-    Translations forkWithStorage(String name);
+    Translations forkWithStorage(@AppPattern String name);
 
 
     Message message(String key);
@@ -176,7 +179,7 @@ public interface Translations extends AutoCloseable {
      * @param key The exact message key (a.b.c)
      * @return The found message instance or null if none found.
      */
-    @Nullable Message getMessageByNamespace(String namespace, String key);
+    @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key);
 
     /**
      * Adds a message to this translations instance and sets the Translations instance of the message to this.

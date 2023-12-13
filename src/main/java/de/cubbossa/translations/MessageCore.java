@@ -1,5 +1,7 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.annotation.KeyPattern;
+import de.cubbossa.translations.annotation.PathPattern;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -15,26 +17,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @Setter
 public final class MessageCore implements Message {
 
-    private final String key;
+    private final @KeyPattern String key;
 
     private Translations translations;
     private Map<Locale, String> dictionary;
     private Map<String, Optional<String>> placeholderTags;
     private String comment;
 
-    public MessageCore(String key) {
+    public MessageCore(@KeyPattern String key) {
         this((Translations) null, key);
     }
 
-    public MessageCore(Translations translations, String key) {
+    public MessageCore(Translations translations, @KeyPattern String key) {
         this(translations, key, "No default translation present");
     }
 
-    public MessageCore(String key, String defaultValue) {
+    public MessageCore(@KeyPattern String key, String defaultValue) {
         this(null, key, defaultValue);
     }
 
-    public MessageCore(Translations translations, String key, String defaultValue) {
+    public MessageCore(Translations translations, @KeyPattern String key, String defaultValue) {
         this.translations = translations;
         this.key = key;
         this.dictionary = new ConcurrentHashMap<>();
@@ -49,15 +51,18 @@ public final class MessageCore implements Message {
 
     @Override
     public String toString() {
-        return "Message<" + getNamespacedKey() + ">";
+        return "Message<" + getNamespacedKey().toLowerCase() + ">";
     }
 
+    @KeyPattern
+    public String getKey() {
+        return key;
+    }
+
+    @PathPattern
     @Override
     public String getNamespacedKey() {
-        if (translations == null) {
-            throw new IllegalStateException("Trying to access a Message before registering it to a Translations instance.");
-        }
-        return translations.getPath() + ":" + key;
+        return (translations == null ? "" : translations.getPath()) + ":" + key;
     }
 
     @Override
@@ -118,12 +123,12 @@ public final class MessageCore implements Message {
         }
 
         MessageCore message = (MessageCore) o;
-        return key.equals(message.key);
+        return key.equalsIgnoreCase(message.key);
     }
 
     @Override
     public int hashCode() {
-        return key.hashCode();
+        return key.toLowerCase().hashCode();
     }
 
     public Message clone(Translations translations) {
@@ -135,9 +140,6 @@ public final class MessageCore implements Message {
 
     @Override
     public Message clone() {
-        if (translations == null) {
-            throw new IllegalStateException("Trying to clone a Message before registering it to a Translations instance.");
-        }
         return clone(translations);
     }
 

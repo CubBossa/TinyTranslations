@@ -1,5 +1,6 @@
 package de.cubbossa.translations;
 
+import de.cubbossa.translations.annotation.KeyPattern;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.*;
@@ -13,11 +14,11 @@ public class MessageBuilder {
     private final List<String> comments;
     private final Map<String, Placeholder> placeholderMap;
 
-    public MessageBuilder(String key) {
+    public MessageBuilder(@KeyPattern String key) {
         this(null, key);
     }
 
-    public MessageBuilder(Translations translations, String key) {
+    public MessageBuilder(Translations translations, @KeyPattern String key) {
         this.key = key;
         this.owner = translations;
         this.comments = new ArrayList<>();

@@ -114,7 +114,7 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
                     String stripped = matcher.group(2);
                     stripped = stripped.startsWith("\"") ? stripped.substring(1, stripped.length() - 1) : stripped;
                     stripped = stripped.replace("\\n", "\n");
-                    entries.put(key.toLowerCase(), new Entry(key, stripped, String.join("\n", comments)));
+                    entries.put(key, new Entry(key, stripped, String.join("\n", comments)));
                     comments.clear();
                     continue;
                 }

@@ -1,5 +1,6 @@
 package de.cubbossa.translations.persistent;
 
+import de.cubbossa.translations.Message;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -11,9 +12,11 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
 
-public abstract class FileMessageStorage {
+public abstract class FileMessageStorage implements MessageStorage {
 
     final File directory;
     final String filePrefix;
@@ -36,6 +39,18 @@ public abstract class FileMessageStorage {
             directory.mkdirs();
         }
     }
+
+    @Override
+    public Map<Message, String> readMessages(Locale locale) {
+        return null;
+    }
+
+    @Override
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+        return null;
+    }
+
+
 
     @Nullable File localeFileIfExists(Locale locale) {
         File file = new File(directory, locale.toLanguageTag() + fileSuffix);
