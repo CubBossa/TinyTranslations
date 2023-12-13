@@ -69,6 +69,8 @@ public class AppTranslations implements Translations {
         };
 
         this.defaultResolvers = TagResolver.resolver(
+                DefaultResolvers.darken("darker"),
+                DefaultResolvers.lighten("lighter"),
                 DefaultResolvers.repeat("repeat"),
                 DefaultResolvers.reverse("reverse"),
                 DefaultResolvers.upper("upper"),
@@ -195,6 +197,15 @@ public class AppTranslations implements Translations {
             });
             t = t.getParent();
         }
+        styles.put("style", TagResolver.resolver("style", (argumentQueue, context) -> {
+            String namespace = null;
+            String styleKey = argumentQueue.popOr("A style tag requires a specified style").value();
+            if (argumentQueue.hasNext()) {
+                namespace = styleKey;
+                styleKey = argumentQueue.pop().value();
+            }
+            return styles.get(styleKey).resolve(styleKey, argumentQueue, context);
+        }));
         styleResolverCache = TagResolver.resolver(styles.values());
         return styleResolverCache;
     }

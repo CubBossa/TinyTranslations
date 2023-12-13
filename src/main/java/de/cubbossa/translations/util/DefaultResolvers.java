@@ -4,12 +4,14 @@ import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -21,6 +23,20 @@ public class DefaultResolvers {
 
     private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
     private static final Pattern URL_PATTERN = Pattern.compile("(https?://)?[^:/]+/(.+)");
+
+    public TagResolver darken(String key) {
+        return TagResolver.resolver(key, (argumentQueue, context) -> (Modifying) (current, depth) -> {
+            if (current.color() == null) return current;
+            return current.color(TextColor.color(new Color(current.color().value()).darker().getRGB()));
+        });
+    }
+
+    public TagResolver lighten(String key) {
+        return TagResolver.resolver(key, (argumentQueue, context) -> (Modifying) (current, depth) -> {
+            if (current.color() == null) return current;
+            return current.color(TextColor.color(new Color(current.color().value()).brighter().getRGB()));
+        });
+    }
 
     public TagResolver repeat(String key) {
         return TagResolver.resolver(key, (argumentQueue, context) -> {
