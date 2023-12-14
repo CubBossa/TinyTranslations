@@ -89,7 +89,7 @@ public class PropertiesStyleStorage implements StyleStorage {
     }
 
     private List<Line> readStylesFile(File file) {
-        Pattern keyValue = Pattern.compile("^([a-zA-Z._-]+)=((.)+)$");
+        Pattern keyValue = Pattern.compile("^([a-zA-Z0-9._-]+)=((.)+)$");
         List<Line> lines = new ArrayList<>();
 
         int lineIndex = 0;

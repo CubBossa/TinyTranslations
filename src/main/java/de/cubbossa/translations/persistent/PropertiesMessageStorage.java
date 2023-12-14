@@ -88,7 +88,7 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
 
     private Map<String, Entry> readFile(File file) {
 
-        Pattern keyValue = Pattern.compile("^([a-zA-Z._-]+)=((.)+)$");
+        Pattern keyValue = Pattern.compile("^([a-zA-Z0-9._-]+)=((.)+)$");
         Map<String, Entry> entries = new HashMap<>();
         List<String> comments = new ArrayList<>();
 

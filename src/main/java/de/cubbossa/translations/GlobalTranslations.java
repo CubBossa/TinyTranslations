@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.Locale;
 
 @Getter
@@ -51,6 +52,7 @@ public class GlobalTranslations extends AppTranslations implements Translations 
         setMessageStorage(new PropertiesMessageStorage(globalLangDir));
         setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
 
+        writeMissingDefaultStyles();
     }
 
     private void writeResourceIfNotExists(File langDir, String name) {
@@ -72,6 +74,24 @@ public class GlobalTranslations extends AppTranslations implements Translations 
             is.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void writeMissingDefaultStyles() {
+        File template;
+        try {
+            template = new File(getClass().getResource("/global_styles.properties").toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Could not write default styles.", e);
+        }
+        PropertiesStyleStorage storage = new PropertiesStyleStorage(template);
+        storage.loadStyles().forEach((s, messageStyle) -> {
+            if (!this.getStyleSet().containsKey(s)) {
+                this.getStyleSet().put(s, messageStyle);
+            }
+        });
+        if (this.getStyleStorage() != null) {
+            this.getStyleStorage().writeStyles(this.getStyleSet());
         }
     }
 
