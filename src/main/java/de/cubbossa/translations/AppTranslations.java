@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,8 @@ import java.util.function.Function;
 @Getter
 @Setter
 public class AppTranslations implements Translations {
+
+    private static final MiniMessage MM = MiniMessage.miniMessage();
 
     private final Translations parent;
     private final @AppPattern String name;
@@ -39,6 +42,7 @@ public class AppTranslations implements Translations {
     private ReadWriteLock lock;
     private StyleDeserializer styleDeserializer;
     private TagResolver defaultResolvers;
+    private TranslationsPreprocessor preprocessor;
 
     public AppTranslations(Translations parent, String name) {
         this.parent = parent;
@@ -48,6 +52,7 @@ public class AppTranslations implements Translations {
 
         this.messageStorage = null;
         this.styleStorage = null;
+        this.preprocessor = new TranslationsPreprocessor();
 
         this.messageSet = new HashMap<>() {
             @Override
@@ -78,7 +83,11 @@ public class AppTranslations implements Translations {
                 DefaultResolvers.upper("upper"),
                 DefaultResolvers.lower("lower"),
                 DefaultResolvers.shortUrl("shorturl"),
-                DefaultResolvers.preview("shorten")
+                DefaultResolvers.preview("shorten"),
+                MessageFormat.NBT.getTagResolver(),
+                MessageFormat.LEGACY_PARAGRAPH.getTagResolver(),
+                MessageFormat.LEGACY_AMPERSAND.getTagResolver(),
+                MessageFormat.PLAIN.getTagResolver()
         );
     }
 
@@ -175,9 +184,11 @@ public class AppTranslations implements Translations {
 
     @Override
     public Component process(String raw, Locale locale, TagResolver... resolvers) {
-        return MessageFormat.translate(raw, TagResolver.builder()
+        String processed = preprocessor.apply(raw);
+        return MM.deserialize(processed, TagResolver.builder()
                 .resolvers(resolvers)
-                .resolver(getResolvers(locale)).build());
+                .resolver(getResolvers(locale))
+                .build());
     }
 
     @Override
@@ -299,6 +310,7 @@ public class AppTranslations implements Translations {
         if (styleStorage != null) {
             styleSet.putAll(styleStorage.loadStyles());
             styleResolverCache = null;
+			getStylesResolver(); // create cache in loading process where performance leaks are expected
         }
     }
 

@@ -2,6 +2,7 @@ package de.cubbossa.translations;
 
 import de.cubbossa.translations.annotation.KeyPattern;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.intellij.lang.annotations.Language;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,17 +32,17 @@ public class MessageBuilder {
         return this;
     }
 
-    public MessageBuilder withDefault(String defaultValue) {
+    public MessageBuilder withDefault(@Language("TranslationsFormat") String defaultValue) {
         this.translations.put(TranslationsFramework.DEFAULT_LOCALE, defaultValue);
         return this;
     }
 
-    public MessageBuilder withTranslation(Locale locale, String miniMessage) {
+    public MessageBuilder withTranslation(Locale locale, @Language("TranslationsFormat") String miniMessage) {
         return this.withTranslation(locale, MessageFormat.MINI_MESSAGE, miniMessage);
     }
 
     public MessageBuilder withTranslation(Locale locale, MessageFormat format, String translation) {
-        this.translations.put(locale, (format == MessageFormat.MINI_MESSAGE ? "" : format.toPrefix()) + translation);
+        this.translations.put(locale, format.wrap(translation));
         return this;
     }
 

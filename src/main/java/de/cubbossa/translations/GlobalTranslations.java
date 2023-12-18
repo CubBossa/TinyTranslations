@@ -8,10 +8,7 @@ import net.kyori.adventure.audience.Audience;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.util.Locale;
 
@@ -56,7 +53,11 @@ public class GlobalTranslations extends AppTranslations implements Translations 
     }
 
     private void writeResourceIfNotExists(File langDir, String name) {
-        File file = new File(langDir, name);
+        writeResourceIfNotExists(langDir, name, name);
+    }
+
+    private void writeResourceIfNotExists(File langDir, String name, String as) {
+        File file = new File(langDir, as);
         if (file.exists()) {
             return;
         }
@@ -78,13 +79,18 @@ public class GlobalTranslations extends AppTranslations implements Translations 
     }
 
     private void writeMissingDefaultStyles() {
-        File template;
+        File tempFile;
         try {
-            template = new File(getClass().getResource("/global_styles.properties").toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("Could not write default styles.", e);
+            tempFile = File.createTempFile("stream_to_file", ".properties");
+            tempFile.deleteOnExit();
+            InputStream is = getClass().getResourceAsStream("/global_styles.properties");
+            try (FileOutputStream out = new FileOutputStream(tempFile)) {
+                out.write(is.readAllBytes());
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException("Could not create temp file to append missing default styles.");
         }
-        PropertiesStyleStorage storage = new PropertiesStyleStorage(template);
+        PropertiesStyleStorage storage = new PropertiesStyleStorage(tempFile);
         storage.loadStyles().forEach((s, messageStyle) -> {
             if (!this.getStyleSet().containsKey(s)) {
                 this.getStyleSet().put(s, messageStyle);

@@ -7,6 +7,7 @@ import de.cubbossa.translations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +95,7 @@ public interface Translations extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(String raw, TagResolver... resolvers);
+    Component process(@Language("TranslationsFormat") String raw, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -105,7 +106,7 @@ public interface Translations extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(String raw, Audience target, TagResolver... resolvers);
+    Component process(@Language("TranslationsFormat") String raw, Audience target, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -116,7 +117,7 @@ public interface Translations extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(String raw, Locale locale, TagResolver... resolvers);
+    Component process(@Language("TranslationsFormat") String raw, Locale locale, TagResolver... resolvers);
 
     TagResolver getResolvers(Locale locale);
 

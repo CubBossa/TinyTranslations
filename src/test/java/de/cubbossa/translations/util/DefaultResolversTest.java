@@ -2,12 +2,14 @@ package de.cubbossa.translations.util;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
 import java.util.function.Function;
 
 class DefaultResolversTest {
@@ -97,6 +99,15 @@ class DefaultResolversTest {
         Assertions.assertEquals(
                 Component.text("c", NamedTextColor.YELLOW).append(Component.text("b", NamedTextColor.RED)).append(Component.text("a")),
                 miniMessage.deserialize("<reverse><yellow>a<red>b</red>c</yellow></reverse>", resolver).compact()
+        );
+    }
+
+    @Test
+    void darken() {
+        TagResolver resolver = DefaultResolvers.darken("darker");
+        Assertions.assertEquals(
+                Component.text("test").color(TextColor.color(new Color(0xff0000).darker().getRGB())),
+                miniMessage.deserialize("<darker><#ff0000>test</#ff0000></darker>", resolver)
         );
     }
 }
