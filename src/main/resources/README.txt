@@ -73,13 +73,12 @@ Other Formats
 Other formats than MiniMessage are supported, but not advised.
 To encode a message in a different format, use the following prefax:
 
-example_message = "!!<encoding>: <message>"
-example_message = "!!paragraph: §cA legacy text"
-example_message = "!!ampersand: &cA legacy ampersand text"
-example_message = "!!plain: A plain text without colors"
-example_message = "!!nbt: {"text":"A nbt text","color":"red"}"
-example_message = "!!minimessage: <red>A MiniMessage text</red>"
-example_message = "<red>A MiniMessage text because MiniMessage is default.</red>"
+example_message = <legacy>&cA legacy ampersand text</legacy>
+example_message = <legacy:'&'>&cA legacy ampersand text</legacy>
+example_message = <legacy:'§'>§cA legacy text</legacy>
+example_message = <plain>A plain text without colors</plain>
+example_message = <nbt>{"text":"A nbt text","color":"red"}</nbt>
+example_message = <red>A MiniMessage text because MiniMessage is default.</red>"
 
 Styles
 ------

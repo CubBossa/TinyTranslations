@@ -109,5 +109,11 @@ class DefaultResolversTest {
                 Component.text("test").color(TextColor.color(new Color(0xff0000).darker().getRGB())),
                 miniMessage.deserialize("<darker><#ff0000>test</#ff0000></darker>", resolver)
         );
+
+        // we cannot access parent color of component, also colors should only be darkened if existing on component
+        Assertions.assertNotEquals(
+            Component.text("test", NamedTextColor.RED).append(Component.text("child").color(TextColor.color(new Color(0xff0000).darker().getRGB()))),
+            miniMessage.deserialize("<#ff0000>test<darker>child</darker></#ff0000>", resolver)
+        );
     }
 }

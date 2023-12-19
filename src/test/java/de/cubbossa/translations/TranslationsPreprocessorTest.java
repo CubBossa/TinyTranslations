@@ -5,6 +5,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class TranslationsPreprocessorTest extends TestBase {
 
 
@@ -40,4 +43,18 @@ public class TranslationsPreprocessorTest extends TestBase {
 		);
 	}
 
+	@Test
+	void avoidWrongClose() {
+		TranslationsPreprocessor pp = new TranslationsPreprocessor();
+
+		Assertions.assertEquals(
+				"<<nbt:'{\"text\":\"\\</nbt>\"}<nbt/>'/>",
+				pp.apply("<<nbt>{\"text\":\"\\</nbt>\"}<nbt/></nbt>")
+		);
+
+		Assertions.assertEquals(
+				"<nbt:'<nbt>x'/></nbt>",
+				pp.apply("<nbt><nbt>x</nbt></nbt>")
+		);
+	}
 }
