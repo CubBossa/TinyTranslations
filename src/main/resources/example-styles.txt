@@ -1,9 +1,9 @@
 <prefixed>Plugin successfully reloaded in <text_hl>{ms}ms</text_hl>
 <prefixed>Sent request to teleport to <accent>{player:name}</accent>. <click:...><button>cancel</button></click>
 <negative>{player:name} declined your teleport request</negative>
-<prefixed>Completed Jump'n'Run in <accent>{ms}</accent><c_accent_d>ms</c_accent_d>. <text_d>(personal high score: {best}ms)
+<prefixed>Completed Jump'n'Run in <accent>{ms}</accent><accent_d>ms</accent_d>. <text_d>(personal high score: {best}ms)
 <prefixed>Jump'n'Run cancelled.
-<prefixed>Your balance: <money>{balance:'#.##'}<text>/</text><darker>$</darker></money>.
+<prefixed>Your balance: <money>{balance:'#.##'}<darker><money>$</money></darker></money>.
 <prefixed>Money sent to <text_hl>{player:name}</text_hl>: <bal_choice:'<positive>+{balance:\'#.##\'}':'<negative>-{balance:\'#.##\'}'>
 <prefixed>Money received from <text_hl>{player:name}</text_hl>: <bal_choice:'<positive>+{balance:\'#.##\'}':'<negative>-{balance:\'#.##\'}'>
 <warning>Server restarting in {ms} minutes!</warning>
@@ -13,6 +13,25 @@
 <negative>Teleport cancelled - you moved!
 <negative>Unknown command, please use <cmd_syntax>/gamemode <arg>mode</arg> <arg_opt>player</arg_opt></cmd_syntax></negative>
 <prefixed><positive>You have been promoted to {rank:display}.
+---- Players Online {count}/{max} ----/
+<player_list:10><list_el>{player:display} <text_d>({player:uuid})</text_d></list_el></player_list>/
+---- {s_prev_page} {page}/{pages} {s_next_page} ----
+
+<prefixed>Plugin successfully reloaded in <text_hl>16ms</text_hl>
+<prefixed>Sent request to teleport to <accent>Notch</accent>. <click:...><button>cancel</button></click>
+<negative>Notch declined your teleport request</negative>
+<prefixed>Completed Jump'n'Run in <accent>10.040</accent><accent_d>ms</accent_d>. <text_d>(personal high score: 9.542s)
+<prefixed>Jump'n'Run cancelled.
+<prefixed>Your balance: <money>1,896.01<darker>$</darker></money>.
+<prefixed>Money sent to <text_hl>Notch</text_hl>: <negative>-127.99$</negative>
+<prefixed>Money received from <text_hl>Notch</text_hl>: <positive>+127.99$</positive>
+<warning>Server restarting in 3 minutes!</warning>
+<negative>You don't have permission to perform this command!</negative>
+<prefixed>Teleporting to plot <text_hl>2</text_hl>.
+<prefixed>Preparing teleport - please don't move!
+<negative>Teleport cancelled - you moved!
+<negative>Unknown command, please use <cmd_syntax>/gamemode ‹mode› [‹player›]</cmd_syntax></negative>
+<prefixed><positive>You have been promoted to <red>Admin</red>.
 ---- Players Online {count}/{max} ----/
 <player_list:10><list_el>{player:display} <text_d>({player:uuid})</text_d></list_el></player_list>/
 ---- {s_prev_page} {page}/{pages} {s_next_page} ----

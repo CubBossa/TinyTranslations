@@ -85,17 +85,17 @@ Styles
 
 Styles are a way to easily change the look and feel of your messages.
 Instead of explicitly using styles in your language file, you can use style placeholders like
-<c_primary> for your primary color or <c_bg> for background colors.
+<primary> for your primary color or <bg> for background colors.
 
 Use them for your messages like so:
-buy.success: = "<c_text>Successfully bought plot!</c_text>"
-buy.no_perms = "<c_negative>No permission!</c_negative>"
+buy.success: = "<text>Successfully bought plot!</text>"
+buy.no_perms = "<negative>No permission!</negative>"
 
 And style them from within your style files:
-c_text = "<light_gray>"
-c_negative = "<red><bold>"
+text = "<light_gray>"
+negative = "<red><bold>"
 
-Application styles override global styles, so if you put a style "c_negative" in global and one with
+Application styles override global styles, so if you put a style "negative" in global and one with
 the exact same key in your applications styles.properties, the application style will be used.
 
 The style format is a combination of opening tags that render has an effect on an ongoing text.

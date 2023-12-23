@@ -211,11 +211,11 @@ public class AppTranslations implements Translations {
             t = t.getParent();
         }
         styles.put("style", TagResolver.resolver("style", (argumentQueue, context) -> {
-            String namespace = null;
             String styleKey = argumentQueue.popOr("A style tag requires a specified style").value();
             if (argumentQueue.hasNext()) {
-                namespace = styleKey;
+                String namespace = styleKey;
                 styleKey = argumentQueue.pop().value();
+                return getStyleByNamespace(namespace, styleKey).getResolver().resolve(styleKey, argumentQueue, context);
             }
             return styles.get(styleKey).resolve(styleKey, argumentQueue, context);
         }));
@@ -250,6 +250,17 @@ public class AppTranslations implements Translations {
         return messageSet.get(key);
     }
 
+    public @Nullable MessageStyle getStyle(String key) {
+        return styleSet.get(key);
+    }
+
+    public @Nullable MessageStyle getStyleInParentTree(String key) {
+        MessageStyle style = getStyle(key);
+        if (style != null) return style;
+        if (parent == null) return null;
+        return parent.getStyleInParentTree(key);
+    }
+
     @Override
     public @Nullable Message getMessageInParentTree(String key) {
         Message msg = getMessage(key);
@@ -258,11 +269,7 @@ public class AppTranslations implements Translations {
         return parent.getMessageInParentTree(key);
     }
 
-    @Override
-    public @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key) {
-        if (parent != null) {
-            return parent.getMessageByNamespace(namespace, key);
-        }
+    private @Nullable Translations getTranslationsByNamespace(@AppPathPattern String namespace) {
         Translations translations = this;
         String[] split = namespace.split("\\.");
         Queue<String> path = new LinkedList<>(List.of(split));
@@ -277,7 +284,25 @@ public class AppTranslations implements Translations {
                 return null;
             }
         }
-        return translations.getMessageInParentTree(key);
+        return translations;
+    }
+
+    @Override
+    public @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key) {
+        if (parent != null) {
+            return parent.getMessageByNamespace(namespace, key);
+        }
+        Translations translations = getTranslationsByNamespace(namespace);
+        return translations == null ? null : translations.getMessageInParentTree(key);
+    }
+
+    @Override
+    public @Nullable MessageStyle getStyleByNamespace(@AppPathPattern String namespace, String key) {
+        if (parent != null) {
+            return parent.getStyleByNamespace(namespace, key);
+        }
+        Translations translations = getTranslationsByNamespace(namespace);
+        return translations == null ? null : translations.getStyleInParentTree(key);
     }
 
     @Override

@@ -19,7 +19,7 @@ public class TranslationsFrameworkTest extends TestBase {
     public void testDefaultsAvailable() {
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.GREEN),
-            translations.process("<c_positive>X").compact()
+            translations.process("<positive>X").compact()
         );
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.GREEN),

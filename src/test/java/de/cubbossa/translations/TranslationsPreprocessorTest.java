@@ -16,8 +16,8 @@ public class TranslationsPreprocessorTest extends TestBase {
 		TranslationsPreprocessor pp = new TranslationsPreprocessor();
 
 		Assertions.assertEquals(
-				"<gradient:black:dark_gray:black>----------- <primary><page:'}{}}'/></primary>/<c_primary_d><pages/></c_primary_d> -----------</gradient>",
-				pp.apply("<gradient:black:dark_gray:black>----------- <primary>{page:'}{}}'}</primary>/<c_primary_d>{pages}</c_primary_d> -----------</gradient>")
+				"<gradient:black:dark_gray:black>----------- <primary><page:'}{}}'/></primary>/<primary_d><pages/></primary_d> -----------</gradient>",
+				pp.apply("<gradient:black:dark_gray:black>----------- <primary>{page:'}{}}'}</primary>/<primary_d>{pages}</primary_d> -----------</gradient>")
 		);
 
 		Assertions.assertEquals(

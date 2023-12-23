@@ -162,6 +162,8 @@ public interface Translations extends AutoCloseable {
      */
     @Nullable Message getMessage(String key);
 
+    @Nullable MessageStyle getStyle(String key);
+
     /**
      * Find a registered message on this Translations instance and if nothing found, search in parent tree.
      * The method returns the message from the lowest Translations in the parent tree that contains the searched message key.
@@ -170,6 +172,8 @@ public interface Translations extends AutoCloseable {
      * @return The found Message instance or null if none found.
      */
     @Nullable Message getMessageInParentTree(String key);
+
+    @Nullable MessageStyle getStyleInParentTree(String key);
 
     /**
      * Retrieve a message by namespace. Return an exact match, even if child Translations overwrite the message.
@@ -181,6 +185,8 @@ public interface Translations extends AutoCloseable {
      * @return The found message instance or null if none found.
      */
     @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key);
+
+    @Nullable MessageStyle getStyleByNamespace(@AppPathPattern String namespace, String key);
 
     /**
      * Adds a message to this translations instance and sets the Translations instance of the message to this.
