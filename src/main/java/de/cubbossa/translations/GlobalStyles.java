@@ -3,7 +3,7 @@ package de.cubbossa.translations;
 import java.util.LinkedList;
 import java.util.List;
 
-public enum NamedGlobalStyles {
+public enum GlobalStyles {
 
 	PRIMARY("primary"),
 	PRIMARY_LIGHT("primary_l", "primary_light"),
@@ -16,7 +16,6 @@ public enum NamedGlobalStyles {
 	ACCENT_DARK("accent_d", "accent_dark"),
 
 	NOTIFY("notify"),
-	INFO("info"),
 	NEGATIVE("negative"),
 	POSITIVE("positive"),
 	WARNING("warning"),
@@ -31,14 +30,15 @@ public enum NamedGlobalStyles {
 	BACKGROUND_DARK("bg_d", "background_dark"),
 
 	PREFIX("prefix"),
-	PREFIXED("prefixed"),
+	PREFIX_WARNING("prefix_warning"),
+	PREFIX_NEGATIVE("prefix_negative"),
 
 	SEPARATOR("separator"),
 	BUTTON("button"),
+	BUTTON_ACCEPT("button_accept"),
+	BUTTON_DECLINE("button_decline"),
 
 	LIST_ELEMENT("list_el", "list_element"),
-	PREVIOUS_PAGE("prev_page_symbol"),
-	NEXT_PAGE("next_page_symbol"),
 
 	URL("url"),
 
@@ -51,7 +51,7 @@ public enum NamedGlobalStyles {
 
 	private final List<String> keys = new LinkedList<>();
 
-	NamedGlobalStyles(String key, String... alias) {
+	GlobalStyles(String key, String... alias) {
 		keys.add(key);
 		keys.addAll(List.of(alias));
 	}

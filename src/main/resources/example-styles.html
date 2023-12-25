@@ -1,0 +1,211 @@
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"/>
+    <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+    <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/minecraftia" type="text/css"/>
+    <style lang="sass">
+        :root {
+            --brighter: 125%;
+            --darker: 75%;
+            --primary: #2ab3fd;
+            --offset: #1077cb;
+            --accent: #ffab15;
+            --notify: #ffaa00;
+            --negative: #ff5555;
+            --positive: #55ff55;
+            --warning: #ffff55;
+            --text: #8ed8ff;
+            --text_hl: var(--offset);
+            --bg: #555555;
+            --cmd_arg: #ffc2c2
+        }
+        primary { color: var(--primary); }
+        primary_l { color: var(--primary); filter: brightness(var(--brighter))}
+        primary_light { color: var(--primary); filter: brightness(var(--brighter)) }
+        primary_d { color: var(--primary); filter: brightness(var(--darker)) }
+        primary_dark { color: var(--primary); filter: brightness(var(--darker)) }
+        offset { color: var(--offset); }
+        offset_l { color: var(--offset); filter: brightness(var(--brighter)) }
+        offset_light { color: var(--offset); filter: brightness(var(--brighter)) }
+        offset_d { color: var(--offset); filter: brightness(var(--darker)) }
+        offset_dark { color: var(--offset); filter: brightness(var(--darker)) }
+        accent { color: var(--accent); }
+        accent_l { color: var(--accent); filter: brightness(var(--brighter)) }
+        accent_light { color: var(--accent); filter: brightness(var(--brighter)) }
+        accent_d { color: var(--accent); filter: brightness(var(--darker)) }
+        accent_dark { color: var(--accent); filter: brightness(var(--darker)) }
+        notify { color: var(--notify); }
+        negative { color: var(--negative); }
+        positive { color: var(--positive); }
+        warning { color: var(--warning); }
+        text { color: var(--text); }
+        text_l { color: var(--text); filter: brightness(var(--brighter)) }
+        text_light { color: var(--text); filter: brightness(var(--brighter)) }
+        text_d { color: var(--text); filter: brightness(var(--darker)) }
+        text_dark { color: var(--text); filter: brightness(var(--darker)) }
+        text_hl { color: var(--text_hl); }
+        bg { color: var(--bg); }
+        background { color: var(--bg); }
+        bg_d { color: var(--bg); filter: brightness(var(--darker))  }
+        background_dark { color: var(--bg); filter: brightness(var(--darker)) }
+        bg_l { color: var(--bg); filter: brightness(var(--brighter)); }
+        background_light { color: var(--bg); filter: brightness(var(--brighter)) }
+        brighter { filter: brightness(var(--brighter)) }
+        darker { filter: brightness(var(--darker)) }
+        cmd_syntax {
+            color: var(--cmd_arg);
+            font-style: italic;
+        }
+        bold {
+            font-weight: bolder;
+        }
+
+        #chat {
+            color: white;
+            background-color: rgba(0, 0, 0, 0.4);
+            text-rendering: optimizeLegibility;
+            font-size: 20px;
+            line-height: 28px;
+            text-shadow: 3px 3px hsl(0, 0%, 16%);
+            font-family: "MinecraftiaRegular", monospace;
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        #preview {
+            background-image: url('Kirche1.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .colorbox {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div id="preview" style="width: 70%; float: left">
+        <div style="padding: 20px; margin: 10px" id="chat">
+            <bg>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</bg><br>
+            <primary>Teleport</primary> <bg_d>›</bg_d> <text>Plugin successfully reloaded in <text_hl>16ms</text_hl></text><br>
+            <primary>Teleport</primary> <bg_d>›</bg_d> <text>Sent request to teleport to <text_hl>Notch</text_hl>. <bg_l>[ <button_><offset>CANCEL</offset></button_> ]</bg_l></text><br>
+            <primary>Teleport</primary> <bg_d>›</bg_d> <text>Notch declined your teleport request</text><br>
+            <primary>Teleport</primary> <bg_d>›</bg_d> <text>Notch wants to teleport to you! </text> <bg_l>[ <positive>ACCEPT</positive> ][ <negative>DECLINE</negative> ]</bg_l><br>
+            <primary>Lobby</primary> <bg_d>›</bg_d> <text>Completed Jump'n'Run in <text_hl>10.040ms</text_hl>. <text_d>(personal high score: 9.542s)</text_d></text><br>
+            <primary>Lobby</primary> <bg_d>›</bg_d> <text>Jump'n'Run cancelled.</text><br>
+            <accent>Plato</accent>: The worst of all deceptions is self-deception<br>
+            <accent>Aristotle</accent>: We are what we repeatedly do. Excellence, then, is not an act, but a habit.<br>
+            <accent>Plato</accent>: Shut up x)<br>
+            <accent>Aristotle <accent_l>to</accent_l> you</accent><accent_l>: <i>Don't write shut up in global chat or Steve will complain again</i></accent_l><br>
+            <accent>You <accent_l>to</accent_l> Aristotle</accent><accent_l>: <i>Righto thx for reminding</i></accent_l><br>
+            <primary>Bank</primary> <bg_d>›</bg_d> <text>Your balance: <text_hl>1,896.01$</text_hl>.</text><br>
+            <primary>Bank</primary> <bg_d>›</bg_d> <text>Money sent to <text_hl>Notch</text_hl>: <negative>-127.99$</negative></text><br>
+            <primary>Bank</primary> <bg_d>›</bg_d> <text>Money received from <text_hl>Notch</text_hl>: <positive>+127.99$</positive></text><br>
+            <warning><darker><bold>!</bold></darker> Server restarting in 3 minutes!</warning><br>
+            <negative><darker><bold>!</bold></darker> You don't have permission to perform this command!</negative><br>
+            <primary>Plots</primary> <bg_d>›</bg_d> <text>Teleporting to plot <text_hl>2</text_hl>.</text><br>
+            <primary>Plots</primary> <bg_d>›</bg_d> <text>Preparing teleport - please don't move!</text><br>
+            <primary>Plots</primary> <bg_d>›</bg_d> <negative>Teleport cancelled - you moved!</negative><br>
+            <negative><darker><bold>!</bold></darker> Unknown command, please use <brighter><brighter><brighter><i>/gamemode ‹mode› [‹player›]</i></brighter></brighter></brighter></negative><br>
+            <primary>Perms</primary> <bg_d>›</bg_d> <text><positive>You have been promoted to <red>Admin</red>.</positive></text><br>
+            <accent>Plato</accent>: I say: For a man to conquer himself is the first and noblest of all victories.<br>
+            <accent>Steve</accent>: Be back later guys<br>
+            <warning><darker><bold>!</bold></darker> Server restarting in 1 minute!</warning><br>
+            <accent>Aristotle</accent>: Bye steve<br>
+            <text>[<negative>-</negative>] <text_hl>Steve</text_hl> left the game.</text><br>
+            <accent>Plato</accent>: Bye<br>
+            <accent>Plato</accent>: Damn too slow again<br>
+        </div>
+    </div>
+    <div id="colorset" style="width: 30%; float: left">
+        <div class="colorbox">
+            <div style="background-color: var(--primary); filter: brightness(var(--brighter))">Primary Light</div>
+            <div style="background-color: var(--primary)">Primary</div>
+            <div style="background-color: var(--primary); filter: brightness(var(--darker))">Primary Dark</div>
+            <input type="text" data-coloris id="cp-primary"/>
+            <input type="checkbox" id="cb-primary"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--accent); filter: brightness(var(--brighter))">Accent Light</div>
+            <div style="background-color: var(--accent)">Accent</div>
+            <div style="background-color: var(--accent); filter: brightness(var(--darker))">Accent Dark</div>
+            <input type="text" data-coloris id="cp-accent"/>
+            <input type="checkbox" id="cb-accent"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--offset); filter: brightness(var(--brighter))">Offset Light</div>
+            <div style="background-color: var(--offset)">Offset</div>
+            <div style="background-color: var(--offset); filter: brightness(var(--darker))">Offset Dark</div>
+            <input type="text" data-coloris id="cp-offset"/>
+            <input type="checkbox" id="cb-offset"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--notify);">Notify</div>
+            <input type="text" data-coloris id="cp-notify"/>
+            <input type="checkbox" id="cb-notify"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--negative);">Negative</div>
+            <input type="text" data-coloris id="cp-negative"/>
+            <input type="checkbox" id="cb-negative"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--positive);">Positive</div>
+            <input type="text" data-coloris id="cp-positive"/>
+            <input type="checkbox" id="cb-positive"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--warning);">Warning</div>
+            <input type="text" data-coloris id="cp-warning"/>
+            <input type="checkbox" id="cb-warning"/>
+        </div>
+        <div class="colorbox">
+            <div style="background-color: var(--text); filter: brightness(var(--brighter))">Text Light</div>
+            <div style="background-color: var(--text)">Text</div>
+            <div style="background-color: var(--text); filter: brightness(var(--darker))">Text Dark</div>
+            <input type="text" data-coloris id="cp-text"/>
+            <input type="checkbox" id="cb-text"/>
+        </div>
+    </div>
+</div>
+</body>
+<script defer>
+    Coloris({
+        themeMode: 'dark',
+        alpha: false
+    })
+
+    function hsl() {
+        return 'hsl(' + Math.random()  + 'turn, ' + 80 + "%, " + (0.5 + Math.random() * 0.5) * 100 + "%";
+    }
+    function changeColor(color, to) {
+        document.querySelector(':root').style.setProperty('--' + color, to);
+    }
+    function updateColorPick(color, to) {
+        const el = document.querySelector('#cp-' + color);
+        if (el != null) {
+            el.value = to
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+
+    let colors = ['primary', 'offset', 'accent', 'text', 'background', 'notify', 'warning', 'info', 'positive', 'negative']
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === ' ') {
+            colors.forEach(color => {
+                const cb = document.querySelector('#cb-' + color);
+                if (cb != null && cb.checked === true) {
+                    return
+                }
+                const col = hsl();
+                changeColor(color, col);
+                updateColorPick(color, col);
+            })
+        }
+    })
+    document.addEventListener('coloris:pick', event => {
+        changeColor(event.detail.currentEl.id.substring(3), event.detail.color)
+    })
+</script>

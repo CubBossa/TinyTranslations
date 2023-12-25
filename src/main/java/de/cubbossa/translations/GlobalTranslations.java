@@ -43,11 +43,13 @@ public class GlobalTranslations extends AppTranslations implements Translations 
         if (createStartFiles) {
             writeResourceIfNotExists(globalLangDir, "README.txt");
             writeResourceIfNotExists(globalLangDir, "global_styles.properties");
-            writeResourceIfNotExists(globalLangDir, "en.properties");
         }
 
         setMessageStorage(new PropertiesMessageStorage(globalLangDir));
         setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
+
+        addMessages(TranslationsFramework.messageFieldsFromClass(GlobalMessages.class));
+        saveLocale(Locale.ENGLISH);
 
         writeMissingDefaultStyles();
     }

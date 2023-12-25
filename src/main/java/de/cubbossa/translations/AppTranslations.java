@@ -77,7 +77,7 @@ public class AppTranslations implements Translations {
 
         this.defaultResolvers = TagResolver.resolver(
                 DefaultResolvers.darken("darker"),
-                DefaultResolvers.lighten("lighter"),
+                DefaultResolvers.lighten("brighter"),
                 DefaultResolvers.repeat("repeat"),
                 DefaultResolvers.reverse("reverse"),
                 DefaultResolvers.upper("upper"),
