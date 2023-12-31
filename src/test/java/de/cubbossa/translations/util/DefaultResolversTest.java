@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
@@ -114,6 +116,64 @@ class DefaultResolversTest {
         Assertions.assertNotEquals(
             Component.text("test", NamedTextColor.RED).append(Component.text("child").color(TextColor.color(new Color(0xff0000).darker().getRGB()))),
             miniMessage.deserialize("<#ff0000>test<darker>child</darker></#ff0000>", resolver)
+        );
+    }
+
+    @Test
+    void choice() {
+        TagResolver resolver = DefaultResolvers.choice("choice");
+        Assertions.assertEquals(
+                Component.text("true"),
+                miniMessage.deserialize("<choice:1:true/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text(""),
+                miniMessage.deserialize("<choice:0:true/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("true"),
+                miniMessage.deserialize("<choice:1:true:false/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("false"),
+                miniMessage.deserialize("<choice:0:true:false/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("false"),
+                miniMessage.deserialize("<choice:2:true:false/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("false"),
+                miniMessage.deserialize("<choice:false:true:false/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("0"),
+                miniMessage.deserialize("<choice:0:0:1:2/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("1"),
+                miniMessage.deserialize("<choice:1:0:1:2/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("2"),
+                miniMessage.deserialize("<choice:2:0:1:2/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("2"),
+                miniMessage.deserialize("<choice:3:0:1:2/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("4"),
+                miniMessage.deserialize("<choice:4:0:1:2:3:4:5/>", resolver)
+        );
+        Assertions.assertEquals(
+                Component.text("1"),
+                miniMessage.deserialize("<choice:ö:0:1:2:3:4:5/>", resolver)
+        );
+        TagResolver ph = Placeholder.parsed("a", "2");
+        Assertions.assertEquals(
+                Component.text("two"),
+                miniMessage.deserialize("<choice:'<a>':zero:one:two:many/>", resolver, ph)
         );
     }
 }

@@ -21,13 +21,18 @@ public class TranslationsPreprocessorTest extends TestBase {
 		);
 
 		Assertions.assertEquals(
-				"<red><nbt:'{\"some\":\"text\"}'/><nbt/><nbt>test</red>",
+				"<red><nbt:'{\"some\":\"text\"}'/><nbt/><nbt:'test</red>'/>",
 				pp.apply("<red><nbt>{\"some\":\"text\"}</nbt><nbt/><nbt>test</red>")
 		);
 
 		Assertions.assertEquals(
-				"<red><legacy:'&':'&6Some Text'/><legacy/><legacy>test</red>",
+				"<red><legacy:'&':'&6Some Text'/><legacy/><legacy:'test</red>'/>",
 				pp.apply("<red><legacy:'&'>&6Some Text</legacy><legacy/><legacy>test</red>")
+		);
+
+		Assertions.assertEquals(
+				"<red><choice:'<time:minutes/>':'minute':'minutes'/></red>",
+				pp.apply("<red>{time:minutes ? 'minute' : 'minutes'}</red>")
 		);
 	}
 
