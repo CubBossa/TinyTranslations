@@ -62,42 +62,43 @@ Make sure to use the latest version.
 ### Shading
 When shading, it is highly recommended to relocate the resource within your plugin.
 This assures that no other plugin loads outdated Translations classes before your
-plugin can load the latest classes. Occurring errors would potentially disable your plugin on startup. 
+plugin can load the latest classes. Occurring errors would potentially disable your plugin on startup.
 
 ```XML
-    <build>
-        <plugins>
-            ...
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>de.cubbossa.translations</pattern>
-                                    <shadedPattern>[yourpluginpath].libs.translations</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+
+<build>
+    <plugins>
+        ...
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.2.4</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <relocations>
+                            <relocation>
+                                <pattern>de.cubbossa.tinytranslationsde.cubbossa.tinytranslations</pattern>
+                                <shadedPattern>[yourpluginpath].libs.translations</shadedPattern>
+                            </relocation>
+                        </relocations>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 or with gradle:
 ```groovy
 tasks.shadowJar {
     minimize()
-    relocate 'de.cubbossa.translations', '[yourpluginpath].libs.translations'
+    relocate 'de.cubbossa.tinytranslations', '[yourpluginpath].libs.translations'
 }
 ```
 
@@ -179,58 +180,58 @@ embedded in other messages.
 ## Setup
 
 ```Java
-import de.cubbossa.translations.MessageBuilder;
+import de.cubbossa.tinytranslations.MessageBuilder;
 
 class Messages {
-    public static final Message PREFIX = new MessageBuilder("prefix")
-            .withDefault("<gradient:#ff0000:#ffff00:#ff0000>My Awesome Plugin</gradient>: ")
-            .build();
-    public static final Message NO_PERM = new MessageBuilder("no_perm")
-            .withDefault("<red>No permissions!</red>")
-            .build();
+	public static final Message PREFIX = new MessageBuilder("prefix")
+			.withDefault("<gradient:#ff0000:#ffff00:#ff0000>My Awesome Plugin</gradient>: ")
+			.build();
+	public static final Message NO_PERM = new MessageBuilder("no_perm")
+			.withDefault("<red>No permissions!</red>")
+			.build();
 }
 
 
 class ExamplePlugin extends JavaPlugin {
 
-    Translations translations;
+	Translations translations;
 
-    public void onEnable() {
-        // Enable Framework
-        TranslationsFramework.enable(new File(getDataFolder(), "/.."));
-        // create a Translations instance for your plugin 
-        translations = TranslationsFramework.application("MyPlugin");
+	public void onEnable() {
+		// Enable Framework
+		TranslationsFramework.enable(new File(getDataFolder(), "/.."));
+		// create a Translations instance for your plugin 
+		translations = TranslationsFramework.application("MyPlugin");
 
-        // define the storage types for your plugins locale
-        translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
-        translations.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
+		// define the storage types for your plugins locale
+		translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
+		translations.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
 
-        // register all your messages to your Translations instance
-        // a message cannot be translated without a Translations instance, which works as
-        // translator.
-        translations.addMessages(messageA, messageB, messageC);
-        translations.addMessage(messageD);
-        // just load all public static final messages declared in Messages.class
-        translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
+		// register all your messages to your Translations instance
+		// a message cannot be translated without a Translations instance, which works as
+		// translator.
+		translations.addMessages(messageA, messageB, messageC);
+		translations.addMessage(messageD);
+		// just load all public static final messages declared in Messages.class
+		translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 
-        // They will not overwrite pre-existing values.
-        // You only need to save values that you assigned programmatically, like from a
-        // message builder. You can also create a de.properties resource and save it as file instead.
-        // Then there is no need to write the german defaults to file here.
-        translations.saveLocale(Locale.ENGLISH);
-        translations.saveLocale(Locale.GERMAN);
+		// They will not overwrite pre-existing values.
+		// You only need to save values that you assigned programmatically, like from a
+		// message builder. You can also create a de.properties resource and save it as file instead.
+		// Then there is no need to write the german defaults to file here.
+		translations.saveLocale(Locale.ENGLISH);
+		translations.saveLocale(Locale.GERMAN);
 
-        // load all styles and locales from file. This happens for all parent translations,
-        // so all changes to the global styles and translations will apply too.
-        translations.loadStyles();
-        translations.loadLocales();
-    }
+		// load all styles and locales from file. This happens for all parent translations,
+		// so all changes to the global styles and translations will apply too.
+		translations.loadStyles();
+		translations.loadLocales();
+	}
 
-    public void onDisable() {
-        // close open Translations instance
-        translations.close();
-        TranslationsFramework.disable();
-    }
+	public void onDisable() {
+		// close open Translations instance
+		translations.close();
+		TranslationsFramework.disable();
+	}
 }
 ```
 
