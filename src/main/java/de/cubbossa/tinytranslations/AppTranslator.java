@@ -58,7 +58,7 @@ public class AppTranslator implements Translator {
         this.messageSet = new HashMap<>() {
             @Override
             public Message put(String key, Message value) {
-                value.setTranslations(AppTranslator.this);
+                value.setTranslator(AppTranslator.this);
                 return super.put(key, value);
             }
         };
@@ -309,8 +309,8 @@ public class AppTranslator implements Translator {
 
     @Override
     public void addMessage(Message message) {
-        if (message.getTranslations() != null) {
-            message.getTranslations().getMessageSet().remove(message.getKey());
+        if (message.getTranslator() != null) {
+            message.getTranslator().getMessageSet().remove(message.getKey());
         }
         messageSet.put(message.getKey(), message);
     }

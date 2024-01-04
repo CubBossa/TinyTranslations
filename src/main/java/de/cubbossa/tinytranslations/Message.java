@@ -33,9 +33,9 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 	@PathPattern
 	String getNamespacedKey();
 
-	@Nullable Translator getTranslations();
+	@Nullable Translator getTranslator();
 
-	void setTranslations(@NotNull Translator translator);
+	void setTranslator(@NotNull Translator translator);
 
 
 	@Override

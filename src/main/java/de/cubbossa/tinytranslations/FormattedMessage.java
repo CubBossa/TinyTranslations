@@ -36,16 +36,16 @@ public class FormattedMessage implements Message {
     }
 
     @Override
-    public void setTranslations(@NotNull Translator translator) {
-        message.setTranslations(translator);
+    public void setTranslator(@NotNull Translator translator) {
+        message.setTranslator(translator);
     }
 
     @Override
     public @NotNull Component asComponent() {
-        if (message.getTranslations() == null) {
+        if (message.getTranslator() == null) {
             throw new IllegalStateException("Trying to translate a Message before registering it to a Translations instance.");
         }
-        return message.getTranslations().process(this, getTarget());
+        return message.getTranslator().process(this, getTarget());
     }
 
     @Override
@@ -78,8 +78,8 @@ public class FormattedMessage implements Message {
     }
 
     @Override
-    public Translator getTranslations() {
-        return message.getTranslations();
+    public Translator getTranslator() {
+        return message.getTranslator();
     }
 
     @Override
