@@ -1,4 +1,4 @@
-# Translations
+# TinyTranslations
 
 A translation framework to translate chat messages.
 This framework builds upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
