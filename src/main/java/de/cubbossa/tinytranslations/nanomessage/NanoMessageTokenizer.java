@@ -50,7 +50,7 @@ public class NanoMessageTokenizer {
 		}
 	}
 
-	public List<TokenValue> tokenize(@Language("TranslationsFormat") String s) {
+	public List<TokenValue> tokenize(@Language("NanoMessage") String s) {
 		List<TokenValue> values = new ArrayList<>();
 		while (!s.isEmpty()) {
 			if (state == State.ANY) {

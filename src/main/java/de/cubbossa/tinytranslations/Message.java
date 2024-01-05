@@ -173,7 +173,7 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 
 	void setPlaceholderTags(Map<String, Optional<String>> placeholderTags);
 
-	String getComment();
+	@Nullable String getComment();
 
 	void setComment(String comment);
 }

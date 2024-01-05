@@ -104,6 +104,15 @@ class AppTranslatorTest extends TestBase {
 	}
 
 	@Test
+	void globalOverride() {
+		Translator global = TinyTranslations.global();
+		translator.getStyleSet().put("negative", "<yellow>");
+		Message m = global.messageBuilder("test").withDefault("<negative>test</negative>").build();
+		assertEquals(text("test", NamedTextColor.RED), global.process(m));
+		assertEquals(text("test", NamedTextColor.YELLOW), translator.process(m));
+	}
+
+	@Test
 	void translate() {
 		translator.addMessages(TinyTranslations.messageFieldsFromClass(this.getClass()));
 

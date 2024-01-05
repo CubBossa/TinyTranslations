@@ -41,7 +41,7 @@ public class GlobalTranslator extends AppTranslator implements Translator {
         }
         if (createStartFiles) {
             writeResourceIfNotExists(globalLangDir, "README.txt");
-            writeResourceIfNotExists(globalLangDir, "global_styles.properties");
+            writeResourceIfNotExists(globalLangDir, "lang/global_styles.properties", "global_styles.properties");
         }
 
         setMessageStorage(new PropertiesMessageStorage(globalLangDir));
@@ -75,7 +75,7 @@ public class GlobalTranslator extends AppTranslator implements Translator {
             os.close();
             is.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("Could not load resource with name '" + name + "'.", e);
         }
     }
 
@@ -84,7 +84,7 @@ public class GlobalTranslator extends AppTranslator implements Translator {
         try {
             tempFile = File.createTempFile("stream_to_file", ".properties");
             tempFile.deleteOnExit();
-            InputStream is = getClass().getResourceAsStream("/global_styles.properties");
+            InputStream is = getClass().getResourceAsStream("/lang/global_styles.properties");
             try (FileOutputStream out = new FileOutputStream(tempFile)) {
                 out.write(is.readAllBytes());
             }

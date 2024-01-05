@@ -32,12 +32,12 @@ public class MessageBuilder {
         return this;
     }
 
-    public MessageBuilder withDefault(@Language("TranslationsFormat") String defaultValue) {
+    public MessageBuilder withDefault(@Language("NanoMessage") String defaultValue) {
         this.translations.put(TinyTranslations.DEFAULT_LOCALE, defaultValue);
         return this;
     }
 
-    public MessageBuilder withTranslation(Locale locale, @Language("TranslationsFormat") String miniMessage) {
+    public MessageBuilder withTranslation(Locale locale, @Language("NanoMessage") String miniMessage) {
         return this.withTranslation(locale, MessageFormat.MINI_MESSAGE, miniMessage);
     }
 
@@ -68,7 +68,7 @@ public class MessageBuilder {
 
     public Message build() {
         Message message = new MessageCore(owner, key);
-        message.setComment(String.join("\n", comments));
+        message.setComment(comments.isEmpty() ? null : String.join("\n", comments));
         message.getDictionary().putAll(translations);
         message.setPlaceholderTags(placeholderMap.values().stream()
                 .collect(Collectors.toMap(Placeholder::tag, Placeholder::desc)));

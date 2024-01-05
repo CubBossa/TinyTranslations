@@ -169,9 +169,15 @@ public class AppTranslator implements Translator {
             raw = message.getDictionary().get(TinyTranslations.DEFAULT_LOCALE);
         }
         if (raw == null) {
-            raw = "<no-translation-found:" + message.getNamespacedKey() + ">";
+            raw = "<no-translation-found:" + message.getNamespacedKey() + "/>";
         }
-        return process(raw, locale, message.getResolvers().toArray(TagResolver[]::new));
+
+        List<TagResolver> resolvers = new ArrayList<>(message.getResolvers());
+        if (message.getTranslator() != null) {
+            resolvers.add(message.getTranslator().getResolvers(locale));
+        }
+
+        return process(raw, locale, resolvers.toArray(TagResolver[]::new));
     }
 
     @Override
@@ -228,20 +234,20 @@ public class AppTranslator implements Translator {
     private TagResolver getMessageResolver(Locale locale) {
         return TagResolver.resolver("msg", (queue, ctx) -> {
             String nameSpace;
-            String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission>.").value();
+            String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission/>.").value();
             if (queue.hasNext()) {
                 nameSpace = key;
                 key = queue.pop().value();
             } else {
                 Message msg = getMessageInParentTree(key);
                 if (msg == null) {
-                    return Tag.inserting(Component.text("<msg-not-found:" + key + ">"));
+                    return Tag.inserting(Component.text("<msg-not-found:" + key + "/>"));
                 }
                 return Tag.inserting(process(msg, locale));
             }
             Message msg = getMessageByNamespace(nameSpace, key);
             if (msg == null) {
-                return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + ">"));
+                return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + "/>"));
             }
             return Tag.inserting(process(msg, locale));
         });
@@ -331,13 +337,17 @@ public class AppTranslator implements Translator {
 
     @Override
     public void loadStyles() {
-        if (parent != null) {
-            parent.loadStyles();
-        }
-        if (styleStorage != null) {
-            styleSet.putAll(styleStorage.loadStyles());
-            styleResolverCache = null;
-			getStylesResolver(); // create cache in loading process where performance leaks are expected
+        try {
+            if (parent != null) {
+                parent.loadStyles();
+            }
+            if (styleStorage != null) {
+                styleSet.putAll(styleStorage.loadStyles());
+                styleResolverCache = null;
+                getStylesResolver(); // create cache in loading process where performance leaks are expected
+            }
+        } catch (Throwable t) {
+
         }
     }
 

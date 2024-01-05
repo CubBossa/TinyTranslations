@@ -39,7 +39,7 @@ public class PropertiesUtilsTest {
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a", List.of("", "# comment 1", "", "!comment2 : b")),
+				new Entry("test", "a", List.of("", " comment 1", "", "comment2 : b")),
 				entries.get(0)
 		);
 	}
@@ -72,7 +72,7 @@ public class PropertiesUtilsTest {
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a\n#b\nc", List.of("#b")),
+				new Entry("test", "a\n#b\nc", List.of("b")),
 				entries.get(0)
 		);
 	}
@@ -97,15 +97,15 @@ public class PropertiesUtilsTest {
 		StringWriter writer = new StringWriter();
 
 		PropertiesUtils.write(writer, List.of(new Entry("test", "a", List.of(
-				"", "! test comment", "#", "", "!!####"
+				"", " test comment", "", "", "!####"
 		))));
 		Assertions.assertEquals(
 				"""
 												
-						! test comment
-						#
+						# test comment
+						
 												
-						!!####
+						#!####
 						test = a
 						""",
 				writer.toString()
@@ -135,7 +135,7 @@ public class PropertiesUtilsTest {
 
 		PropertiesUtils.write(writer, List.of(
 				new Entry("test1", "a\nb\nc", Collections.emptyList()),
-				new Entry("test2", "def", List.of("#other"))
+				new Entry("test2", "def", List.of("other"))
 		));
 		Assertions.assertEquals(
 				"""

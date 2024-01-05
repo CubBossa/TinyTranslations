@@ -95,7 +95,7 @@ public interface Translator extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(@Language("TranslationsFormat") String raw, TagResolver... resolvers);
+    Component process(@Language("NanoMessage") String raw, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -106,7 +106,7 @@ public interface Translator extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(@Language("TranslationsFormat") String raw, Audience target, TagResolver... resolvers);
+    Component process(@Language("NanoMessage") String raw, Audience target, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -117,7 +117,7 @@ public interface Translator extends AutoCloseable {
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(@Language("TranslationsFormat") String raw, Locale locale, TagResolver... resolvers);
+    Component process(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
 
     TagResolver getResolvers(Locale locale);
 

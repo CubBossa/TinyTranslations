@@ -76,7 +76,9 @@ public class PropertiesStyleStorage implements StyleStorage {
     private Map<String, MessageStyle> readStylesFromLines(List<Entry> lines) {
         return lines.stream().collect(Collectors.toMap(
                 Entry::key,
-                e -> new MessageStyleImpl(e.key(), styleDeserializer.deserialize(e.key(), e.value()), e.value())
+                e -> new MessageStyleImpl(e.key(), styleDeserializer.deserialize(e.key(), e.value()), e.value()),
+                (a, b) -> a,
+                LinkedHashMap::new
         ));
     }
 

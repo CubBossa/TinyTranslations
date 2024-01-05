@@ -47,7 +47,8 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
                 if (entries.containsKey(msg.getKey())) {
                     continue;
                 }
-                entries.put(msg.getKey(), new Entry(msg.getKey(), msg.getDictionary().get(locale), List.of(msg.getComment().split("\n"))));
+                List<String> comments = msg.getComment() == null ? Collections.emptyList() : List.of(msg.getComment().split("\n"));
+                entries.put(msg.getKey(), new Entry(msg.getKey(), msg.getDictionary().get(locale), comments));
                 written.add(msg);
             }
         }

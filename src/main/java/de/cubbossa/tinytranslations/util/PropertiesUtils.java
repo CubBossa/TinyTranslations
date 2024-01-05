@@ -39,7 +39,7 @@ public class PropertiesUtils {
 					}
 					// collect comments
 					if (COMMENT.matcher(line).matches()) {
-						comments.add(line);
+						comments.add(line.substring(1));
 						continue;
 					}
 				}
@@ -93,7 +93,7 @@ public class PropertiesUtils {
 		try (BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
 			for (Entry entry : entries) {
 				for (String comment : entry.comments()) {
-					bufferedWriter.write(comment + "\n");
+					bufferedWriter.write("#".repeat(comment.isEmpty() ? 0 : 1) + comment + "\n");
 				}
 				List<String> values = List.of(entry.value().split("\n"));
 				String line = entry.key() + SEPARATOR_FORMAT + values.get(0);

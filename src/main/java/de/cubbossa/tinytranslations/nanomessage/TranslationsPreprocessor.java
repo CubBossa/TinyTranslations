@@ -20,7 +20,7 @@ public class TranslationsPreprocessor {
 	 * @param value The message String to convert into valid MiniMessage
 	 * @return the valid MiniMessage String
 	 */
-	public String apply(@Language("TranslationsFormat") String value) {
+	public String apply(@Language("NanoMessage") String value) {
 		NanoMessageTokenizer tokenizer = new NanoMessageTokenizer();
 		var tokens = tokenizer.tokenize(value);
 		NanoMessageParser parser = new NanoMessageParser(tokens);
