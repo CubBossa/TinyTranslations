@@ -36,7 +36,7 @@ Make sure to use the latest version.
 <dependencies>
     <dependency>
         <groupId>de.cubbossa</groupId>
-        <artifactId>Translations</artifactId>
+        <artifactId>TinyTranslations</artifactId>
         <version>[version]</version>
     </dependency>
     
