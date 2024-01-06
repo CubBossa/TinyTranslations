@@ -7,10 +7,8 @@ import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,7 +47,7 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
             return new HashMap<>();
         }
         Map<String, Object> map;
-        try (FileInputStream fis = new FileInputStream(file)) {
+        try (FileReader fis = new FileReader(file, StandardCharsets.UTF_8)) {
             map = YamlUtils.toDotNotation(yaml.load(fis));
         } catch (IOException t) {
             throw new RuntimeException(t);
@@ -73,7 +71,7 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
 
         File file = localeFileIfExists(locale);
         if (file != null) {
-            try (FileInputStream fis = new FileInputStream(file)) {
+            try (FileReader fis = new FileReader(file, StandardCharsets.UTF_8)) {
                 result = YamlUtils.toDotNotation(yaml.load(fis));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -88,7 +86,7 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
             success.add(message);
         }
         file = localeFile(locale);
-        try (FileWriter writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             yaml.dump(YamlUtils.fromDotNotation(result), writer);
         } catch (IOException e) {
             throw new RuntimeException(e);

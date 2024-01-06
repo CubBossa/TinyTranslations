@@ -1,16 +1,19 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.nanomessage.TranslationsPreprocessor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.intellij.lang.annotations.Language;
 
 public class StyleDeserializerImpl implements StyleDeserializer {
 
-  private static final String slotPlaceholder = "{slot}";
-  private static final String argPlaceholder = "{arg%d}";
-  private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+  private static final TranslationsPreprocessor PREPROCESSOR = new TranslationsPreprocessor();
+
+  private static final String slotPlaceholder = "<slot/>";
+  private static final String argPlaceholder = "<arg%d/>";
   private final TagResolver otherStylesResolver;
 
   public StyleDeserializerImpl() {
@@ -22,7 +25,8 @@ public class StyleDeserializerImpl implements StyleDeserializer {
   }
 
   @Override
-  public TagResolver deserialize(String key, String string) {
+  public TagResolver deserialize(String key, @Language("NanoMessage") String string) {
+    string = PREPROCESSOR.apply(string);
     String s = string.contains(slotPlaceholder) ? string : (string + slotPlaceholder);
     return TagResolver.resolver(key, (argumentQueue, context) -> (Modifying) (c, depth) -> {
       if (depth > 0) return Component.empty();
