@@ -2,6 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
+import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.persistent.MessageStorage;
 import de.cubbossa.tinytranslations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
@@ -120,6 +121,8 @@ public interface Translator extends AutoCloseable {
     Component process(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
 
     TagResolver getResolvers(Locale locale);
+
+    ObjectTagResolverMap getObjectTypeResolverMap();
 
     /**
      * Loads all styles from this application from file. Also propagates to global, so all parenting Translation

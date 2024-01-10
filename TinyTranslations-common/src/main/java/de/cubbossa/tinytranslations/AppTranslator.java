@@ -2,7 +2,11 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
+import de.cubbossa.tinytranslations.nanomessage.MessageLoopDetector;
+import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.nanomessage.TranslationsPreprocessor;
+import de.cubbossa.tinytranslations.nanomessage.tag.ClickTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.HoverTag;
 import de.cubbossa.tinytranslations.persistent.MessageStorage;
 import de.cubbossa.tinytranslations.persistent.StyleStorage;
 import de.cubbossa.tinytranslations.nanomessage.DefaultResolvers;
@@ -20,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 @Getter
 @Setter
@@ -39,6 +44,8 @@ public class AppTranslator implements Translator {
     private final StyleSet styleSet;
     private @Nullable MessageStorage messageStorage;
     private @Nullable StyleStorage styleStorage;
+    @Getter
+    private final ObjectTagResolverMap objectTypeResolverMap;
 
     private ReadWriteLock lock;
     private StyleDeserializer styleDeserializer;
@@ -76,6 +83,7 @@ public class AppTranslator implements Translator {
             }
         };
 
+        this.objectTypeResolverMap = new ObjectTagResolverMap();
         this.defaultResolvers = TagResolver.resolver(
                 DefaultResolvers.choice("choice"),
                 DefaultResolvers.darken("darker"),
@@ -89,7 +97,9 @@ public class AppTranslator implements Translator {
                 MessageFormat.NBT.getTagResolver(),
                 MessageFormat.LEGACY_PARAGRAPH.getTagResolver(),
                 MessageFormat.LEGACY_AMPERSAND.getTagResolver(),
-                MessageFormat.PLAIN.getTagResolver()
+                MessageFormat.PLAIN.getTagResolver(),
+                ClickTag.RESOLVER,
+                HoverTag.RESOLVER
         );
     }
 
@@ -371,7 +381,13 @@ public class AppTranslator implements Translator {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
+            MessageLoopDetector loopDetector = new MessageLoopDetector();
             messageStorage.readMessages(locale).forEach((message, s) -> {
+                var loops = loopDetector.detectLoops(message);
+                if (!loops.isEmpty()) {
+                    loops.forEach(e -> Logger.getLogger("TinyTranslations").severe(e.getMessage()));
+                    return;
+                }
                 messageSet.computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
             });
         }

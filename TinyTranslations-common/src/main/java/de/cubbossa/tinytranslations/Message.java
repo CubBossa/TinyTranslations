@@ -2,6 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.annotation.PathPattern;
+import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -87,6 +88,7 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 	}
 
 	@Contract(pure = true)
+	@Deprecated
 	default Message insertNumberChoice(final @NotNull String key, Number number) {
 		return formatted(Formatter.choice(key, number));
 	}
@@ -104,6 +106,25 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 	@Contract(pure = true)
 	default Message insertTag(final @NotNull String key, Tag tag) {
 		return formatted(TagResolver.resolver(key, tag));
+	}
+
+	default <T> Message insertObject(final @NotNull String key, T obj) {
+		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
+			Queue<String> path = new LinkedList<>();
+			while (argumentQueue.hasNext()) {
+				path.add(argumentQueue.pop().value());
+			}
+			argumentQueue.reset();
+			Object resolved = getTranslator().getObjectTypeResolverMap().resolve(obj, path);
+			if (resolved == null) {
+				return Tag.inserting(Component.text("<" + key + ":" + String.join(":", path) + "/>"));
+			}
+			if (resolved instanceof ComponentLike componentLike) {
+				return Tag.inserting(componentLike);
+			}
+			return Tag.inserting(Component.text(resolved.toString()));
+		}));
+
 	}
 
 	@Contract(pure = true)

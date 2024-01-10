@@ -7,9 +7,9 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class TinyTranslations {
+public class TinyTranslations {
 
-  private TinyTranslations() {}
+  protected TinyTranslations() {}
 
   public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
@@ -32,6 +32,16 @@ public final class TinyTranslations {
     return global().fork(name);
   }
 
+  public static boolean isEnabled() {
+    Translator g = global;
+    if (g == null) {
+      synchronized (mutex) {
+        return g != null;
+      }
+    }
+    return false;
+  }
+
   public static void enable(File pluginDirectory) {
     Translator g = global;
     if (g == null) {
@@ -45,6 +55,9 @@ public final class TinyTranslations {
   }
 
   public static void disable() {
+    synchronized (mutex) {
+      global = null;
+    }
   }
 
   public static Message[] messageFieldsFromClass(Class<?> messageClass) {

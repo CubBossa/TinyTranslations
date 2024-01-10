@@ -3,6 +3,7 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.persistent.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
@@ -208,6 +210,38 @@ class AppTranslatorTest extends TestBase {
 						.append(text("false", NamedTextColor.RED))
 						.append(text("\nFooter")),
 				a.asComponent().compact()
+		);
+	}
+
+	private record Location(int x, int y, int z) {}
+	private record Player(String name, Location location) {}
+
+	@Test
+	public void testObject() {
+		translator.getObjectTypeResolverMap().put(Player.class, Map.of(
+				"name", Player::name,
+				"location", Player::location
+		), player -> Component.text(player.name));
+		translator.getObjectTypeResolverMap().put(Location.class, Map.of(
+				"x", Location::x,
+				"y", Location::y,
+				"z", Location::z
+		), l -> Component.text("<" + l.x + ";" + l.y + ";" + l.z + ">"));
+
+		Message msg = translator.messageBuilder("msg").withDefault("my test {player}").build();
+		Assertions.assertEquals(
+				Component.text("my test peter"),
+				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+		);
+		msg = translator.messageBuilder("msg").withDefault("my test {player:name}").build();
+		Assertions.assertEquals(
+				Component.text("my test peter"),
+				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+		);
+		msg = translator.messageBuilder("msg").withDefault("my test {player:location}").build();
+		Assertions.assertEquals(
+				Component.text("my test <1;2;3>"),
+				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
 		);
 	}
 }
