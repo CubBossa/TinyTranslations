@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations.persistent;
 
-import de.cubbossa.tinytranslations.MessageStyleImpl;
+import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
 import de.cubbossa.tinytranslations.Translator;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import net.kyori.adventure.text.format.NamedTextColor;

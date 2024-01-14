@@ -1,8 +1,8 @@
 package de.cubbossa.tinytranslations;
 
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 
 public interface StyleDeserializer {
 
-    TagResolver deserialize(String key, String string);
+    NanoResolver deserialize(String key, String string);
 }

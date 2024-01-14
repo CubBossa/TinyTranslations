@@ -2,6 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
+import de.cubbossa.tinytranslations.nanomessage.Context;
 import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.persistent.MessageStorage;
 import de.cubbossa.tinytranslations.persistent.StyleStorage;
@@ -16,7 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-public interface Translator extends AutoCloseable {
+public interface Translator extends AutoCloseable, Formattable<Translator> {
 
     @AppPathPattern
     String getPath();
@@ -88,6 +89,8 @@ public interface Translator extends AutoCloseable {
      */
     Component process(Message message, Locale locale);
 
+    Component process(Message message, Context context, TagResolver... resolvers);
+
     /**
      * Processes a raw string as if it were a translation value of a Message.
      * The fallback locale ({@link #getUserLocale(Audience)} for null) will be used to resolve embedded messages.
@@ -120,9 +123,7 @@ public interface Translator extends AutoCloseable {
      */
     Component process(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
 
-    TagResolver getResolvers(Locale locale);
-
-    ObjectTagResolverMap getObjectTypeResolverMap();
+    Component process(@Language("NanoMessage") String raw, Context context, TagResolver... resolvers);
 
     /**
      * Loads all styles from this application from file. Also propagates to global, so all parenting Translation

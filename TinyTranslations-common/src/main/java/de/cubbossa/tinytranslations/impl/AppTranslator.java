@@ -1,21 +1,16 @@
-package de.cubbossa.tinytranslations;
+package de.cubbossa.tinytranslations.impl;
 
+import de.cubbossa.tinytranslations.*;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
-import de.cubbossa.tinytranslations.nanomessage.MessageLoopDetector;
-import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
-import de.cubbossa.tinytranslations.nanomessage.TranslationsPreprocessor;
-import de.cubbossa.tinytranslations.nanomessage.tag.ClickTag;
-import de.cubbossa.tinytranslations.nanomessage.tag.HoverTag;
+import de.cubbossa.tinytranslations.nanomessage.*;
+import de.cubbossa.tinytranslations.nanomessage.tag.*;
 import de.cubbossa.tinytranslations.persistent.MessageStorage;
 import de.cubbossa.tinytranslations.persistent.StyleStorage;
-import de.cubbossa.tinytranslations.nanomessage.DefaultResolvers;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,31 +21,33 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-@Getter
-@Setter
+import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
+
 public class AppTranslator implements Translator {
 
-    private static final MiniMessage MM = MiniMessage.miniMessage();
-
+    @Getter
     private final Translator parent;
+    @Getter
     private final @AppPattern String name;
     private final Map<String, Translator> children;
 
-    private TagResolver styleResolverCache = null;
-
     private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
-    private final Map<String, Message> messageSet;
-    private final StyleSet styleSet;
-    private @Nullable MessageStorage messageStorage;
-    private @Nullable StyleStorage styleStorage;
     @Getter
-    private final ObjectTagResolverMap objectTypeResolverMap;
+    private final Map<String, Message> messageSet;
+    @Getter
+    private final StyleSet styleSet;
+    @Getter
+    @Setter
+    private @Nullable MessageStorage messageStorage;
+    @Getter
+    @Setter
+    private @Nullable StyleStorage styleStorage;
 
     private ReadWriteLock lock;
-    private StyleDeserializer styleDeserializer;
-    private TagResolver defaultResolvers;
-    private TranslationsPreprocessor preprocessor;
+
+    @Getter
+    private final Collection<NanoResolver> resolvers = new LinkedList<>();
 
     public AppTranslator(Translator parent, String name) {
         this.parent = parent;
@@ -60,7 +57,6 @@ public class AppTranslator implements Translator {
 
         this.messageStorage = null;
         this.styleStorage = null;
-        this.preprocessor = new TranslationsPreprocessor();
 
         this.messageSet = new HashMap<>() {
             @Override
@@ -69,38 +65,7 @@ public class AppTranslator implements Translator {
                 return super.put(key, value);
             }
         };
-        this.styleSet = new StyleSet() {
-            @Override
-            public MessageStyle put(String key, MessageStyle value) {
-                styleResolverCache = null;
-                return super.put(key, value);
-            }
-
-            @Override
-            public boolean remove(Object key, Object value) {
-                styleResolverCache = null;
-                return super.remove(key, value);
-            }
-        };
-
-        this.objectTypeResolverMap = new ObjectTagResolverMap();
-        this.defaultResolvers = TagResolver.resolver(
-                DefaultResolvers.choice("choice"),
-                DefaultResolvers.darken("darker"),
-                DefaultResolvers.lighten("brighter"),
-                DefaultResolvers.repeat("repeat"),
-                DefaultResolvers.reverse("reverse"),
-                DefaultResolvers.upper("upper"),
-                DefaultResolvers.lower("lower"),
-                DefaultResolvers.shortUrl("shorturl"),
-                DefaultResolvers.preview("shorten"),
-                MessageFormat.NBT.getTagResolver(),
-                MessageFormat.LEGACY_PARAGRAPH.getTagResolver(),
-                MessageFormat.LEGACY_AMPERSAND.getTagResolver(),
-                MessageFormat.PLAIN.getTagResolver(),
-                ClickTag.RESOLVER,
-                HoverTag.RESOLVER
-        );
+        this.styleSet = new StyleSet();
     }
 
     @Override
@@ -157,110 +122,52 @@ public class AppTranslator implements Translator {
 
     @Override
     public Component process(Message message) {
-        return process(message, (Audience) null);
+        return process(message, getUserLocale(null));
     }
 
     @Override
     public Component process(Message message, Audience target) {
-        Locale locale = getUserLocale(target);
-        return process(message, locale);
+        return process(message, getUserLocale(target));
     }
 
     @Override
     public Component process(Message message, Locale locale) {
-        String raw = message.getDictionary().get(locale);
-        if (raw == null && !"".equals(locale.getVariant())) {
-            raw = message.getDictionary().get(new Locale(locale.getLanguage(), locale.getCountry()));
-        }
-        if (raw == null && !"".equals(locale.getCountry())) {
-            raw = message.getDictionary().get(new Locale(locale.getLanguage()));
-        }
-        if (raw == null) {
-            raw = message.getDictionary().get(TinyTranslations.DEFAULT_LOCALE);
-        }
-        if (raw == null) {
-            raw = "<no-translation-found:" + message.getNamespacedKey() + "/>";
-        }
+        return process(getMessageTranslation(message, locale), new Context(locale, message.getResolvers()));
+    }
 
-        List<TagResolver> resolvers = new ArrayList<>(message.getResolvers());
-        if (message.getTranslator() != null) {
-            resolvers.add(message.getTranslator().getResolvers(locale));
-        }
-
-        return process(raw, locale, resolvers.toArray(TagResolver[]::new));
+    @Override
+    public Component process(Message message, Context context, TagResolver... resolvers) {
+        return process(getMessageTranslation(message, context.getLocale()), context, resolvers);
     }
 
     @Override
     public Component process(String raw, TagResolver... resolvers) {
-        return process(raw, (Audience) null, resolvers);
+        return process(raw, new Context(getUserLocale(null), resolvers));
     }
 
     @Override
     public Component process(String raw, Audience target, TagResolver... resolvers) {
-        return process(raw, getUserLocale(target), resolvers);
+        return process(raw, new Context(getUserLocale(target), resolvers));
     }
 
     @Override
     public Component process(String raw, Locale locale, TagResolver... resolvers) {
-        String processed = preprocessor.apply(raw);
-        return MM.deserialize(processed, TagResolver.builder()
-                .resolvers(resolvers)
-                .resolver(getResolvers(locale))
-                .build());
+        return process(raw, new Context(locale, resolvers));
     }
 
     @Override
-    public TagResolver getResolvers(Locale locale) {
-        return TagResolver.resolver(getStylesResolver(), getMessageResolver(locale), defaultResolvers);
-    }
-
-    private TagResolver getStylesResolver() {
-        if (styleResolverCache != null) {
-            return styleResolverCache;
-        }
-        Map<String, TagResolver> styles = new HashMap<>();
+    public Component process(String raw, Context context, TagResolver... resolvers) {
+        Collection<NanoResolver> r = new LinkedList<>(context.getResolvers());
+        r.addAll(this.resolvers);
 
         Translator t = this;
-        while (t != null) {
-            t.getStyleSet().forEach((key, value) -> {
-                if (styles.containsKey(key)) return;
-                styles.put(key, value.getResolver());
-            });
+        while (t.getParent() != null) {
             t = t.getParent();
+            r.addAll(t.getResolvers());
         }
-        styles.put("style", TagResolver.resolver("style", (argumentQueue, context) -> {
-            String styleKey = argumentQueue.popOr("A style tag requires a specified style").value();
-            if (argumentQueue.hasNext()) {
-                String namespace = styleKey;
-                styleKey = argumentQueue.pop().value();
-                return getStyleByNamespace(namespace, styleKey).getResolver().resolve(styleKey, argumentQueue, context);
-            }
-            return styles.get(styleKey).resolve(styleKey, argumentQueue, context);
-        }));
-        styleResolverCache = TagResolver.resolver(styles.values());
-        return styleResolverCache;
-    }
-
-    private TagResolver getMessageResolver(Locale locale) {
-        return TagResolver.resolver("msg", (queue, ctx) -> {
-            String nameSpace;
-            String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission/>.").value();
-            if (queue.hasNext()) {
-                nameSpace = key;
-                key = queue.pop().value();
-            } else {
-                Message msg = getMessageInParentTree(key);
-                if (msg == null) {
-                    return Tag.inserting(Component.text("<msg-not-found:" + key + "/>"));
-                }
-                return Tag.inserting(process(msg, locale));
-            }
-            Message msg = getMessageByNamespace(nameSpace, key);
-            if (msg == null) {
-                return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + "/>"));
-            }
-            return Tag.inserting(process(msg, locale));
-        });
+        r.add(MessageTag.resolver(this));
+        r.add(StyleTag.resolver(this));
+        return TinyTranslations.NM.parse(raw, new Context(context.getLocale(), r), TagResolver.resolver(resolvers));
     }
 
     @Override
@@ -353,8 +260,6 @@ public class AppTranslator implements Translator {
             }
             if (styleStorage != null) {
                 styleSet.putAll(styleStorage.loadStyles());
-                styleResolverCache = null;
-                getStylesResolver(); // create cache in loading process where performance leaks are expected
             }
         } catch (Throwable t) {
 
@@ -381,16 +286,20 @@ public class AppTranslator implements Translator {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
-            MessageLoopDetector loopDetector = new MessageLoopDetector();
             messageStorage.readMessages(locale).forEach((message, s) -> {
-                var loops = loopDetector.detectLoops(message);
-                if (!loops.isEmpty()) {
-                    loops.forEach(e -> Logger.getLogger("TinyTranslations").severe(e.getMessage()));
-                    return;
-                }
+                message.setTranslator(this);
                 messageSet.computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
             });
         }
+        MessageLoopDetector loopDetector = new MessageLoopDetector();
+        messageSet.forEach((s, message) -> {
+            var loop = loopDetector.detectLoops(message, locale);
+            if (loop == null) {
+                return;
+            }
+            message.getDictionary().remove(locale);
+            Logger.getLogger("TinyTranslations").severe(loop.getMessage());
+        });
     }
 
     @Override
@@ -411,5 +320,17 @@ public class AppTranslator implements Translator {
             return localeProvider.apply(user);
         }
         return parent == null ? Locale.ENGLISH : parent.getUserLocale(user);
+    }
+
+    @Override
+    public Translator formatted(TagResolver... resolver) {
+        this.resolvers.addAll(Arrays.stream(resolver).map(r -> (NanoResolver) c -> r).toList());
+        return this;
+    }
+
+    @Override
+    public Translator formatted(NanoResolver... nanoResolver) {
+        this.resolvers.addAll(List.of(nanoResolver));
+        return null;
     }
 }

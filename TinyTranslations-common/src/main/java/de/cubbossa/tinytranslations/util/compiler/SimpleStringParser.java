@@ -1,4 +1,4 @@
-package de.cubbossa.tinytranslations.util;
+package de.cubbossa.tinytranslations.util.compiler;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;

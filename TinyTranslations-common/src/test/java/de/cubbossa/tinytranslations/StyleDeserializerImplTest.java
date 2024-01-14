@@ -1,5 +1,7 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
+import de.cubbossa.tinytranslations.nanomessage.Context;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -7,6 +9,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Locale;
 
 class StyleDeserializerImplTest {
 
@@ -24,7 +28,7 @@ class StyleDeserializerImplTest {
         String style = "<red>";
         Component expected = Component.text("red", NamedTextColor.RED);
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 
@@ -34,7 +38,7 @@ class StyleDeserializerImplTest {
         String style = "a{slot}";
         Component expected = Component.text("ABC");
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 
@@ -44,7 +48,7 @@ class StyleDeserializerImplTest {
         String style = "<red>{slot}</red>";
         Component expected = Component.text("ABC", NamedTextColor.RED);
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 
@@ -54,7 +58,7 @@ class StyleDeserializerImplTest {
         String style = "x{slot}";
         Component expected = Component.text("xABC");
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 
@@ -67,7 +71,7 @@ class StyleDeserializerImplTest {
                 .color(NamedTextColor.BLUE)
                 .hoverEvent(Component.text("Click"));
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("url", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("url", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 
@@ -77,7 +81,7 @@ class StyleDeserializerImplTest {
         String style = "x{slot}y{slot}z<red>{slot}</red>";
         Component expected = Component.text("xABCyABCz").append(Component.text("ABC", NamedTextColor.RED));
 
-        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style));
+        Component result = miniMessage.deserialize(testString, serializer.deserialize("a", style).apply(new Context(Locale.ENGLISH)));
         Assertions.assertEquals(expected, result);
     }
 }

@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.TestBase;
+import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Assertions;
@@ -11,26 +12,26 @@ public class TranslatorPreprocessorTest extends TestBase {
 
 	@Test
 	void simple() {
-		TranslationsPreprocessor pp = new TranslationsPreprocessor();
+		NanoMessageCompiler pp = new NanoMessageCompiler();
 
 		Assertions.assertEquals(
 				"<gradient:black:dark_gray:black>----------- <primary><page:'}{}}'/></primary>/<primary_d><pages/></primary_d> -----------</gradient>",
-				pp.apply("<gradient:black:dark_gray:black>----------- <primary>{page:'}{}}'}</primary>/<primary_d>{pages}</primary_d> -----------</gradient>")
+				pp.compile("<gradient:black:dark_gray:black>----------- <primary>{page:'}{}}'}</primary>/<primary_d>{pages}</primary_d> -----------</gradient>")
 		);
 
 		Assertions.assertEquals(
 				"<red><nbt:'{\"some\":\"text\"}'/><nbt/><nbt:'test</red>'/>",
-				pp.apply("<red><nbt>{\"some\":\"text\"}</nbt><nbt/><nbt>test</red>")
+				pp.compile("<red><nbt>{\"some\":\"text\"}</nbt><nbt/><nbt>test</red>")
 		);
 
 		Assertions.assertEquals(
 				"<red><legacy:'&':'&6Some Text'/><legacy/><legacy:'test</red>'/>",
-				pp.apply("<red><legacy:'&'>&6Some Text</legacy><legacy/><legacy>test</red>")
+				pp.compile("<red><legacy:'&'>&6Some Text</legacy><legacy/><legacy>test</red>")
 		);
 
 		Assertions.assertEquals(
 				"<red><choice:'<time:minutes/>':'minute':'minutes'/></red>",
-				pp.apply("<red>{time:minutes ? 'minute' : 'minutes'}</red>")
+				pp.compile("<red>{time:minutes ? 'minute' : 'minutes'}</red>")
 		);
 	}
 
@@ -48,16 +49,16 @@ public class TranslatorPreprocessorTest extends TestBase {
 
 	@Test
 	void avoidWrongClose() {
-		TranslationsPreprocessor pp = new TranslationsPreprocessor();
+		NanoMessageCompiler pp = new NanoMessageCompiler();
 
 		Assertions.assertEquals(
 				"<<nbt:'{\"text\":\"\\</nbt>\"}<nbt/>'/>",
-				pp.apply("<<nbt>{\"text\":\"\\</nbt>\"}<nbt/></nbt>")
+				pp.compile("<<nbt>{\"text\":\"\\</nbt>\"}<nbt/></nbt>")
 		);
 
 		Assertions.assertEquals(
 				"<nbt:'<nbt>x'/></nbt>",
-				pp.apply("<nbt><nbt>x</nbt></nbt>")
+				pp.compile("<nbt><nbt>x</nbt></nbt>")
 		);
 	}
 }

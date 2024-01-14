@@ -1,5 +1,7 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
+import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;

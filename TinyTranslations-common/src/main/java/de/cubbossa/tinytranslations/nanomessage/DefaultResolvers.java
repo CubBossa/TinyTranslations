@@ -75,26 +75,6 @@ public class DefaultResolvers {
 		});
 	}
 
-	public TagResolver modifyColor(String key, Function<Color, Color> modifier) {
-		return TagResolver.resolver(key, (argumentQueue, context) -> (Modifying) (current, depth) -> {
-			if (current.color() == null) {
-				return current.children(Collections.emptyList());
-			}
-			Color c = modifier.apply(new Color(current.color().value()));
-			return current
-					.children(Collections.emptyList())
-					.color(TextColor.color(c.getRGB()));
-		});
-	}
-
-	public TagResolver darken(String key) {
-		return modifyColor(key, Color::darker);
-	}
-
-	public TagResolver lighten(String key) {
-		return modifyColor(key, Color::brighter);
-	}
-
 	public TagResolver repeat(String key) {
 		return TagResolver.resolver(key, (argumentQueue, context) -> {
 			int count = argumentQueue.hasNext() ? argumentQueue.pop().asInt().orElse(2) : 2;

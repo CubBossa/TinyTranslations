@@ -1,5 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
+import de.cubbossa.tinytranslations.nanomessage.tag.DarkerTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -105,7 +106,7 @@ class DefaultResolversTest {
 
     @Test
     void darken() {
-        TagResolver resolver = DefaultResolvers.darken("darker");
+        TagResolver resolver = DarkerTag.RESOLVER;
         Assertions.assertEquals(
                 Component.text("test").color(TextColor.color(new Color(0xff0000).darker().getRGB())),
                 miniMessage.deserialize("<darker><#ff0000>test</#ff0000></darker>", resolver)

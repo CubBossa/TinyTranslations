@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
-public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
+public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message> {
 
 
 	@KeyPattern
@@ -45,147 +45,10 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message> {
 	String toString(MessageFormat format);
 
 
-	@Contract(pure = true)
-	Message formatted(Audience audience);
-
-	@Contract(pure = true)
-	Message formatted(TagResolver... resolver);
-
-	@Contract(pure = true)
-	default Message insertString(final @NotNull String key, String value) {
-		return formatted(Placeholder.unparsed(key, value));
-	}
-
-	@Contract(pure = true)
-	default Message insertStringLazy(final @NotNull String key, Supplier<String> value) {
-		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-			return Tag.preProcessParsed(value.get());
-		}));
-	}
-
-	@Contract(pure = true)
-	default Message insertComponent(final @NotNull String key, ComponentLike value) {
-		return formatted(Placeholder.component(key, value));
-	}
-
-	@Contract(pure = true)
-	default Message insertComponentLazy(final @NotNull String key, Supplier<ComponentLike> value) {
-		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-			return Tag.inserting(value.get());
-		}));
-	}
-
-	@Contract(pure = true)
-	default Message insertNumber(final @NotNull String key, Number value) {
-		return formatted(Formatter.number(key, value));
-	}
-
-	@Contract(pure = true)
-	default Message insertNumberLazy(final @NotNull String key, Supplier<Number> value) {
-		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-			return Formatter.number(key, value.get()).resolve(key, argumentQueue, context);
-		}));
-	}
-
-	@Contract(pure = true)
-	@Deprecated
-	default Message insertNumberChoice(final @NotNull String key, Number number) {
-		return formatted(Formatter.choice(key, number));
-	}
-
-	@Contract(pure = true)
-	default Message insertTemporal(final @NotNull String key, Temporal value) {
-		return formatted(Formatter.date(key, value));
-	}
-
-	@Contract(pure = true)
-	default Message insertBool(final @NotNull String key, Boolean value) {
-		return formatted(Formatter.booleanChoice(key, value));
-	}
-
-	@Contract(pure = true)
-	default Message insertTag(final @NotNull String key, Tag tag) {
-		return formatted(TagResolver.resolver(key, tag));
-	}
-
-	default <T> Message insertObject(final @NotNull String key, T obj) {
-		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-			Queue<String> path = new LinkedList<>();
-			while (argumentQueue.hasNext()) {
-				path.add(argumentQueue.pop().value());
-			}
-			argumentQueue.reset();
-			Object resolved = getTranslator().getObjectTypeResolverMap().resolve(obj, path);
-			if (resolved == null) {
-				return Tag.inserting(Component.text("<" + key + ":" + String.join(":", path) + "/>"));
-			}
-			if (resolved instanceof ComponentLike componentLike) {
-				return Tag.inserting(componentLike);
-			}
-			return Tag.inserting(Component.text(resolved.toString()));
-		}));
-
-	}
-
-	@Contract(pure = true)
-	default <E> Message insertList(final @NotNull String key, List<E> elements, Function<E, ComponentLike> renderer) {
-		return this.insertList(key, elements, ListSection.paged(0, elements.size()), renderer);
-	}
-
-	@Contract(pure = true)
-	default <E> Message insertList(final @NotNull String key, List<E> elements, ListSection section, Function<E, ComponentLike> renderer) {
-		return formatted(
-				Formatter.choice("has-pages", section.getMaxPages(elements.size())),
-				Formatter.number("page", section.getPage() + 1),
-				Formatter.number("pages", section.getMaxPages(elements.size())),
-				Formatter.number("next-page", Math.min(section.getMaxPages(elements.size()), section.getPage() + 2)),
-				Formatter.number("prev-page", Math.max(1, section.getPage())),
-				Formatter.number("offset", section.getOffset()),
-				Formatter.number("range", section.getRange()),
-				TagResolver.resolver(key, (argumentQueue, context) -> {
-					String separator = argumentQueue.hasNext() ? argumentQueue.pop().value() : null;
-					Component separatorParsed = separator == null ? text(", ") : context.deserialize(separator);
-
-					List<E> sublist = section.apply(elements);
-					Component content = Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-							.map(renderer)
-							.collect(Collectors.toList())
-					);
-					return Tag.selfClosingInserting(content);
-				}));
-	}
-
-	@Contract(pure = true)
-	default <E> Message insertListLazy(final @NotNull String key, Function<ListSection, List<E>> elementSupplier, ListSection section, Function<E, ComponentLike> renderer) {
-		return formatted(
-				Formatter.number("page", section.getPage() + 1),
-				Formatter.number("next-page", section.getPage() + 2),
-				Formatter.number("prev-page", Math.max(0, section.getPage())),
-				Formatter.number("offset", section.getOffset()),
-				Formatter.number("range", section.getRange()),
-				TagResolver.resolver(key, (argumentQueue, context) -> {
-					String separator = argumentQueue.hasNext() ? argumentQueue.pop().value() : null;
-					Component separatorParsed = separator == null ? text(", ") : context.deserialize(separator);
-
-					AtomicInteger startIndex = new AtomicInteger(section.getOffset());
-					List<E> sublist = elementSupplier.apply(section);
-					Component content = Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-							.map(renderer)
-							.map(componentLike -> {
-								if (componentLike instanceof Message m) {
-									return m.insertNumber("index", startIndex.incrementAndGet());
-								}
-								return componentLike;
-							})
-							.collect(Collectors.toList())
-					);
-					return Tag.selfClosingInserting(content);
-				}));
-	}
-
 	@Nullable Audience getTarget();
 
-	Collection<TagResolver> getResolvers();
+	@Contract(pure = true)
+	Message formatted(Audience audience);
 
 
 	Map<Locale, String> getDictionary();

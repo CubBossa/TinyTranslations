@@ -1,7 +1,7 @@
 package de.cubbossa.tinytranslations.persistent;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.MessageCore;
+import de.cubbossa.tinytranslations.impl.MessageCore;
 import de.cubbossa.tinytranslations.util.Entry;
 import de.cubbossa.tinytranslations.util.PropertiesUtils;
 

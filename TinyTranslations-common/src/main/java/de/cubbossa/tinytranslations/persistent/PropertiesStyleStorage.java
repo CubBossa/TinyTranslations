@@ -1,9 +1,9 @@
 package de.cubbossa.tinytranslations.persistent;
 
 import de.cubbossa.tinytranslations.MessageStyle;
-import de.cubbossa.tinytranslations.MessageStyleImpl;
+import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
 import de.cubbossa.tinytranslations.StyleDeserializer;
-import de.cubbossa.tinytranslations.StyleDeserializerImpl;
+import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import de.cubbossa.tinytranslations.util.Entry;
 import de.cubbossa.tinytranslations.util.PropertiesUtils;
 

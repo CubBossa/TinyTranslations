@@ -1,5 +1,6 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
 import de.cubbossa.tinytranslations.persistent.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
@@ -218,11 +219,11 @@ class AppTranslatorTest extends TestBase {
 
 	@Test
 	public void testObject() {
-		translator.getObjectTypeResolverMap().put(Player.class, Map.of(
+		TinyTranslations.NM.getObjectTypeResolverMap().put(Player.class, Map.of(
 				"name", Player::name,
 				"location", Player::location
 		), player -> Component.text(player.name));
-		translator.getObjectTypeResolverMap().put(Location.class, Map.of(
+		TinyTranslations.NM.getObjectTypeResolverMap().put(Location.class, Map.of(
 				"x", Location::x,
 				"y", Location::y,
 				"z", Location::z
@@ -242,6 +243,37 @@ class AppTranslatorTest extends TestBase {
 		Assertions.assertEquals(
 				Component.text("my test <1;2;3>"),
 				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+		);
+	}
+
+	private record Description(String name) {}
+
+	@Test
+	public void testAppResolvers() {
+		TinyTranslations.NM.getObjectTypeResolverMap().put(Description.class, Map.of(
+				"name", Description::name
+		), d -> Component.text(d.name));
+		translator.insertObject("desc", new Description("tim"));
+		Message a = translator.messageBuilder("a").withDefault("{desc:name}").build();
+		Assertions.assertEquals(
+				Component.text("tim"),
+				translator.process(a)
+		);
+	}
+
+	@Test
+	public void testInheritedResolvers() {
+		TinyTranslations.NM.getObjectTypeResolverMap().put(Description.class, Map.of(
+				"name", Description::name
+		), d -> Component.text(d.name));
+
+		Message a = translator.messageBuilder("a").withDefault("<b>123</b>").build();
+		translator.getStyleSet().put("b", "{slot}{msg:c}");
+		translator.messageBuilder("c").withDefault("4{desc:name}").build();
+
+		Assertions.assertEquals(
+				Component.text("12345"),
+				translator.process(a.insertObject("desc", new Description("5")))
 		);
 	}
 }

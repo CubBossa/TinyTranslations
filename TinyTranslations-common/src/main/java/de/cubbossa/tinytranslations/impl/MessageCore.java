@@ -1,7 +1,13 @@
-package de.cubbossa.tinytranslations;
+package de.cubbossa.tinytranslations.impl;
 
+import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.MessageFormat;
+import de.cubbossa.tinytranslations.TinyTranslations;
+import de.cubbossa.tinytranslations.Translator;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.annotation.PathPattern;
+import de.cubbossa.tinytranslations.nanomessage.Context;
+import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
@@ -88,7 +94,7 @@ public final class MessageCore implements Message {
     }
 
     @Override
-    public Collection<TagResolver> getResolvers() {
+    public Collection<NanoResolver> getResolvers() {
         return Collections.emptyList();
     }
 
@@ -109,6 +115,16 @@ public final class MessageCore implements Message {
         }
         FormattedMessage message = new FormattedMessage(this);
         message.resolvers.addAll(List.of(resolver));
+        return message;
+    }
+
+    @Override
+    public Message formatted(NanoResolver... resolver) {
+        if (resolver.length == 0) {
+            return this;
+        }
+        FormattedMessage message = new FormattedMessage(this);
+        message.nanoResolvers.addAll(List.of(resolver));
         return message;
     }
 

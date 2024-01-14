@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
-import de.cubbossa.tinytranslations.util.SimpleStringParser;
+import de.cubbossa.tinytranslations.util.compiler.SimpleStringParser;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

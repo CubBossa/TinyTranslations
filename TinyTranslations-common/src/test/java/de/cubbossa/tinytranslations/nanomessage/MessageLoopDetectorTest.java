@@ -1,12 +1,11 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.MessageStyle;
 import de.cubbossa.tinytranslations.TestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Locale;
 
 class MessageLoopDetectorTest extends TestBase {
 
@@ -24,5 +23,17 @@ class MessageLoopDetectorTest extends TestBase {
 		translator.getStyleSet().put("e", "{msg:f}{slot}");
 		translator.messageBuilder("f").withDefault("{msg:d}").build();
 		Assertions.assertFalse(new MessageLoopDetector().detectLoops(d).isEmpty());
+	}
+
+	@Test
+	void detectLoopsOnLoad() {
+
+		translator.messageBuilder("a")
+				.withTranslation(Locale.ENGLISH, "{msg:a}").build();
+		translator.loadLocale(Locale.ENGLISH);
+		Assertions.assertNotEquals(
+				"{msg:a}",
+				translator.getMessage("a").getDictionary().get(Locale.ENGLISH)
+		);
 	}
 }

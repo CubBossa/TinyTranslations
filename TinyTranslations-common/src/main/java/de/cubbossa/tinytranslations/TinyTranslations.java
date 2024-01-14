@@ -1,21 +1,29 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.impl.AppTranslator;
+import de.cubbossa.tinytranslations.impl.GlobalTranslator;
+import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
+import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
+import net.kyori.adventure.text.Component;
+
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class TinyTranslations {
 
-  protected TinyTranslations() {}
-
   public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
+  public static final NanoMessage NM = NanoMessage.nanoMessage();
+  static {
+    applyDefaultObjectResolvers(NM.getObjectTypeResolverMap());
+  }
   private static volatile Translator global;
-  private static final Object mutex = new Object();
 
+  private static final Object mutex = new Object();
   public static Translator global() {
     Translator g = global;
     if (g == null) {
@@ -81,4 +89,12 @@ public class TinyTranslations {
     }
     return messages;
   }
+
+  private static void applyDefaultObjectResolvers(ObjectTagResolverMap map) {
+    map.put(List.class, Collections.emptyMap(), list -> Component.text(
+            (String) list.stream().map(Object::toString).collect(Collectors.joining(", "))
+    ));
+  }
+
+  protected TinyTranslations() {}
 }

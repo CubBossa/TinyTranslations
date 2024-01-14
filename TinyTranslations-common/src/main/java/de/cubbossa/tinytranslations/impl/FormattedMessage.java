@@ -1,5 +1,10 @@
-package de.cubbossa.tinytranslations;
+package de.cubbossa.tinytranslations.impl;
 
+import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.MessageFormat;
+import de.cubbossa.tinytranslations.Translator;
+import de.cubbossa.tinytranslations.nanomessage.Context;
+import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -13,11 +18,13 @@ public class FormattedMessage implements Message {
 
     protected final Message message;
     protected final Collection<TagResolver> resolvers;
+    protected final Collection<NanoResolver> nanoResolvers;
     protected Audience audience;
 
     public FormattedMessage(Message message) {
         this.message = message;
         this.resolvers = ConcurrentHashMap.newKeySet();
+        this.nanoResolvers = ConcurrentHashMap.newKeySet();
         this.audience = null;
     }
 
@@ -27,8 +34,9 @@ public class FormattedMessage implements Message {
     }
 
     @Override
-    public Collection<TagResolver> getResolvers() {
-        Collection<TagResolver> result = new LinkedList<>(resolvers);
+    public Collection<NanoResolver> getResolvers() {
+        Collection<NanoResolver> result = new LinkedList<>(nanoResolvers);
+        result.addAll(resolvers.stream().map(r -> (NanoResolver) c -> r).toList());
         if (message != null) {
             result.addAll(message.getResolvers());
         }
@@ -64,6 +72,13 @@ public class FormattedMessage implements Message {
     public Message formatted(TagResolver... resolver) {
         FormattedMessage msg = new FormattedMessage(this);
         msg.resolvers.addAll(List.of(resolver));
+        return msg;
+    }
+
+    @Override
+    public Message formatted(NanoResolver... nanoResolver) {
+        FormattedMessage msg = new FormattedMessage(this);
+        msg.nanoResolvers.addAll(List.of(nanoResolver));
         return msg;
     }
 

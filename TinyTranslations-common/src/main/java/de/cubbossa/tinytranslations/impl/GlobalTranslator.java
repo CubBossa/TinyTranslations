@@ -1,5 +1,9 @@
-package de.cubbossa.tinytranslations;
+package de.cubbossa.tinytranslations.impl;
 
+import de.cubbossa.tinytranslations.GlobalMessages;
+import de.cubbossa.tinytranslations.TinyTranslations;
+import de.cubbossa.tinytranslations.Translator;
+import de.cubbossa.tinytranslations.impl.AppTranslator;
 import de.cubbossa.tinytranslations.persistent.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.persistent.PropertiesStyleStorage;
 import lombok.Getter;
@@ -15,7 +19,7 @@ import java.util.Locale;
 @Setter
 public class GlobalTranslator extends AppTranslator implements Translator {
 
-    protected GlobalTranslator(File dir) {
+    public GlobalTranslator(File dir) {
         super(null, "global");
 
         if (!dir.exists()) {

@@ -17,6 +17,9 @@ public class MessageLoopDetector {
 	}
 
 	public MessageReferenceLoopException detectLoops(Message message, Locale locale) {
+		if (message.getTranslator() == null) {
+			throw new IllegalArgumentException("Message must have translator defined to find reference loops.");
+		}
 		try {
 			buildTree(message, new Stack<>(), message, locale);
 		} catch (MessageReferenceLoopException e) {

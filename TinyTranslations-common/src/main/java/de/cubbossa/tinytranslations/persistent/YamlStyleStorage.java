@@ -1,6 +1,8 @@
 package de.cubbossa.tinytranslations.persistent;
 
 import de.cubbossa.tinytranslations.*;
+import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
+import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import de.cubbossa.tinytranslations.util.YamlUtils;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;

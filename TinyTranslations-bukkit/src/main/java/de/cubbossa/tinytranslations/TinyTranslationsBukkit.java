@@ -16,6 +16,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.WorldInfo;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +32,15 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 	private TinyTranslationsBukkit() {}
 	private static BukkitAudiences audiences;
 
+	static {
+		applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+	}
+
 	public static void enable(JavaPlugin plugin) {
 		audiences = BukkitAudiences.create(plugin);
 		TinyTranslations.enable(new File(plugin.getDataFolder(), "/../"));
 
 		global().addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
-		applyBukkitObjectResolvers(global().getObjectTypeResolverMap());
 		global().saveLocale(Locale.ENGLISH);
 	}
 
@@ -50,7 +54,6 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 			enable(plugin);
 		}
 		var app = application(plugin.getName());
-		applyBukkitObjectResolvers(app.getObjectTypeResolverMap());
 		return app;
 	}
 
@@ -75,11 +78,36 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 		audiences.sender(sender).sendActionBar(message);
 	}
 
+	public static void sendActionBarIfNotEmpty(CommandSender sender, ComponentLike message) {
+		Component c = message.asComponent();
+		if (c.equals(Component.empty())) {
+			return;
+		}
+		sendActionBar(sender, message);
+	}
+
 	public static void sendMessage(CommandSender sender, ComponentLike message) {
 		audiences.sender(sender).sendMessage(message);
 	}
 
+	public static void sendMessageIfNotEmpty(CommandSender sender, ComponentLike message) {
+		Component c = message.asComponent();
+		if (c.equals(Component.empty())) {
+			return;
+		}
+		sendMessage(sender, message);
+	}
+
 	private static void applyBukkitObjectResolvers(ObjectTagResolverMap map) {
+		map.put(PluginDescriptionFile.class, Map.of(
+				"name", PluginDescriptionFile::getName,
+				"fullName", PluginDescriptionFile::getFullName,
+				"authors", d -> String.join(", ", d.getAuthors()),
+				"version", PluginDescriptionFile::getVersion,
+				"api-version", PluginDescriptionFile::getAPIVersion,
+				"website", PluginDescriptionFile::getWebsite,
+				"contributors", PluginDescriptionFile::getContributors
+		));
 		map.put(Player.class, Map.of(
 				"name", Player::getName,
 				"uuid", Entity::getUniqueId,
