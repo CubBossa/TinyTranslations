@@ -49,7 +49,7 @@ Make sure to use the latest version.
     <dependency>
         <groupId>net.kyori</groupId>
         <artifactId>adventure-platform-bukkit</artifactId>
-        <version>4.3.1</version>
+        <version>4.3.2</version>
     </dependency>
     <dependency>
         <groupId>net.kyori</groupId>
@@ -110,7 +110,7 @@ Therefore, go to your plugin.yml and add the section:
 ```yml
 libraries:
   - net.kyori:adventure-api:4.14.0
-  - net.kyori:adventure-platform-bukkit:4.3.1
+  - net.kyori:adventure-platform-bukkit:4.3.2
   - net.kyori:adventure-text-minimessage:4.14.0
   - net.kyori:adventure-text-serializer-legacy:4.14.0
   - net.kyori:adventure-text-serializer-gson:4.14.0

@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,7 +58,7 @@ public class YamlStyleStorage implements StyleStorage {
       }
     }
     Map<String, MessageStyle> present = loadStyles();
-    Map<String, String> toWrite = new HashMap<>();
+    Map<String, String> toWrite = new LinkedHashMap<>();
     styles.forEach((s, messageStyle) -> {
       if (!present.containsKey(s)) {
         toWrite.put(s, messageStyle.getStringBackup());
@@ -80,7 +81,7 @@ public class YamlStyleStorage implements StyleStorage {
         throw new RuntimeException(e);
       }
     }
-    Map<String, Object> map = new HashMap<>();
+    Map<String, Object> map = new LinkedHashMap<>();
     try (FileInputStream fis = new FileInputStream(file)) {
       Map<String, Object> content = yaml.load(fis);
       if (content != null) {
