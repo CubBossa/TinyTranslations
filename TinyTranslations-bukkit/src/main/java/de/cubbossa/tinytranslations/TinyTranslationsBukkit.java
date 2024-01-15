@@ -75,6 +75,9 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 	}
 
 	public static void sendActionBar(CommandSender sender, ComponentLike message) {
+		if (message instanceof Message msg && msg.getTranslator() != null) {
+			message = msg.getTranslator().process(msg, getLocale(sender));
+		}
 		audiences.sender(sender).sendActionBar(message);
 	}
 
@@ -87,6 +90,9 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 	}
 
 	public static void sendMessage(CommandSender sender, ComponentLike message) {
+		if (message instanceof Message msg && msg.getTranslator() != null) {
+			message = msg.getTranslator().process(msg, getLocale(sender));
+		}
 		audiences.sender(sender).sendMessage(message);
 	}
 
