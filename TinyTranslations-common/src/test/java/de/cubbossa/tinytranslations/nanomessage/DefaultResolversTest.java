@@ -65,6 +65,10 @@ class DefaultResolversTest {
         Assertions.assertEquals(Component.text("---"), miniMessage.deserialize("<lowercase>---", resolver));
         Assertions.assertEquals(Component.text("aaaaa"), miniMessage.deserialize("<lowercase>AaAaA", resolver));
         Assertions.assertEquals(Component.text("Aa"), miniMessage.deserialize("A<lowercase>A", resolver));
+        Assertions.assertEquals(
+                Component.text("Aa", NamedTextColor.RED).append(Component.text("b", NamedTextColor.GREEN)),
+                miniMessage.deserialize("<red>A<lowercase>A<green>B</green></lowercase></red>", resolver)
+        );
     }
 
     @Test

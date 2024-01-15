@@ -172,11 +172,11 @@ public class DefaultResolvers {
 	}
 
 	public Tag lowerTag() {
-		return (Modifying) (current, depth) -> mapChildren(current, c -> modifyText(current, String::toLowerCase));
+		return (Modifying) (current, depth) -> modifyText(current, String::toLowerCase).children(new ArrayList<>());
 	}
 
 	public Tag upperTag() {
-		return (Modifying) (current, depth) -> mapChildren(current, c -> modifyText(current, String::toUpperCase));
+		return (Modifying) (current, depth) -> modifyText(current, String::toUpperCase).children(new ArrayList<>());
 	}
 
 	private Component mapChildren(Component c, Function<Component, Component> consumer) {
