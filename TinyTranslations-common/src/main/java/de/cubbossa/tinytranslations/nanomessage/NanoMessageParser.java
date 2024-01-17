@@ -93,7 +93,7 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		while (again) {
 			consumeWhiteSpaces();
 			Marker opt = mark();
-			if (!(parseString() && parseContents(l + 1, () -> !is(SEPARATOR) && !is(PH_CLOSE)))) {
+			if (!(parseString() || parseContents(l + 1, () -> !is(SEPARATOR) && !is(PH_CLOSE)))) {
 				return fail(m);
 			}
 			consumeWhiteSpaces();

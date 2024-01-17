@@ -1,38 +1,40 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class NanoMessageParserTest {
 
 	@Test
-	void parse() {
+	void parseChoice() {
 
-		NanoMessageTokenizer tokenizer = new NanoMessageTokenizer();
-		var tokens = tokenizer.tokenize("<red>content{abc ? 'a' : 'b' }</red>bbb");
-		NanoMessageParser parser = new NanoMessageParser(tokens);
+		String[] strings = {
+				"{a?b:c}",
+				"{a ?b :c}",
+				"{ a ? b : c }",
+				"{ a ? b b : c }",
+				"{a?'b':'c'}",
+				"{a?\"b\":\"c\"}",
+				"{ a ? 'b' : 'c' }",
+				"{ a ? <red>b</red> : <c>c</c> }",
+		};
 
-		var root = parser.parse();
-		StringBuilder b = new StringBuilder();
-		root.tree(b, 0);
-		System.out.println(b);
-		root.getChildren().get(0).getChildren().get(0).getChildren().get(1).replace("replaced");
+		for (String string : strings) {
 
-		System.out.println(root.getText());
-	}
+			NanoMessageTokenizer tokenizer = new NanoMessageTokenizer();
+			var tokens = tokenizer.tokenize(string);
+			NanoMessageParser parser = new NanoMessageParser(tokens);
 
-	@Test
-	void parse2() {
+			var root = parser.parse();
 
-		NanoMessageTokenizer tokenizer = new NanoMessageTokenizer();
-		var tokens = tokenizer.tokenize("<red>content{abc ? a : b }</red>bbb");
-		NanoMessageParser parser = new NanoMessageParser(tokens);
+//			StringBuilder b = new StringBuilder();
+//			root.tree(b, 0);
+//			System.out.println(b);
 
-		var root = parser.parse();
-		StringBuilder b = new StringBuilder();
-		root.tree(b, 0);
-		System.out.println(b);
-		root.getChildren().get(0).getChildren().get(0).getChildren().get(1).replace("replaced");
-
-		System.out.println(root.getText());
+			Assertions.assertEquals(
+					NanoMessageParser.CHOICE_PLACEHOLDER,
+					root.getChildren().get(0).getChildren().get(0).getType()
+			);
+		}
 	}
 }

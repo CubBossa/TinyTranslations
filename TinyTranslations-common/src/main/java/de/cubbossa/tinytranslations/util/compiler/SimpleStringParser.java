@@ -82,6 +82,7 @@ public abstract class SimpleStringParser<TokenT, TokenValueT, NodeT> {
 			while (!openMarkers.peek().equals(this)) {
 				openMarkers.pop().incomplete = false;
 			}
+			regions.removeIf(region -> region.start >= start);
 			openMarkers.pop();
 			currentToken = start;
 			incomplete = false;
