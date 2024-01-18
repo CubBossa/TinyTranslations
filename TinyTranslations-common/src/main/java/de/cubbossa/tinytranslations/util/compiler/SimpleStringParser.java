@@ -42,6 +42,9 @@ public abstract class SimpleStringParser<TokenT, TokenValueT, NodeT> {
 	}
 
 	public TokenT lookAhead(int count) {
+		if (currentToken + count >= tokens.size()) {
+			return null;
+		}
 		return getTokenType(tokens.get(currentToken + count));
 	}
 

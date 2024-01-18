@@ -25,13 +25,17 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 	public static final String CLOSE_TAG = "CLOSE_TAG";
 	public static final String SELF_CLOSING_TAG = "SELF_CLOSING_TAG";
 
+	private static final Iterable<Token> TAG_ATTR_DELIMITER = List.of(TAG_END, TAG_CLOSE);
+	private static final Iterable<Token> SELF_CLOSING_ATTR_DELIMITER = List.of(TAG_END);
+	private static final Iterable<Token> PLACEHOLDER_ATTR_DELIMITER = List.of(PH_CLOSE);
+
 	public NanoMessageParser(List<TokenValue> tokens) {
 		super(tokens);
 	}
 
 	@Override
 	public Node parse() {
-		parseContents(0, () -> true);
+		parseContents(() -> true);
 		return buildTree();
 	}
 
@@ -41,15 +45,15 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 	}
 
 
-	private boolean parseContents(int l, Supplier<Boolean> predicate) {
+	private boolean parseContents(Supplier<Boolean> predicate) {
 		Marker m = mark();
 		boolean ret = true;
 		while (getTokenType() != null && predicate.get()) {
-			boolean parsedAnything = parseContentTag(l + 1)
-					|| parseSelfClosingTag(l + 1)
-					|| parseChoice(l + 1)
-					|| parsePlaceholder(l + 1)
-					|| parseText(l + 1);
+			boolean parsedAnything = parseContentTag()
+					|| parseSelfClosingTag()
+					|| parseChoice()
+					|| parsePlaceholder()
+					|| parseText();
 			if (!parsedAnything) {
 				advance();
 			}
@@ -59,13 +63,13 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return ret;
 	}
 
-	private boolean parsePlaceholder(int l) {
+	private boolean parsePlaceholder() {
 		Marker m = mark();
 		if (!consumeTokens(PH_OPEN)) {
 			return fail(m);
 		}
 		consumeWhiteSpaces();
-		if (!(parseKey() && parseAttributes(l + 1))) {
+		if (!(parseKey() && parseAttributes(PLACEHOLDER_ATTR_DELIMITER))) {
 			return fail(m);
 		}
 		consumeWhiteSpaces();
@@ -76,13 +80,13 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parseChoice(int l) {
+	private boolean parseChoice() {
 		Marker m = mark();
 		if (!consumeTokens(PH_OPEN)) {
 			return fail(m);
 		}
 		consumeWhiteSpaces();
-		if (!(parseKey() && parseAttributes(l + 1))) {
+		if (!(parseKey() && parseAttributes(PLACEHOLDER_ATTR_DELIMITER))) {
 			return fail(m);
 		}
 		consumeWhiteSpaces();
@@ -93,7 +97,7 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		while (again) {
 			consumeWhiteSpaces();
 			Marker opt = mark();
-			if (!(parseString() || parseContents(l + 1, () -> !is(SEPARATOR) && !is(PH_CLOSE)))) {
+			if (!(parseString() || parseContents(() -> !is(SEPARATOR) && !is(PH_CLOSE)))) {
 				return fail(m);
 			}
 			consumeWhiteSpaces();
@@ -110,9 +114,9 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parseSelfClosingTag(int l) {
+	private boolean parseSelfClosingTag() {
 		Marker m = mark();
-		if (!(consumeTokens(TAG_OPEN) && parseKey() && parseAttributes(l + 1))) {
+		if (!(consumeTokens(TAG_OPEN) && parseKey() && parseAttributes(SELF_CLOSING_ATTR_DELIMITER))) {
 			return fail(m);
 		}
 		if (!consumeTokens(TAG_END, TAG_CLOSE)) {
@@ -122,17 +126,17 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parseContentTag(int l) {
+	private boolean parseContentTag() {
 		Marker m = mark();
 
-		String open = parseOpenTag(l + 1);
+		String open = parseOpenTag();
 		if (open == null) {
 			return fail(m);
 		}
 		if (PRE.stream().anyMatch(open::equalsIgnoreCase)) {
 			parsePreContent(open);
 		} else {
-			parseContents(l + 1, () -> !isCloseTag(open));
+			parseContents(() -> !isCloseTag(open));
 		}
 		parseCloseTag(open);
 		m.done(CONTENT_TAG);
@@ -148,14 +152,14 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private @Nullable String parseOpenTag(int l) {
+	private @Nullable String parseOpenTag() {
 		Marker m = mark();
 		if (!consumeTokens(TAG_OPEN)) {
 			m.rollback();
 			return null;
 		}
 		String startTag = getTokenText();
-		if (!(parseKey() && parseAttributes(l + 1) && consumeTokens(TAG_CLOSE))) {
+		if (!(parseKey() && parseAttributes(TAG_ATTR_DELIMITER) && consumeTokens(TAG_CLOSE))) {
 			m.rollback();
 			return null;
 		}
@@ -185,7 +189,7 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parseText(int l) {
+	private boolean parseText() {
 		if (getTokenType() == null) {
 			return false;
 		}
@@ -197,32 +201,45 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parseAttributes(int l) {
+	private boolean parseAttributes(Iterable<Token> delimiter) {
 		Marker m = mark();
 		while (true) {
+			consumeWhiteSpaces();
 			if (!consumeTokens(SEPARATOR)) {
 				m.done(ATTRIBUTES);
 				return true;
 			}
-			if (!parseAttribute(l + 1)) {
+			consumeWhiteSpaces();
+			if (!parseAttribute(delimiter)) {
 				return fail(m);
 			}
 		}
 	}
 
-	private final List<Token> delimitAttribute = List.of(SEPARATOR, TAG_CLOSE, PH_CLOSE, CHOICE);
-	private boolean parseAttribute(int l) {
+	private boolean parseAttribute(Iterable<Token> delimiter) {
 		Marker m = mark();
 
-		if (!parseString()) {
-			m.rollback();
-			m = mark();
-			while (!is(delimitAttribute)) {
-				advance();
-				if (getTokenType() == null) {
-					return fail(m);
-				}
+		if (parseString()) {
+			m.done(ATTRIBUTE);
+			return true;
+		}
+		m.rollback();
+		m = mark();
+
+		int count = 0;
+		int lastNonWhiteSpace = 0;
+		while (!lookAheadIs(count, delimiter) && !lookAheadIs(count, SEPARATOR)) {
+			var lookAhead = lookAhead(count);
+			if (lookAhead == null) {
+				return fail(m);
 			}
+			if (lookAhead != WS) {
+				lastNonWhiteSpace = count;
+			}
+			count++;
+		}
+		for (int i = 0; i <= lastNonWhiteSpace; i++) {
+			advance();
 		}
 		m.done(ATTRIBUTE);
 		return true;
@@ -267,12 +284,9 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean consumeWhiteSpaces() {
-		boolean val = false;
+	private void consumeWhiteSpaces() {
 		while (consumeTokens(WS)) {
-			val = true;
 		}
-		return val;
 	}
 
 	private boolean consumeTokens(Token... types) {
@@ -293,6 +307,19 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 	private boolean nextIs(Iterable<Token> types) {
 		for (Token type : types) {
 			if (nextIs(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean lookAheadIs(int steps, Token type) {
+		return Objects.equals(lookAhead(steps), type);
+	}
+
+	private boolean lookAheadIs(int steps, Iterable<Token> types) {
+		for (Token type : types) {
+			if (lookAheadIs(steps, type)) {
 				return true;
 			}
 		}

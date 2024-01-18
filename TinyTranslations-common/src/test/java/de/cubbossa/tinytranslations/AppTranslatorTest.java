@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
 import de.cubbossa.tinytranslations.persistent.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;

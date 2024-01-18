@@ -6,10 +6,11 @@ import de.cubbossa.tinytranslations.util.compiler.SimpleStringParser;
 
 import java.util.stream.Collectors;
 
-public class PlaceholderCompilation implements CompilationStep {
+public class SelfClosingTagCompilation implements CompilationStep {
+
 	@Override
 	public void apply(SimpleStringParser<NanoMessageTokenizer.Token, NanoMessageTokenizer.TokenValue, String>.Node node, Context context) {
-		if (!node.getType().equals(NanoMessageParser.PLACEHOLDER)) {
+		if (!node.getType().equals(NanoMessageParser.SELF_CLOSING_TAG)) {
 			return;
 		}
 		node.replace("<" + node.getChildren().get(0).toString().trim() + node.getChildren().get(1).getChildren().stream()

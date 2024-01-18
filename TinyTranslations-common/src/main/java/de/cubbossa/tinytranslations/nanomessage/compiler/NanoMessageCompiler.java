@@ -13,14 +13,12 @@ import static de.cubbossa.tinytranslations.nanomessage.NanoMessageTokenizer.*;
 public class NanoMessageCompiler {
 
 	private final List<CompilationStep> compilationSteps = List.of(
+			new TagCompilation(),
+			new SelfClosingTagCompilation(),
 			new PlaceholderCompilation(),
 			new ChoiceCompilation(),
 			new ContentTagCompilation(),
-			(node, context) -> {
-				if (node.getType().equals(CONTENTS)) {
-					node.getChildren().forEach(context::parse);
-				}
-			}
+			(node, context) -> node.getChildren().forEach(context::parse)
 	);
 
 	/**
