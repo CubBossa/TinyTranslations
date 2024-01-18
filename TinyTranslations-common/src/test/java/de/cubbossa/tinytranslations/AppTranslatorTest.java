@@ -276,4 +276,46 @@ class AppTranslatorTest extends TestBase {
 				translator.process(a.insertObject("desc", new Description("5")))
 		);
 	}
+
+	@Test
+	public void testLoadMultipleLocales() {
+		Message a = translator.messageBuilder("a")
+				.withDefault("Hello world!")
+				.withTranslation(Locale.GERMANY, "Hallo Welt!")
+				.withTranslation(Locale.FRENCH, "Bonjour le monde!")
+				.build();
+		translator.saveLocale(Locale.ENGLISH);
+		translator.saveLocale(Locale.GERMANY);
+		translator.saveLocale(Locale.FRENCH);
+		translator.loadLocales();
+		translator.saveLocale(Locale.ENGLISH);
+		translator.saveLocale(Locale.GERMANY);
+		translator.saveLocale(Locale.FRENCH);
+		translator.loadLocales();
+
+		Assertions.assertEquals(
+				Component.text("Hello world!"),
+				translator.process(a, Locale.ENGLISH)
+		);
+		Assertions.assertEquals(
+				Component.text("Hello world!"),
+				translator.process(a, Locale.ITALIAN)
+		);
+		Assertions.assertEquals(
+				Component.text("Hello world!"),
+				translator.process(a, Locale.GERMAN)
+		);
+		Assertions.assertEquals(
+				Component.text("Hallo Welt!"),
+				translator.process(a, Locale.GERMANY)
+		);
+		Assertions.assertEquals(
+				Component.text("Bonjour le monde!"),
+				translator.process(a, Locale.FRANCE)
+		);
+		Assertions.assertEquals(
+				Component.text("Bonjour le monde!"),
+				translator.process(a, Locale.FRENCH)
+		);
+	}
 }
