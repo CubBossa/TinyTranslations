@@ -13,12 +13,14 @@ import static de.cubbossa.tinytranslations.nanomessage.NanoMessageTokenizer.*;
 public class NanoMessageCompiler {
 
 	private final List<CompilationStep> compilationSteps = List.of(
-			new TagCompilation(),
 			new SelfClosingTagCompilation(),
 			new PlaceholderCompilation(),
 			new ChoiceCompilation(),
 			new ContentTagCompilation(),
-			(node, context) -> node.getChildren().forEach(context::parse)
+			(node, context) -> {
+				node.getChildren().forEach(context::parse);
+				return true;
+			}
 	);
 
 	/**
@@ -31,19 +33,16 @@ public class NanoMessageCompiler {
 		NanoMessageTokenizer tokenizer = new NanoMessageTokenizer();
 		var tokens = tokenizer.tokenize(value);
 		NanoMessageParser parser = new NanoMessageParser(tokens);
-		var root = parser.parse();
-		compile(root);
-
+		var root = compile(parser.parse());
 		return root.getText();
 	}
 
-	private void compile(SimpleStringParser<Token, TokenValue, String>.Node node) {
-		if (node.getType() == null) {
-			for (var child : node.getChildren()) {
-				compile(child);
+	private SimpleStringParser<Token, TokenValue, String>.Node compile(SimpleStringParser<Token, TokenValue, String>.Node node) {
+		for (CompilationStep compilationStep : compilationSteps) {
+			if (compilationStep.apply(node, this::compile)) {
+				break;
 			}
-			return;
 		}
-		compilationSteps.forEach(compilationStep -> compilationStep.apply(node, this::compile));
+		return node;
 	}
 }

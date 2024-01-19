@@ -58,7 +58,6 @@ public abstract class SimpleStringParser<TokenT, TokenValueT, NodeT> {
 
 	public Node buildTree() {
 
-		int s = 0;
 		List<Node> sib = new ArrayList<>();
 
 		while (!regions.isEmpty()) {

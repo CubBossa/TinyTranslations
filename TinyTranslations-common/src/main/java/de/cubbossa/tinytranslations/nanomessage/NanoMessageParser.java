@@ -27,6 +27,7 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 
 	private static final Iterable<Token> TAG_ATTR_DELIMITER = List.of(TAG_END, TAG_CLOSE);
 	private static final Iterable<Token> SELF_CLOSING_ATTR_DELIMITER = List.of(TAG_END);
+	private static final Iterable<Token> CHOICE_ATTR_DELIMITER = List.of(PH_CLOSE, CHOICE);
 	private static final Iterable<Token> PLACEHOLDER_ATTR_DELIMITER = List.of(PH_CLOSE);
 
 	public NanoMessageParser(List<TokenValue> tokens) {
@@ -43,7 +44,6 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 	public Token getTokenType(TokenValue value) {
 		return value == null ? null : value.type();
 	}
-
 
 	private boolean parseContents(Supplier<Boolean> predicate) {
 		Marker m = mark();
@@ -86,7 +86,7 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 			return fail(m);
 		}
 		consumeWhiteSpaces();
-		if (!(parseKey() && parseAttributes(PLACEHOLDER_ATTR_DELIMITER))) {
+		if (!(parseKey() && parseAttributes(CHOICE_ATTR_DELIMITER))) {
 			return fail(m);
 		}
 		consumeWhiteSpaces();
@@ -143,15 +143,6 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		return true;
 	}
 
-	private boolean parsePreContent(String open) {
-		Marker m = mark();
-		while (!isCloseTag(open) && getTokenType() != null) {
-			advance();
-		}
-		m.done(TEXT_ELEMENT);
-		return true;
-	}
-
 	private @Nullable String parseOpenTag() {
 		Marker m = mark();
 		if (!consumeTokens(TAG_OPEN)) {
@@ -165,6 +156,15 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
 		}
 		m.done(OPEN_TAG);
 		return startTag;
+	}
+
+	private boolean parsePreContent(String open) {
+		Marker m = mark();
+		while (!isCloseTag(open) && getTokenType() != null) {
+			advance();
+		}
+		m.done(TEXT_ELEMENT);
+		return true;
 	}
 
 	private boolean isCloseTag(String openTag) {
