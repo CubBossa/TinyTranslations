@@ -7,7 +7,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -315,6 +317,18 @@ class AppTranslatorTest extends TestBase {
 		Assertions.assertEquals(
 				Component.text("Bonjour le monde!"),
 				translator.process(a, Locale.FRENCH)
+		);
+	}
+
+	@Test
+	void testDuplicateTextInsertion() {
+		// Based on bug reported from a user of the framework
+
+		translator.getStyleSet().put("a", "<red>{slot}</red>");
+		PlainTextComponentSerializer p = PlainTextComponentSerializer.plainText();
+		Assertions.assertEquals(
+				p.serialize(translator.process("<a>test</a><green>test</green>").compact()),
+				p.serialize(translator.process("<a>test<green>test</green>").compact())
 		);
 	}
 }
