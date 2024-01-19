@@ -6,7 +6,6 @@ import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.Translator;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.annotation.PathPattern;
-import de.cubbossa.tinytranslations.nanomessage.Context;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import lombok.Getter;
 import lombok.Setter;

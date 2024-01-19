@@ -2,8 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
-import de.cubbossa.tinytranslations.nanomessage.Context;
-import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
+import de.cubbossa.tinytranslations.nanomessage.NanoContextImpl;
 import de.cubbossa.tinytranslations.persistent.MessageStorage;
 import de.cubbossa.tinytranslations.persistent.StyleStorage;
 import net.kyori.adventure.audience.Audience;
@@ -89,7 +88,7 @@ public interface Translator extends AutoCloseable, Formattable<Translator> {
      */
     Component process(Message message, Locale locale);
 
-    Component process(Message message, Context context, TagResolver... resolvers);
+    Component process(Message message, NanoContextImpl context, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -123,7 +122,7 @@ public interface Translator extends AutoCloseable, Formattable<Translator> {
      */
     Component process(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
 
-    Component process(@Language("NanoMessage") String raw, Context context, TagResolver... resolvers);
+    Component process(@Language("NanoMessage") String raw, NanoContextImpl context, TagResolver... resolvers);
 
     /**
      * Loads all styles from this application from file. Also propagates to global, so all parenting Translation

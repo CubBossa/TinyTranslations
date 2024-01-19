@@ -1,25 +1,19 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.MessageFormat;
-import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
-import de.cubbossa.tinytranslations.nanomessage.tag.*;
-import lombok.Getter;
+import de.cubbossa.tinytranslations.nanomessage.tag.BrighterTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.ClickTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.DarkerTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.HoverTag;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.ComponentSerializer;
 import org.intellij.lang.annotations.Language;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.function.Function;
+public interface NanoMessage extends ComponentSerializer<Component, Component, String> {
 
-public class NanoMessage {
-
-	private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-	private static final NanoMessageCompiler COMPILER = new NanoMessageCompiler();
-
-	public static NanoMessage nanoMessage() {
-		NanoMessage nm = new NanoMessage();
+	static NanoMessage nanoMessage() {
+		NanoMessageImpl nm = new NanoMessageImpl();
 		nm.defaultResolver = TagResolver.resolver(
 				DefaultResolvers.choice("choice"),
 				DarkerTag.RESOLVER,
@@ -40,22 +34,7 @@ public class NanoMessage {
 		return nm;
 	}
 
-	@Getter
-	private final ObjectTagResolverMap objectTypeResolverMap;
-	private TagResolver defaultResolver = TagResolver.empty();
-	private final Collection<Function<Context, TagResolver>> nanoResolvers = new HashSet<>();
+	ObjectTagResolverMap getObjectTypeResolverMap();
 
-	public NanoMessage() {
-		this.objectTypeResolverMap = new ObjectTagResolverMap();
-	}
-
-	public Component parse(@Language("NanoMessage") String value, Context context, TagResolver... resolvers) {
-		String processed = COMPILER.compile(value);
-		return MINI_MESSAGE.deserialize(processed, TagResolver.builder()
-				.resolver(defaultResolver)
-				.resolvers(resolvers)
-				.resolvers(context.getResolvers().stream().map(n -> n.apply(context)).toList())
-				.resolvers(nanoResolvers.stream().map(f -> f.apply(context)).toArray(TagResolver[]::new))
-				.build());
-	}
+	Component deserialize(@Language("NanoMessage") String value, NanoContextImpl context, TagResolver... resolvers);
 }

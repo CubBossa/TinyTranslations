@@ -3,7 +3,6 @@ package de.cubbossa.tinytranslations.impl;
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageFormat;
 import de.cubbossa.tinytranslations.Translator;
-import de.cubbossa.tinytranslations.nanomessage.Context;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

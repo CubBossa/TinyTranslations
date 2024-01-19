@@ -12,32 +12,32 @@ import org.intellij.lang.annotations.Language;
 import java.util.*;
 
 @Getter
-public class Context {
+public class NanoContextImpl {
 	private final Locale locale;
 	private final List<NanoResolver> resolvers;
 
-	public Context(Locale locale) {
+	public NanoContextImpl(Locale locale) {
 		this.locale = locale;
 		this.resolvers = Collections.emptyList();
 	}
 
-	public Context(Locale locale, NanoResolver... resolvers) {
+	public NanoContextImpl(Locale locale, NanoResolver... resolvers) {
 		this.locale = locale;
 		this.resolvers = List.of(resolvers);
 	}
 
-	public Context(Locale locale, TagResolver... resolvers) {
+	public NanoContextImpl(Locale locale, TagResolver... resolvers) {
 		this.locale = locale;
 		this.resolvers = Arrays.stream(resolvers).map(r -> ((NanoResolver) c -> r)).toList();
 	}
 
-	public Context(Locale locale, Collection<NanoResolver> resolvers) {
+	public NanoContextImpl(Locale locale, Collection<NanoResolver> resolvers) {
 		this.locale = locale;
 		this.resolvers = List.copyOf(resolvers);
 	}
 
 	public Component process(@Language("NanoMessage") String raw, TagResolver... resolvers) {
-		return TinyTranslations.NM.parse(raw, this, resolvers);
+		return TinyTranslations.NM.deserialize(raw, this, resolvers);
 	}
 
 	public Component process(Message message, TagResolver... resolvers) {

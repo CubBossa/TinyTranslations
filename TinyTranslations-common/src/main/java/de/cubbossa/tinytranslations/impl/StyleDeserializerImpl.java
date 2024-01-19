@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations.impl;
 
 import de.cubbossa.tinytranslations.StyleDeserializer;
-import de.cubbossa.tinytranslations.nanomessage.Context;
 import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import net.kyori.adventure.text.Component;

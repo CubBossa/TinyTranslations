@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.Context;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.util.ListSection;

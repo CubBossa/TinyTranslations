@@ -132,31 +132,31 @@ public class AppTranslator implements Translator {
 
     @Override
     public Component process(Message message, Locale locale) {
-        return process(getMessageTranslation(message, locale), new Context(locale, message.getResolvers()));
+        return process(getMessageTranslation(message, locale), new NanoContextImpl(locale, message.getResolvers()));
     }
 
     @Override
-    public Component process(Message message, Context context, TagResolver... resolvers) {
+    public Component process(Message message, NanoContextImpl context, TagResolver... resolvers) {
         return process(getMessageTranslation(message, context.getLocale()), context, resolvers);
     }
 
     @Override
     public Component process(String raw, TagResolver... resolvers) {
-        return process(raw, new Context(getUserLocale(null), resolvers));
+        return process(raw, new NanoContextImpl(getUserLocale(null), resolvers));
     }
 
     @Override
     public Component process(String raw, Audience target, TagResolver... resolvers) {
-        return process(raw, new Context(getUserLocale(target), resolvers));
+        return process(raw, new NanoContextImpl(getUserLocale(target), resolvers));
     }
 
     @Override
     public Component process(String raw, Locale locale, TagResolver... resolvers) {
-        return process(raw, new Context(locale, resolvers));
+        return process(raw, new NanoContextImpl(locale, resolvers));
     }
 
     @Override
-    public Component process(String raw, Context context, TagResolver... resolvers) {
+    public Component process(String raw, NanoContextImpl context, TagResolver... resolvers) {
         Collection<NanoResolver> r = new LinkedList<>(context.getResolvers());
         r.addAll(this.resolvers);
 
@@ -167,7 +167,7 @@ public class AppTranslator implements Translator {
         }
         r.add(MessageTag.resolver(this));
         r.add(StyleTag.resolver(this));
-        return TinyTranslations.NM.parse(raw, new Context(context.getLocale(), r), TagResolver.resolver(resolvers));
+        return TinyTranslations.NM.deserialize(raw, new NanoContextImpl(context.getLocale(), r), TagResolver.resolver(resolvers));
     }
 
     @Override
