@@ -1,4 +1,4 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
 
 import java.util.List;
 

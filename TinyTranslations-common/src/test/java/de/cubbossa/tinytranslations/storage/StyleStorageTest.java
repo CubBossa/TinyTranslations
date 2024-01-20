@@ -1,7 +1,7 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
 
+import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
-import de.cubbossa.tinytranslations.Translator;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 public abstract class StyleStorageTest {
 
-    Translator translator;
+    MessageTranslator messageTranslator;
     StyleStorage storage;
 
     abstract StyleStorage getStyleStorage(File dir, String name);
@@ -28,16 +28,16 @@ public abstract class StyleStorageTest {
         gDir.mkdirs();
 
         TinyTranslations.enable(gDir);
-        translator = TinyTranslations.application("TestApp");
+        messageTranslator = TinyTranslations.application("TestApp");
 
         new File(gDir, "/TestApp/").mkdirs();
         storage = getStyleStorage(new File(gDir, "/TestApp/"), "styles");
-        translator.setStyleStorage(storage);
+        messageTranslator.setStyleStorage(storage);
     }
 
     @AfterEach
     void afterEach() {
-        translator.close();
+        messageTranslator.close();
         TinyTranslations.disable();
     }
 

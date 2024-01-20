@@ -5,12 +5,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TinyTranslatorTest extends TestBase {
+public class TinyMessageTranslatorTest extends TestBase {
 
     @Test
     public void testPreventDuplicateKey() {
-        Translator a = translator.fork("a");
-        Assertions.assertThrows(IllegalArgumentException.class, () -> translator.fork("a"));
+        MessageTranslator a = messageTranslator.fork("a");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> messageTranslator.fork("a"));
 
         a.close();
     }
@@ -19,25 +19,25 @@ public class TinyTranslatorTest extends TestBase {
     public void testDefaultsAvailable() {
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.GREEN),
-            translator.process("<positive>X").compact()
+            messageTranslator.process("<positive>X").compact()
         );
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.GREEN),
-            translator.process("<positive>X").compact()
+            messageTranslator.process("<positive>X").compact()
         );
     }
 
     @Test
     public void overwriteStyles() {
-        Assertions.assertFalse(translator.getStyleSet().containsKey("negative"));
+        Assertions.assertFalse(messageTranslator.getStyleSet().containsKey("negative"));
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.RED),
-            translator.process("<negative>X")
+            messageTranslator.process("<negative>X")
         );
-        translator.getStyleSet().put("negative", "<green>");
+        messageTranslator.getStyleSet().put("negative", "<green>");
         Assertions.assertEquals(
             Component.text("X", NamedTextColor.GREEN),
-            translator.process("<negative>X")
+            messageTranslator.process("<negative>X")
         );
     }
 }

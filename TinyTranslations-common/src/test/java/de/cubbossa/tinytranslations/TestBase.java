@@ -13,19 +13,19 @@ import java.nio.file.Files;
 public class TestBase {
 
     protected File dir;
-    protected Translator translator;
+    protected MessageTranslator messageTranslator;
 
     @BeforeEach
     void beforeEach(@TempDir File d) {
         dir = new File(d, "/test/");
         dir.mkdirs();
         TinyTranslations.enable(dir);
-        translator = TinyTranslations.application("TestApp");
+        messageTranslator = TinyTranslations.application("TestApp");
     }
 
     @AfterEach
     void afterEach() {
-        translator.close();
+        messageTranslator.close();
         TinyTranslations.disable();
     }
 

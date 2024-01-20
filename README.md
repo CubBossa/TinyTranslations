@@ -208,7 +208,7 @@ class ExamplePlugin extends JavaPlugin {
 
 		// register all your messages to your Translations instance
 		// a message cannot be translated without a Translations instance, which works as
-		// translator.
+		// messageTranslator.
 		translations.addMessages(messageA, messageB, messageC);
 		translations.addMessage(messageD);
 		// just load all public static final messages declared in Messages.class

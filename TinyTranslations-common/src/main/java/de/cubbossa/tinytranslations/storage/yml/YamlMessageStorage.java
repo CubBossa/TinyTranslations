@@ -1,8 +1,9 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage.yml;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.impl.MessageCore;
-import de.cubbossa.tinytranslations.util.YamlUtils;
+import de.cubbossa.tinytranslations.impl.MessageImpl;
+import de.cubbossa.tinytranslations.storage.FileMessageStorage;
+import de.cubbossa.tinytranslations.storage.MessageStorage;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -54,11 +55,11 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
         }
         map.forEach((s, o) -> {
             if (o instanceof String val) {
-                result.put(new MessageCore(s), val);
+                result.put(new MessageImpl(s), val);
             } else if (o instanceof List<?> list) {
-                result.put(new MessageCore(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
+                result.put(new MessageImpl(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
             } else {
-                result.put(new MessageCore(s), o.toString());
+                result.put(new MessageImpl(s), o.toString());
             }
         });
         return result;

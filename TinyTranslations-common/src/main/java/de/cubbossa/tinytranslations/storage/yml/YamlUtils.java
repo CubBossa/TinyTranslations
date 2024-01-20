@@ -1,4 +1,4 @@
-package de.cubbossa.tinytranslations.util;
+package de.cubbossa.tinytranslations.storage.yml;
 
 import lombok.experimental.UtilityClass;
 

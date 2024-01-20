@@ -1,9 +1,10 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.impl.MessageCore;
-import de.cubbossa.tinytranslations.util.Entry;
-import de.cubbossa.tinytranslations.util.PropertiesUtils;
+import de.cubbossa.tinytranslations.impl.MessageImpl;
+import de.cubbossa.tinytranslations.storage.FileMessageStorage;
+import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -30,9 +31,9 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
             return new HashMap<>();
         }
 
-        Map<String, Entry> entries = readFile(file);
+        Map<String, StorageEntry> entries = readFile(file);
         Map<Message, String> result = new HashMap<>();
-        entries.forEach((key, value) -> result.put(new MessageCore(key), value.value()));
+        entries.forEach((key, value) -> result.put(new MessageImpl(key), value.value()));
         return result;
     }
 
@@ -41,25 +42,25 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
         File file = localeFile(locale);
 
         Collection<Message> written = new HashSet<>();
-        Map<String, Entry> entries = readFile(file);
+        Map<String, StorageEntry> entries = readFile(file);
         for (Message msg : messages) {
             if (msg.getDictionary().containsKey(locale)) {
                 if (entries.containsKey(msg.getKey())) {
                     continue;
                 }
                 List<String> comments = msg.getComment() == null ? Collections.emptyList() : List.of(msg.getComment().split("\n"));
-                entries.put(msg.getKey(), new Entry(msg.getKey(), msg.getDictionary().get(locale), comments));
+                entries.put(msg.getKey(), new StorageEntry(msg.getKey(), msg.getDictionary().get(locale), comments));
                 written.add(msg);
             }
         }
-        List<Entry> sortedEntries = new ArrayList<>(entries.values());
-        sortedEntries.sort(Comparator.comparing(Entry::key));
+        List<StorageEntry> sortedEntries = new ArrayList<>(entries.values());
+        sortedEntries.sort(Comparator.comparing(StorageEntry::key));
 
         writeFile(file, sortedEntries);
         return written;
     }
 
-    private void writeFile(File file, List<Entry> entries) {
+    private void writeFile(File file, List<StorageEntry> entries) {
         try (Writer writer = new FileWriter(file, detectCharset(file, CHARSETS))) {
             PropertiesUtils.write(writer, entries);
         } catch (Throwable e) {
@@ -67,10 +68,10 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
         }
     }
 
-    private Map<String, Entry> readFile(File file) {
+    private Map<String, StorageEntry> readFile(File file) {
         try (Reader reader = new FileReader(file, detectCharset(file, CHARSETS))) {
             return PropertiesUtils.loadProperties(reader).stream().collect(Collectors.toMap(
-                    Entry::key, e -> e
+                    StorageEntry::key, e -> e
             ));
         } catch (Throwable t) {
             throw new RuntimeException("Error while parsing locale file '" + file.getAbsolutePath() + "'.", t);

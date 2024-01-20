@@ -1,11 +1,12 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.MessageStyle;
 import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
 import de.cubbossa.tinytranslations.StyleDeserializer;
 import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
-import de.cubbossa.tinytranslations.util.Entry;
-import de.cubbossa.tinytranslations.util.PropertiesUtils;
+import de.cubbossa.tinytranslations.storage.FileEntry;
+import de.cubbossa.tinytranslations.storage.StyleStorage;
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +47,7 @@ public class PropertiesStyleStorage implements StyleStorage {
 
     @Override
     public void writeStyles(Map<String, MessageStyle> styles) {
-        List<Entry> lines = readStylesFile(file());
+        List<StorageEntry> lines = readStylesFile(file());
         Map<String, MessageStyle> present = readStylesFromLines(lines);
         Map<String, MessageStyle> toWrite = new LinkedHashMap<>();
 
@@ -56,11 +57,11 @@ public class PropertiesStyleStorage implements StyleStorage {
             }
         }
 
-        toWrite.forEach((s, style) -> lines.add(new Entry(s, style.getStringBackup(), style instanceof FileEntry e ? e.getComments() : Collections.emptyList())));
+        toWrite.forEach((s, style) -> lines.add(new StorageEntry(s, style.getStringBackup(), style instanceof FileEntry e ? e.getComments() : Collections.emptyList())));
         writeStyles(lines);
     }
 
-    private void writeStyles(List<Entry> lines) {
+    private void writeStyles(List<StorageEntry> lines) {
         try (Writer writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             PropertiesUtils.write(writer, lines);
         } catch (IOException e) {
@@ -73,16 +74,16 @@ public class PropertiesStyleStorage implements StyleStorage {
         return readStylesFromLines(readStylesFile(file()));
     }
 
-    private Map<String, MessageStyle> readStylesFromLines(List<Entry> lines) {
+    private Map<String, MessageStyle> readStylesFromLines(List<StorageEntry> lines) {
         return lines.stream().collect(Collectors.toMap(
-                Entry::key,
+                StorageEntry::key,
                 e -> new MessageStyleImpl(e.key(), styleDeserializer.deserialize(e.key(), e.value()), e.value()),
                 (a, b) -> a,
                 LinkedHashMap::new
         ));
     }
 
-    private List<Entry> readStylesFile(File file) {
+    private List<StorageEntry> readStylesFile(File file) {
         try (Reader r = new FileReader(file, StandardCharsets.UTF_8)) {
             return PropertiesUtils.loadProperties(r);
         } catch (Throwable t) {

@@ -1,7 +1,7 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
-import de.cubbossa.tinytranslations.impl.MessageCore;
+import de.cubbossa.tinytranslations.impl.MessageImpl;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.intellij.lang.annotations.Language;
 
@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class MessageBuilder {
 
-    private final Translator owner;
+    private final MessageTranslator owner;
     private final String key;
     private final Map<Locale, String> translations;
     private final List<String> comments;
@@ -20,9 +20,9 @@ public class MessageBuilder {
         this(null, key);
     }
 
-    public MessageBuilder(Translator translator, @KeyPattern String key) {
+    public MessageBuilder(MessageTranslator messageTranslator, @KeyPattern String key) {
         this.key = key;
-        this.owner = translator;
+        this.owner = messageTranslator;
         this.comments = new ArrayList<>();
         this.translations = new HashMap<>();
         this.placeholderMap = new HashMap<>();
@@ -68,15 +68,17 @@ public class MessageBuilder {
     }
 
     public Message build() {
-        Message message = new MessageCore(owner, key);
+        Message message = new MessageImpl(key);
         message.setComment(comments.isEmpty() ? null : String.join("\n", comments));
         message.getDictionary().putAll(translations);
         message.setPlaceholderTags(placeholderMap.values().stream()
                 .collect(Collectors.toMap(Placeholder::tag, Placeholder::desc)));
-        return message.formatted(placeholderMap.values().stream()
+        message = message.formatted(placeholderMap.values().stream()
                 .map(Placeholder::resolver)
                 .filter(Optional::isPresent).map(Optional::get)
                 .toArray(TagResolver[]::new));
+        owner.addMessage(message);
+        return message;
     }
 
     record Placeholder(String tag, Optional<String> desc, Optional<TagResolver> resolver) {

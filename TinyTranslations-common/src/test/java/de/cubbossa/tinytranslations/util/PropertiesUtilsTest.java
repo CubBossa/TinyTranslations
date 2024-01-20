@@ -1,5 +1,7 @@
 package de.cubbossa.tinytranslations.util;
 
+import de.cubbossa.tinytranslations.storage.StorageEntry;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,11 +18,11 @@ public class PropertiesUtilsTest {
 	@Test
 	void load() {
 		StringReader reader = new StringReader("test : a");
-		List<Entry> entries = PropertiesUtils.loadProperties(reader);
+		List<StorageEntry> entries = PropertiesUtils.loadProperties(reader);
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a", Collections.emptyList()),
+				new StorageEntry("test", "a", Collections.emptyList()),
 				entries.get(0)
 		);
 	}
@@ -35,11 +37,11 @@ public class PropertiesUtilsTest {
 				!comment2 : b
 				test : a
 				""");
-		List<Entry> entries = PropertiesUtils.loadProperties(reader);
+		List<StorageEntry> entries = PropertiesUtils.loadProperties(reader);
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a", List.of("", " comment 1", "", "comment2 : b")),
+				new StorageEntry("test", "a", List.of("", " comment 1", "", "comment2 : b")),
 				entries.get(0)
 		);
 	}
@@ -51,11 +53,11 @@ public class PropertiesUtilsTest {
 				test : a\\
 				       b\\
 				       c""");
-		List<Entry> entries = PropertiesUtils.loadProperties(reader);
+		List<StorageEntry> entries = PropertiesUtils.loadProperties(reader);
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a\nb\nc", Collections.emptyList()),
+				new StorageEntry("test", "a\nb\nc", Collections.emptyList()),
 				entries.get(0)
 		);
 	}
@@ -68,11 +70,11 @@ public class PropertiesUtilsTest {
 				test : a\\
 				#b\\
 				c""");
-		List<Entry> entries = PropertiesUtils.loadProperties(reader);
+		List<StorageEntry> entries = PropertiesUtils.loadProperties(reader);
 
 		Assertions.assertEquals(1, entries.size());
 		Assertions.assertEquals(
-				new Entry("test", "a\n#b\nc", List.of("b")),
+				new StorageEntry("test", "a\n#b\nc", List.of("b")),
 				entries.get(0)
 		);
 	}
@@ -82,7 +84,7 @@ public class PropertiesUtilsTest {
 	void writeValue() {
 		StringWriter writer = new StringWriter();
 
-		PropertiesUtils.write(writer, List.of(new Entry("test", "a", Collections.emptyList())));
+		PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", Collections.emptyList())));
 		Assertions.assertEquals(
 				"""
 						test = a
@@ -96,7 +98,7 @@ public class PropertiesUtilsTest {
 	void writeComments() {
 		StringWriter writer = new StringWriter();
 
-		PropertiesUtils.write(writer, List.of(new Entry("test", "a", List.of(
+		PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", List.of(
 				"", " test comment", "", "", "!####"
 		))));
 		Assertions.assertEquals(
@@ -117,7 +119,7 @@ public class PropertiesUtilsTest {
 	void writeMultiline() {
 		StringWriter writer = new StringWriter();
 
-		PropertiesUtils.write(writer, List.of(new Entry("test", "a\nb\nc", Collections.emptyList())));
+		PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a\nb\nc", Collections.emptyList())));
 		Assertions.assertEquals(
 				"""
 						test = a\\
@@ -134,8 +136,8 @@ public class PropertiesUtilsTest {
 		StringWriter writer = new StringWriter();
 
 		PropertiesUtils.write(writer, List.of(
-				new Entry("test1", "a\nb\nc", Collections.emptyList()),
-				new Entry("test2", "def", List.of("other"))
+				new StorageEntry("test1", "a\nb\nc", Collections.emptyList()),
+				new StorageEntry("test2", "def", List.of("other"))
 		));
 		Assertions.assertEquals(
 				"""

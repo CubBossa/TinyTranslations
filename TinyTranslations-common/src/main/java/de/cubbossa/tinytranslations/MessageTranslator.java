@@ -3,11 +3,13 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.nanomessage.NanoContextImpl;
-import de.cubbossa.tinytranslations.persistent.MessageStorage;
-import de.cubbossa.tinytranslations.persistent.StyleStorage;
+import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.translation.TranslationRegistry;
+import net.kyori.adventure.translation.Translator;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-public interface Translator extends AutoCloseable, Formattable<Translator> {
+public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, Translator {
 
     @AppPathPattern
     String getPath();
@@ -30,27 +32,19 @@ public interface Translator extends AutoCloseable, Formattable<Translator> {
      * All other Translations refer to the global translations or to any successor of global.
      * @return The parent instance or null for global Translations.
      */
-    @Nullable Translator getParent();
+    @Nullable MessageTranslator getParent();
 
     /**
      * Create a sub Translations instance for the current instance.
      * The new produced fork inherits all styles and all messages as tags. Meaning msg:x.y.z will be resolved from
      * this Translations message set or from the parents message set.
      *
-     * Storages are not inherited and must be set manually again.
+     * Storages are not inherited and must be set manually.
      *
      * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
      * @return The forked instance.
      */
-    Translator fork(@AppPattern String name);
-
-    /**
-     * Similar to {@link #fork(String)}, but also inherits storages.
-     *
-     * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
-     * @return The forked instance.
-     */
-    Translator forkWithStorage(@AppPattern String name);
+    MessageTranslator fork(@AppPattern String name);
 
 
     Message message(String key);
@@ -194,7 +188,7 @@ public interface Translator extends AutoCloseable, Formattable<Translator> {
     /**
      * Adds a message to this translations instance and sets the Translations instance of the message to this.
      * If the message had a previous Translations instance, it gets informed about the change and the message will be
-     * removed from its MessageSet property.
+     * removed from its MessageTranslator property.
      *
      * @param message Any message instance.
      */

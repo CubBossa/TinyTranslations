@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage.tag;
 
-import de.cubbossa.tinytranslations.Translator;
+import de.cubbossa.tinytranslations.MessageTranslator;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
 import java.util.HashMap;
@@ -9,11 +9,11 @@ import java.util.Map;
 public class StyleTag {
 	public static final String KEY = "style";
 
-	public static NanoResolver resolver(Translator translator) {
+	public static NanoResolver resolver(MessageTranslator messageTranslator) {
 		return context -> {
 			Map<String, TagResolver> styles = new HashMap<>();
 
-			Translator t = translator;
+			MessageTranslator t = messageTranslator;
 			while (t != null) {
 				t.getStyleSet().forEach((key, value) -> {
 					if (styles.containsKey(key)) return;
@@ -26,7 +26,7 @@ public class StyleTag {
 				if (argumentQueue.hasNext()) {
 					String namespace = styleKey;
 					styleKey = argumentQueue.pop().value();
-					return translator.getStyleByNamespace(namespace, styleKey).getResolver().apply(context).resolve(styleKey, argumentQueue, c);
+					return messageTranslator.getStyleByNamespace(namespace, styleKey).getResolver().apply(context).resolve(styleKey, argumentQueue, c);
 				}
 				return styles.get(styleKey).resolve(styleKey, argumentQueue, c);
 			}));

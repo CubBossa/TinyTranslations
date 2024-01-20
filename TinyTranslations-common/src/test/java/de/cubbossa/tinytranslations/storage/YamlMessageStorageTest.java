@@ -1,4 +1,6 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
+
+import de.cubbossa.tinytranslations.storage.yml.YamlMessageStorage;
 
 import java.io.File;
 

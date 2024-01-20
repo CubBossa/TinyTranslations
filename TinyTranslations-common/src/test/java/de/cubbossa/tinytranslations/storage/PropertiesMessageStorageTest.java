@@ -1,6 +1,7 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
 
 import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
 
     @Test
     void testRead() {
-        translator.saveLocale(Locale.ENGLISH);
+        messageTranslator.saveLocale(Locale.ENGLISH);
         try {
             File dir = new File(gDir, "/TestApp/lang/");
             dir.mkdirs();
@@ -36,8 +37,8 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        translator.loadLocales();
-        assertNotNull(translator.getMessage("no_perm"));
+        messageTranslator.loadLocales();
+        assertNotNull(messageTranslator.getMessage("no_perm"));
     }
 
     @Test
@@ -47,12 +48,12 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
         dir.mkdirs();
         Files.copy(Path.of("src/test/resources/character_test_UTF-8.properties"), new File(dir, "en.properties").toPath());
 
-        translator.loadLocales();
-        Message a = translator.getMessage("char_a");
+        messageTranslator.loadLocales();
+        Message a = messageTranslator.getMessage("char_a");
         assertNotNull(a);
-        assertEquals(text("äöüß"), translator.process(a));
-        Message b = translator.getMessage("char_b");
+        assertEquals(text("äöüß"), messageTranslator.process(a));
+        Message b = messageTranslator.getMessage("char_b");
         assertNotNull(b);
-        assertEquals(text("ǮǬǱʁʀ"), translator.process(b));
+        assertEquals(text("ǮǬǱʁʀ"), messageTranslator.process(b));
     }
 }

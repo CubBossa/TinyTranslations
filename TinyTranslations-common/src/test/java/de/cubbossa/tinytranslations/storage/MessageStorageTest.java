@@ -1,7 +1,7 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.Translator;
+import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -17,7 +17,7 @@ import java.util.Set;
 public abstract class MessageStorageTest {
 
     File gDir;
-    Translator translator;
+    MessageTranslator messageTranslator;
     MessageStorage storage;
     Message a, b, c, d;
 
@@ -29,19 +29,19 @@ public abstract class MessageStorageTest {
         gDir.mkdirs();
 
         TinyTranslations.enable(gDir);
-        translator = TinyTranslations.application("TestApp");
+        messageTranslator = TinyTranslations.application("TestApp");
 
         storage = getMessageStorage(new File(gDir, "/TestApp/lang/"));
-        translator.setMessageStorage(storage);
-        a = translator.messageBuilder("a").withDefault("A").build();
-        b = translator.messageBuilder("h.b").withDefault("B").build();
-        c = translator.messageBuilder("h.a.c").withDefault("C").build();
-        d = translator.messageBuilder("h.b.d").withDefault("D").build();
+        messageTranslator.setMessageStorage(storage);
+        a = messageTranslator.messageBuilder("a").withDefault("A").build();
+        b = messageTranslator.messageBuilder("h.b").withDefault("B").build();
+        c = messageTranslator.messageBuilder("h.a.c").withDefault("C").build();
+        d = messageTranslator.messageBuilder("h.b.d").withDefault("D").build();
     }
 
     @AfterEach
     void afterEach() {
-        translator.close();
+        messageTranslator.close();
         TinyTranslations.disable();
     }
 

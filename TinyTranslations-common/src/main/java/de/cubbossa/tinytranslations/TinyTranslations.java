@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.impl.AppTranslator;
-import de.cubbossa.tinytranslations.impl.GlobalTranslator;
+import de.cubbossa.tinytranslations.impl.MessageTranslatorImpl;
 import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
 import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import net.kyori.adventure.text.Component;
@@ -21,27 +20,27 @@ public class TinyTranslations {
   static {
     applyDefaultObjectResolvers(NM.getObjectTypeResolverMap());
   }
-  private static volatile Translator global;
+  private static volatile MessageTranslator global;
 
   private static final Object mutex = new Object();
-  public static Translator global() {
-    Translator g = global;
+  public static MessageTranslator global() {
+    MessageTranslator g = global;
     if (g == null) {
       throw new IllegalStateException("Accessing global without enabling TranslationsFramework.");
     }
     return g;
   }
 
-  public static Translator standalone(String name) {
-    return new AppTranslator(null, name);
+  public static MessageTranslator standalone(String name) {
+    return new MessageTranslatorImpl(null, name);
   }
 
-  public static Translator application(String name) {
+  public static MessageTranslator application(String name) {
     return global().fork(name);
   }
 
   public static boolean isEnabled() {
-    Translator g = global;
+    MessageTranslator g = global;
     if (g == null) {
       synchronized (mutex) {
         return g != null;
@@ -51,12 +50,13 @@ public class TinyTranslations {
   }
 
   public static void enable(File pluginDirectory) {
-    Translator g = global;
+
+    MessageTranslator g = global;
     if (g == null) {
       synchronized (mutex) {
         g = global;
         if (g == null) {
-          global = new GlobalTranslator(pluginDirectory);
+          global = new MessageTranslatorImpl(null, "global");
         }
       }
     }

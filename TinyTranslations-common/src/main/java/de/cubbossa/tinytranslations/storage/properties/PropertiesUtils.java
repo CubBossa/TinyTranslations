@@ -1,5 +1,7 @@
-package de.cubbossa.tinytranslations.util;
+package de.cubbossa.tinytranslations.storage.properties;
 
+
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -16,8 +18,8 @@ public class PropertiesUtils {
 	private static final Pattern LINE = Pattern.compile("^([a-zA-Z0-9._-]+)( *[:=] *)(.+)$");
 	private static final Pattern MULTILINE = Pattern.compile("^.+[^\\\\]+(\\\\\\\\)*\\\\$");
 
-	public static List<Entry> loadProperties(Reader file) throws IOException {
-		List<Entry> entries = new LinkedList<>();
+	public static List<StorageEntry> loadProperties(Reader file) throws IOException {
+		List<StorageEntry> entries = new LinkedList<>();
 
 		try (BufferedReader bufferedReader = new BufferedReader(file)) {
 			String key = null;
@@ -79,7 +81,7 @@ public class PropertiesUtils {
 				first = first.startsWith("\"") && first.endsWith("\"") ? first.substring(1, first.length() - 1) : first;
 				merged = first + merged;
 
-				entries.add(new Entry(key, merged, new ArrayList<>(comments)));
+				entries.add(new StorageEntry(key, merged, new ArrayList<>(comments)));
 
 				key = null;
 				values.clear();
@@ -89,9 +91,9 @@ public class PropertiesUtils {
 		return entries;
  	}
 
-	 public static void write(Writer writer, List<Entry> entries) throws IOException {
+	 public static void write(Writer writer, List<StorageEntry> entries) throws IOException {
 		try (BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
-			for (Entry entry : entries) {
+			for (StorageEntry entry : entries) {
 				for (String comment : entry.comments()) {
 					bufferedWriter.write("#".repeat(comment.isEmpty() ? 0 : 1) + comment + "\n");
 				}

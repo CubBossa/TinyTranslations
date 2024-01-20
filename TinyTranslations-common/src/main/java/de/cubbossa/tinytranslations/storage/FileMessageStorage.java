@@ -1,4 +1,4 @@
-package de.cubbossa.tinytranslations.persistent;
+package de.cubbossa.tinytranslations.storage;
 
 import de.cubbossa.tinytranslations.Message;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +52,7 @@ public abstract class FileMessageStorage implements MessageStorage {
 
 
 
-    @Nullable File localeFileIfExists(Locale locale) {
+    @Nullable protected File localeFileIfExists(Locale locale) {
         File file = new File(directory, locale.toLanguageTag() + fileSuffix);
         if (!file.exists()) {
             return null;
@@ -60,7 +60,7 @@ public abstract class FileMessageStorage implements MessageStorage {
         return file;
     }
 
-    File localeFile(Locale locale) {
+    protected File localeFile(Locale locale) {
         mkDir();
         File file = new File(directory, locale.toLanguageTag() + fileSuffix);
         if (!file.exists()) {

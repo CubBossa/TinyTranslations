@@ -6,7 +6,6 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -49,7 +48,7 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 		audiences.close();
 	}
 
-	public static Translator application(JavaPlugin plugin) {
+	public static MessageTranslator application(JavaPlugin plugin) {
 		if (!isEnabled()) {
 			enable(plugin);
 		}

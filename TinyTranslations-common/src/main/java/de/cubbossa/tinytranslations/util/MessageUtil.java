@@ -8,7 +8,7 @@ import java.util.Locale;
 
 public class MessageUtil {
 
-	public static String getMessageTranslation(Message message, @Nullable Locale locale) {
+	public static @Nullable String getMessageTranslation(Message message, @Nullable Locale locale) {
 		if (locale == null) {
 			locale = TinyTranslations.DEFAULT_LOCALE;
 		}
@@ -21,9 +21,6 @@ public class MessageUtil {
 		}
 		if (raw == null) {
 			raw = message.getDictionary().get(TinyTranslations.DEFAULT_LOCALE);
-		}
-		if (raw == null) {
-			raw = "<no-translation-found:" + message.getNamespacedKey() + "/>";
 		}
 		return raw;
 	}

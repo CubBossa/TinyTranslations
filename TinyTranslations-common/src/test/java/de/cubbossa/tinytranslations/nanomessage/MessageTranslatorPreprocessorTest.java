@@ -7,7 +7,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TranslatorPreprocessorTest extends TestBase {
+public class MessageTranslatorPreprocessorTest extends TestBase {
 
 
 	@Test
@@ -39,11 +39,11 @@ public class TranslatorPreprocessorTest extends TestBase {
 	void embedded() {
 		Assertions.assertEquals(
 				Component.text("Red", NamedTextColor.RED).append(Component.text("Blue", NamedTextColor.DARK_BLUE)),
-				translator.process("<red>Red<legacy:'&'>&1Blue</legacy></red>")
+				messageTranslator.process("<red>Red<legacy:'&'>&1Blue</legacy></red>")
 		);
 		Assertions.assertEquals(
 				Component.text("Red", NamedTextColor.RED).append(Component.text("<Blue>", NamedTextColor.DARK_BLUE)),
-				translator.process("<red>Red<nbt>{\"text\":\"<Blue>\",\"color\":\"dark_blue\"}</nbt></red>")
+				messageTranslator.process("<red>Red<nbt>{\"text\":\"<Blue>\",\"color\":\"dark_blue\"}</nbt></red>")
 		);
 	}
 

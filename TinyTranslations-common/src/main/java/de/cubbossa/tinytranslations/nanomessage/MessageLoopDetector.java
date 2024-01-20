@@ -1,8 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.*;
-import de.cubbossa.tinytranslations.persistent.MessageStorage;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -17,9 +15,7 @@ public class MessageLoopDetector {
 	}
 
 	public MessageReferenceLoopException detectLoops(Message message, Locale locale) {
-		if (message.getTranslator() == null) {
-			throw new IllegalArgumentException("Message must have translator defined to find reference loops.");
-		}
+
 		try {
 			buildTree(message, new Stack<>(), message, locale);
 		} catch (MessageReferenceLoopException e) {
@@ -39,21 +35,21 @@ public class MessageLoopDetector {
 	}
 
 	private Node buildTree(Message origin, Stack<String> stack, Message msg, Locale locale) {
-		stack.push("(msg) " + msg.getNamespacedKey());
+		stack.push("(msg) " + msg.getKey());
 		String s = msg.getDictionary().get(locale);
 		if (s == null) {
 			return new Node(null, new HashSet<>());
 		}
-		return buildTree(origin, stack, locale, origin.getTranslator(), s);
+		return buildTree(origin, stack, locale, /*origin.getTranslator()*/ null, s);
 	}
 
-	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, Translator translator, Locale locale) {
-		stack.push("(style) " + translator.getPath() + ":" + style.getKey());
+	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {
+		stack.push("(style) " + messageTranslator.getPath() + ":" + style.getKey());
 		String s = style.getStringBackup();
-		return buildTree(origin, stack, locale, translator, s);
+		return buildTree(origin, stack, locale, messageTranslator, s);
 	}
 
-	private Node buildTree(Message origin, Stack<String> stack, Locale locale, Translator t, String msg) {
+	private Node buildTree(Message origin, Stack<String> stack, Locale locale, MessageTranslator t, String msg) {
 
 		Collection<Node> references = new HashSet<>();
 		Matcher styleMatcher = STYLE_PATTERN.matcher(msg);
@@ -84,7 +80,7 @@ public class MessageLoopDetector {
 				ref = t.getMessageInParentTree(key);
 			}
 			if (ref != null) {
-				if (stack.contains("(msg) " + ref.getNamespacedKey())) {
+				if (stack.contains("(msg) " + ref.translationKey())) {
 					throw new MessageReferenceLoopException(origin, stack);
 				}
 				references.add(buildTree(origin, stack, ref, locale));

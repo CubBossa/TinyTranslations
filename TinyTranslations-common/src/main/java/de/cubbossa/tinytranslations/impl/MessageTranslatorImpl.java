@@ -5,31 +5,34 @@ import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.nanomessage.*;
 import de.cubbossa.tinytranslations.nanomessage.tag.*;
-import de.cubbossa.tinytranslations.persistent.MessageStorage;
-import de.cubbossa.tinytranslations.persistent.StyleStorage;
+import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StyleStorage;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
 
-public class AppTranslator implements Translator {
+public class MessageTranslatorImpl implements MessageTranslator {
 
     @Getter
-    private final Translator parent;
+    private final MessageTranslator parent;
     @Getter
     private final @AppPattern String name;
-    private final Map<String, Translator> children;
+    private final Map<String, MessageTranslator> children;
 
     private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
@@ -44,12 +47,10 @@ public class AppTranslator implements Translator {
     @Setter
     private @Nullable StyleStorage styleStorage;
 
-    private ReadWriteLock lock;
-
     @Getter
     private final Collection<NanoResolver> resolvers = new LinkedList<>();
 
-    public AppTranslator(Translator parent, String name) {
+    public MessageTranslatorImpl(MessageTranslator parent, String name) {
         this.parent = parent;
         this.name = name;
 
@@ -58,14 +59,11 @@ public class AppTranslator implements Translator {
         this.messageStorage = null;
         this.styleStorage = null;
 
-        this.messageSet = new HashMap<>() {
-            @Override
-            public Message put(String key, Message value) {
-                value.setTranslator(AppTranslator.this);
-                return super.put(key, value);
-            }
-        };
+        this.messageSet = new HashMap<>();
         this.styleSet = new StyleSet();
+
+        // remove in close
+        GlobalTranslator.translator().addSource(this);
     }
 
     @Override
@@ -78,6 +76,8 @@ public class AppTranslator implements Translator {
 
     @Override
     public void close() {
+        GlobalTranslator.translator().removeSource(this);
+
         new HashMap<>(children).forEach((s, translations) -> translations.close());
         if (parent != null) {
             parent.remove(this.name);
@@ -92,27 +92,21 @@ public class AppTranslator implements Translator {
     }
 
     @Override
-    public Translator fork(String name) {
+    public MessageTranslator fork(String name) {
         if (children.containsKey(name)) {
             throw new IllegalArgumentException("Another fork with name '" + name + "' already exists.");
         }
 
-        Translator child = new AppTranslator(this, name);
+        MessageTranslator child = new MessageTranslatorImpl(this, name);
         children.put(name, child);
         return child;
     }
 
     @Override
-    public Translator forkWithStorage(String name) {
-        Translator child = fork(name);
-        child.setMessageStorage(messageStorage);
-        child.setStyleStorage(styleStorage);
-        return child;
-    }
-
-    @Override
     public Message message(String key) {
-        return new MessageCore(this, key);
+        Message message = new MessageImpl(key);
+        messageSet.put(message.getKey(), message);
+        return message;
     }
 
     @Override
@@ -157,10 +151,13 @@ public class AppTranslator implements Translator {
 
     @Override
     public Component process(String raw, NanoContextImpl context, TagResolver... resolvers) {
+        if (raw == null) {
+            return Component.empty();
+        }
         Collection<NanoResolver> r = new LinkedList<>(context.getResolvers());
         r.addAll(this.resolvers);
 
-        Translator t = this;
+        MessageTranslator t = this;
         while (t.getParent() != null) {
             t = t.getParent();
             r.addAll(t.getResolvers());
@@ -194,8 +191,8 @@ public class AppTranslator implements Translator {
         return parent.getMessageInParentTree(key);
     }
 
-    private @Nullable Translator getTranslationsByNamespace(@AppPathPattern String namespace) {
-        Translator translator = this;
+    private @Nullable MessageTranslator getTranslationsByNamespace(@AppPathPattern String namespace) {
+        MessageTranslator messageTranslator = this;
         String[] split = namespace.split("\\.");
         Queue<String> path = new LinkedList<>(List.of(split));
 
@@ -204,12 +201,12 @@ public class AppTranslator implements Translator {
 
         while (!path.isEmpty()) {
             String childName = path.poll();
-            translator = children.get(childName);
-            if (translator == null) {
+            messageTranslator = children.get(childName);
+            if (messageTranslator == null) {
                 return null;
             }
         }
-        return translator;
+        return messageTranslator;
     }
 
     @Override
@@ -217,8 +214,8 @@ public class AppTranslator implements Translator {
         if (parent != null) {
             return parent.getMessageByNamespace(namespace, key);
         }
-        Translator translator = getTranslationsByNamespace(namespace);
-        return translator == null ? null : translator.getMessageInParentTree(key);
+        MessageTranslator messageTranslator = getTranslationsByNamespace(namespace);
+        return messageTranslator == null ? null : messageTranslator.getMessageInParentTree(key);
     }
 
     @Override
@@ -226,15 +223,12 @@ public class AppTranslator implements Translator {
         if (parent != null) {
             return parent.getStyleByNamespace(namespace, key);
         }
-        Translator translator = getTranslationsByNamespace(namespace);
-        return translator == null ? null : translator.getStyleInParentTree(key);
+        MessageTranslator messageTranslator = getTranslationsByNamespace(namespace);
+        return messageTranslator == null ? null : messageTranslator.getStyleInParentTree(key);
     }
 
     @Override
     public void addMessage(Message message) {
-        if (message.getTranslator() != null) {
-            message.getTranslator().getMessageSet().remove(message.getKey());
-        }
         messageSet.put(message.getKey(), message);
     }
 
@@ -287,7 +281,6 @@ public class AppTranslator implements Translator {
         }
         if (messageStorage != null) {
             messageStorage.readMessages(locale).forEach((message, s) -> {
-                message.setTranslator(this);
                 messageSet.computeIfAbsent(message.getKey(), key -> message).getDictionary().put(locale, s);
             });
         }
@@ -323,14 +316,38 @@ public class AppTranslator implements Translator {
     }
 
     @Override
-    public Translator formatted(TagResolver... resolver) {
+    public MessageTranslator formatted(TagResolver... resolver) {
         this.resolvers.addAll(Arrays.stream(resolver).map(r -> (NanoResolver) c -> r).toList());
         return this;
     }
 
     @Override
-    public Translator formatted(NanoResolver... nanoResolver) {
+    public MessageTranslator formatted(NanoResolver... nanoResolver) {
         this.resolvers.addAll(List.of(nanoResolver));
         return null;
+    }
+
+    @Override
+    public @NotNull Key name() {
+        return Key.key(getPath(), getName());
+    }
+
+    @Override
+    public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
+        return null;
+    }
+
+    @Override
+    public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
+        String key = component.key();
+        Message message = messageSet.get(key);
+        if (message == null) {
+            return null;
+        }
+        if (component instanceof Message formatted) {
+            return process(formatted, locale);
+        } else {
+            return process(message, locale);
+        }
     }
 }
