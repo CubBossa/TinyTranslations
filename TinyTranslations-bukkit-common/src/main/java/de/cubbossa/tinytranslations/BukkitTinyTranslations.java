@@ -1,6 +1,9 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.impl.MessageTranslatorImpl;
 import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -21,30 +24,87 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-public final class TinyTranslationsBukkit extends TinyTranslations {
+public final class BukkitTinyTranslations extends TinyTranslations {
 
-	private TinyTranslationsBukkit() {}
 	private static BukkitAudiences audiences;
+	private static volatile MessageTranslator server;
+
+	private static final Object mutex = new Object();
+	public static MessageTranslator server() {
+		MessageTranslator g = server;
+		if (g == null) {
+			throw new IllegalStateException("Accessing global without enabling TranslationsFramework.");
+		}
+		return g;
+	}
+
 
 	static {
 		applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
 	}
 
-	public static void enable(JavaPlugin plugin) {
-		audiences = BukkitAudiences.create(plugin);
-		TinyTranslations.enable(new File(plugin.getDataFolder(), "/../"));
+	public static boolean isEnabled() {
+		MessageTranslator g = server;
+		if (g == null) {
+			synchronized (mutex) {
+				return g != null;
+			}
+		}
+		return false;
+	}
 
-		global().addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
-		global().saveLocale(Locale.ENGLISH);
+	private static void enable(JavaPlugin plugin) {
+		audiences = BukkitAudiences.create(plugin);
+		enable(new File(plugin.getDataFolder(), "/../"));
+	}
+
+	private static void enable(File pluginDirectory) {
+
+		MessageTranslator g = server;
+		if (g == null) {
+			synchronized (mutex) {
+				g = server;
+				if (g == null) {
+					server = new MessageTranslatorImpl(null, "global");
+
+					if (!pluginDirectory.exists()) {
+						throw new IllegalArgumentException("Global translations directory must exist.");
+					}
+					File globalLangDir = new File(pluginDirectory, "/lang/");
+
+					// If lang dir exists, whatever happens in there is the choice of administrators
+					boolean createStartFiles = !globalLangDir.exists();
+
+					if (createStartFiles && !globalLangDir.mkdirs()) {
+						throw new IllegalStateException("Could not create /lang/ directory for global translations.");
+					}
+					if (createStartFiles) {
+						writeResourceIfNotExists(globalLangDir, "README.txt");
+						writeResourceIfNotExists(globalLangDir, "lang/global_styles.properties", "global_styles.properties");
+					}
+
+					g.setMessageStorage(new PropertiesMessageStorage(globalLangDir));
+					g.setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
+
+					g.addMessages(TinyTranslations.messageFieldsFromClass(GlobalMessages.class));
+					server().addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
+					g.saveLocale(Locale.ENGLISH);
+
+					writeMissingDefaultStyles();
+				}
+			}
+		}
 	}
 
 	public static void disable() {
-		TinyTranslations.disable();
 		audiences.close();
 	}
 
@@ -52,7 +112,7 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 		if (!isEnabled()) {
 			enable(plugin);
 		}
-		var app = application(plugin.getName());
+		var app = server().fork(plugin.getName());
 		return app;
 	}
 
@@ -74,9 +134,6 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 	}
 
 	public static void sendActionBar(CommandSender sender, ComponentLike message) {
-		if (message instanceof Message msg && msg.getTranslator() != null) {
-			message = msg.getTranslator().process(msg, getLocale(sender));
-		}
 		audiences.sender(sender).sendActionBar(message);
 	}
 
@@ -89,9 +146,6 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 	}
 
 	public static void sendMessage(CommandSender sender, ComponentLike message) {
-		if (message instanceof Message msg && msg.getTranslator() != null) {
-			message = msg.getTranslator().process(msg, getLocale(sender));
-		}
 		audiences.sender(sender).sendMessage(message);
 	}
 
@@ -101,6 +155,57 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 			return;
 		}
 		sendMessage(sender, message);
+	}
+
+	private static void writeResourceIfNotExists(File langDir, String name) {
+		writeResourceIfNotExists(langDir, name, name);
+	}
+
+	private static void writeResourceIfNotExists(File langDir, String name, String as) {
+		File file = new File(langDir, as);
+		if (file.exists()) {
+			return;
+		}
+		try {
+			if (!file.createNewFile()) {
+				throw new IllegalStateException("Could not create resource");
+			}
+			InputStream is =BukkitTinyTranslations.class.getResourceAsStream("/" + name);
+			if (is == null) {
+				throw new IllegalArgumentException("Could not load resource with name '" + name + "'.");
+			}
+			FileOutputStream os = new FileOutputStream(file);
+			os.write(is.readAllBytes());
+			os.close();
+			is.close();
+		} catch (IOException e) {
+			throw new IllegalArgumentException("Could not load resource with name '" + name + "'.", e);
+		}
+	}
+
+	private static void writeMissingDefaultStyles() {
+		File tempFile;
+		try {
+			tempFile = File.createTempFile("stream_to_file", ".properties");
+			tempFile.deleteOnExit();
+			try (InputStream is = BukkitTinyTranslations.class.getResourceAsStream("/lang/global_styles.properties")) {
+				try (FileOutputStream out = new FileOutputStream(tempFile)) {
+					out.write(is.readAllBytes());
+				}
+			}
+		} catch (Throwable t) {
+			throw new RuntimeException("Could not create temp file to append missing default styles.");
+		}
+		MessageTranslator server = server();
+		PropertiesStyleStorage storage = new PropertiesStyleStorage(tempFile);
+		storage.loadStyles().forEach((s, messageStyle) -> {
+			if (!server.getStyleSet().containsKey(s)) {
+				server.getStyleSet().put(s, messageStyle);
+			}
+		});
+		if (server.getStyleStorage() != null) {
+			server.getStyleStorage().writeStyles(server.getStyleSet());
+		}
 	}
 
 	private static void applyBukkitObjectResolvers(ObjectTagResolverMap map) {
@@ -153,4 +258,5 @@ public final class TinyTranslationsBukkit extends TinyTranslations {
 		map.put(Material.class, Collections.emptyMap(), m -> BukkitGlobalMessages.FORMAT_MATERIAL.insertObject("material", m));
 		map.put(EntityType.class, Collections.emptyMap(), m -> BukkitGlobalMessages.FORMAT_ENTITY_TYPE.insertObject("type", m));
 	}
+	private BukkitTinyTranslations() {}
 }

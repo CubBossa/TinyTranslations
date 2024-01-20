@@ -22,9 +22,6 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
 	@KeyPattern
 	String getKey();
 
-	@Override
-	@NotNull Component asComponent();
-
 	String toString(MessageFormat format);
 
 	String toString(MessageFormat format, Locale locale);

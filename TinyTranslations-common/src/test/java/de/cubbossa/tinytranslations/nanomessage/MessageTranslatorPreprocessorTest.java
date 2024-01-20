@@ -39,11 +39,11 @@ public class MessageTranslatorPreprocessorTest extends TestBase {
 	void embedded() {
 		Assertions.assertEquals(
 				Component.text("Red", NamedTextColor.RED).append(Component.text("Blue", NamedTextColor.DARK_BLUE)),
-				messageTranslator.process("<red>Red<legacy:'&'>&1Blue</legacy></red>")
+				translator.process("<red>Red<legacy:'&'>&1Blue</legacy></red>")
 		);
 		Assertions.assertEquals(
 				Component.text("Red", NamedTextColor.RED).append(Component.text("<Blue>", NamedTextColor.DARK_BLUE)),
-				messageTranslator.process("<red>Red<nbt>{\"text\":\"<Blue>\",\"color\":\"dark_blue\"}</nbt></red>")
+				translator.process("<red>Red<nbt>{\"text\":\"<Blue>\",\"color\":\"dark_blue\"}</nbt></red>")
 		);
 	}
 

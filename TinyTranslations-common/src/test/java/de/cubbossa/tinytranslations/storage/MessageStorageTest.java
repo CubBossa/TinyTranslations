@@ -28,7 +28,6 @@ public abstract class MessageStorageTest {
         gDir = new File(dir, "/test/");
         gDir.mkdirs();
 
-        TinyTranslations.enable(gDir);
         messageTranslator = TinyTranslations.application("TestApp");
 
         storage = getMessageStorage(new File(gDir, "/TestApp/lang/"));
@@ -42,7 +41,6 @@ public abstract class MessageStorageTest {
     @AfterEach
     void afterEach() {
         messageTranslator.close();
-        TinyTranslations.disable();
     }
 
 

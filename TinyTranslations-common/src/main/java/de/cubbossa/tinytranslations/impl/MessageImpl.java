@@ -2,6 +2,7 @@ package de.cubbossa.tinytranslations.impl;
 
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageFormat;
+import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
@@ -22,11 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class MessageImpl implements Message {
 
     private final @KeyPattern String key;
-    private Style style;
+
+    private Style style = Style.empty();
     private List<Component> children = new ArrayList<>();
     private final List<TranslationArgument> arguments = Collections.emptyList();
-    protected final Collection<TagResolver> resolvers = new ArrayList<>();
-    protected final Collection<NanoResolver> nanoResolvers = new ArrayList<>();
+    private final Collection<TagResolver> resolvers = new ArrayList<>();
+    private final Collection<NanoResolver> nanoResolvers = new ArrayList<>();
 
     private Map<Locale, String> dictionary;
     private String fallback;
@@ -63,15 +65,10 @@ public final class MessageImpl implements Message {
 
     @Override
     public String toString() {
-        return "Message{key=" + getKey().toLowerCase() + "}";
+        return "Message{key='" + getKey().toLowerCase() + "'}";
     }
 
-    @Override
-    public @NotNull Component asComponent() {
-        return this;
-    }
-
-    @Override
+	@Override
     public String toString(MessageFormat format) {
         return format.format(asComponent());
     }
@@ -83,7 +80,9 @@ public final class MessageImpl implements Message {
 
     @Override
     public Collection<NanoResolver> getResolvers() {
-        return Collections.emptyList();
+        var result = new ArrayList<>(nanoResolvers);
+        result.addAll(resolvers.stream().map(resolver -> (NanoResolver) c -> resolver).toList());
+        return result;
     }
 
     @Override

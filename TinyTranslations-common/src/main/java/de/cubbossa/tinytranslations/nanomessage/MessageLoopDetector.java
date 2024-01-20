@@ -40,7 +40,8 @@ public class MessageLoopDetector {
 		if (s == null) {
 			return new Node(null, new HashSet<>());
 		}
-		return buildTree(origin, stack, locale, /*origin.getTranslator()*/ null, s);
+		return new Node(null, new HashSet<>());
+		// return buildTree(origin, stack, locale, origin.getTranslator(), s);
 	}
 
 	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {

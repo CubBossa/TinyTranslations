@@ -20,52 +20,9 @@ public class TinyTranslations {
   static {
     applyDefaultObjectResolvers(NM.getObjectTypeResolverMap());
   }
-  private static volatile MessageTranslator global;
-
-  private static final Object mutex = new Object();
-  public static MessageTranslator global() {
-    MessageTranslator g = global;
-    if (g == null) {
-      throw new IllegalStateException("Accessing global without enabling TranslationsFramework.");
-    }
-    return g;
-  }
-
-  public static MessageTranslator standalone(String name) {
-    return new MessageTranslatorImpl(null, name);
-  }
 
   public static MessageTranslator application(String name) {
-    return global().fork(name);
-  }
-
-  public static boolean isEnabled() {
-    MessageTranslator g = global;
-    if (g == null) {
-      synchronized (mutex) {
-        return g != null;
-      }
-    }
-    return false;
-  }
-
-  public static void enable(File pluginDirectory) {
-
-    MessageTranslator g = global;
-    if (g == null) {
-      synchronized (mutex) {
-        g = global;
-        if (g == null) {
-          global = new MessageTranslatorImpl(null, "global");
-        }
-      }
-    }
-  }
-
-  public static void disable() {
-    synchronized (mutex) {
-      global = null;
-    }
+    return new MessageTranslatorImpl(null, name);
   }
 
   public static Message[] messageFieldsFromClass(Class<?> messageClass) {

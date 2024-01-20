@@ -27,7 +27,6 @@ public abstract class StyleStorageTest {
         File gDir = new File(dir, "/test/");
         gDir.mkdirs();
 
-        TinyTranslations.enable(gDir);
         messageTranslator = TinyTranslations.application("TestApp");
 
         new File(gDir, "/TestApp/").mkdirs();
@@ -38,7 +37,6 @@ public abstract class StyleStorageTest {
     @AfterEach
     void afterEach() {
         messageTranslator.close();
-        TinyTranslations.disable();
     }
 
     @Test

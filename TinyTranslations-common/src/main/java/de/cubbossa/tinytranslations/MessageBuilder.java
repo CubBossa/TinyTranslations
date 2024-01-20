@@ -77,7 +77,9 @@ public class MessageBuilder {
                 .map(Placeholder::resolver)
                 .filter(Optional::isPresent).map(Optional::get)
                 .toArray(TagResolver[]::new));
-        owner.addMessage(message);
+        if (owner != null) {
+            owner.addMessage(message);
+        }
         return message;
     }
 

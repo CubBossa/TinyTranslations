@@ -1,5 +1,7 @@
 package de.cubbossa.tinytranslations;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.intellij.lang.annotations.RegExp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,24 +11,31 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Locale;
 
 public class TestBase {
 
     protected File dir;
-    protected MessageTranslator messageTranslator;
+    protected MessageTranslator translator;
+
+    public Component render(Component component) {
+        return render(component, Locale.ENGLISH);
+    }
+
+    public Component render(Component component, Locale locale) {
+        return GlobalTranslator.renderer().render(component, locale);
+    }
 
     @BeforeEach
     void beforeEach(@TempDir File d) {
         dir = new File(d, "/test/");
         dir.mkdirs();
-        TinyTranslations.enable(dir);
-        messageTranslator = TinyTranslations.application("TestApp");
+        translator = TinyTranslations.application("TestApp");
     }
 
     @AfterEach
     void afterEach() {
-        messageTranslator.close();
-        TinyTranslations.disable();
+        translator.close();
     }
 
 

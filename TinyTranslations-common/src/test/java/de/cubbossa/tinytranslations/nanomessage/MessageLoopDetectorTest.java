@@ -12,28 +12,28 @@ class MessageLoopDetectorTest extends TestBase {
 	@Test
 	void detectLoops() {
 
-		Message a = messageTranslator.messageBuilder("a").withDefault("{msg:a}").build();
+		Message a = translator.messageBuilder("a").withDefault("{msg:a}").build();
 		Assertions.assertFalse(new MessageLoopDetector().detectLoops(a).isEmpty());
 
-		Message b = messageTranslator.messageBuilder("b").withDefault("{msg:c}").build();
-		messageTranslator.messageBuilder("c").withDefault("{msg:b}").build();
+		Message b = translator.messageBuilder("b").withDefault("{msg:c}").build();
+		translator.messageBuilder("c").withDefault("{msg:b}").build();
 		Assertions.assertFalse(new MessageLoopDetector().detectLoops(b).isEmpty());
 
-		Message d = messageTranslator.messageBuilder("d").withDefault("<e>abc</e>").build();
-		messageTranslator.getStyleSet().put("e", "{msg:f}{slot}");
-		messageTranslator.messageBuilder("f").withDefault("{msg:d}").build();
+		Message d = translator.messageBuilder("d").withDefault("<e>abc</e>").build();
+		translator.getStyleSet().put("e", "{msg:f}{slot}");
+		translator.messageBuilder("f").withDefault("{msg:d}").build();
 		Assertions.assertFalse(new MessageLoopDetector().detectLoops(d).isEmpty());
 	}
 
 	@Test
 	void detectLoopsOnLoad() {
 
-		messageTranslator.messageBuilder("a")
+		translator.messageBuilder("a")
 				.withTranslation(Locale.ENGLISH, "{msg:a}").build();
-		messageTranslator.loadLocale(Locale.ENGLISH);
+		translator.loadLocale(Locale.ENGLISH);
 		Assertions.assertNotEquals(
 				"{msg:a}",
-				messageTranslator.getMessage("a").getDictionary().get(Locale.ENGLISH)
+				translator.getMessage("a").getDictionary().get(Locale.ENGLISH)
 		);
 	}
 }

@@ -25,11 +25,28 @@
     </repositories>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-common</artifactId>
             <version>4.3.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>de.cubbossa</groupId>
+            <artifactId>TinyTranslations-common</artifactId>
+            <version>4.3.3</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
 
         <!--This adds the Spigot API artifact to the build -->
         <dependency>
