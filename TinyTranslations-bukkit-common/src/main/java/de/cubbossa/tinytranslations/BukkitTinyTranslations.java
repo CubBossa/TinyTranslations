@@ -74,6 +74,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 				g = server;
 				if (g == null) {
 					server = new MessageTranslatorImpl(null, "global");
+					g = server;
 
 					if (!pluginDirectory.exists()) {
 						throw new IllegalArgumentException("Global translations directory must exist.");

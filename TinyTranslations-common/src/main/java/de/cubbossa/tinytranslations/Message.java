@@ -1,15 +1,9 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
-import de.cubbossa.tinytranslations.annotation.PathPattern;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.Translatable;
-import net.kyori.adventure.translation.Translator;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -22,9 +16,9 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
 	@KeyPattern
 	String getKey();
 
-	String toString(MessageFormat format);
+	String toString(MessageEncoding format);
 
-	String toString(MessageFormat format, Locale locale);
+	String toString(MessageEncoding format, Locale locale);
 
 
 	Map<Locale, String> getDictionary();

@@ -88,7 +88,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Processes a raw string as if it were a translation value of a Message.
      * The fallback locale ({@link #getUserLocale(Audience)} for null) will be used to resolve embedded messages.
      *
-     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
@@ -98,7 +98,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Processes a raw string as if it were a translation value of a Message.
      * The given audience's locale will be used to resolve embedded messages.
      *
-     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
      * @param target A target audience that will be used to determine the locale.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
@@ -109,7 +109,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Processes a raw string as if it were a translation value of a Message.
      * The given locale will be used to resolve embedded messages.
      *
-     * @param raw A raw string that might start with a MessageFormat prefix. Otherwise, assuming MiniMessage format.
+     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
      * @param locale A locale to use to resolve embedded messages.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.

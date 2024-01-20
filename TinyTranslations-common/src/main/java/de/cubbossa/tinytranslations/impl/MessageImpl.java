@@ -1,8 +1,7 @@
 package de.cubbossa.tinytranslations.impl;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.MessageFormat;
-import de.cubbossa.tinytranslations.MessageTranslator;
+import de.cubbossa.tinytranslations.MessageEncoding;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
@@ -50,12 +49,14 @@ public final class MessageImpl implements Message {
 
     public MessageImpl(String key, MessageImpl other) {
         this.key = key;
-        this.style = other.style;
+        this.style = other.style.color(other.style.color());
         this.children = other.children().stream().map(c -> c.children(c.children())).toList();
         this.dictionary = new HashMap<>(other.dictionary);
         this.fallback = other.fallback;
         this.placeholderTags = new HashMap<>(other.placeholderTags);
         this.comment = other.comment;
+        this.resolvers.addAll(other.resolvers);
+        this.nanoResolvers.addAll(other.nanoResolvers);
     }
 
     @KeyPattern
@@ -69,12 +70,12 @@ public final class MessageImpl implements Message {
     }
 
 	@Override
-    public String toString(MessageFormat format) {
+    public String toString(MessageEncoding format) {
         return format.format(asComponent());
     }
 
     @Override
-    public String toString(MessageFormat format, Locale locale) {
+    public String toString(MessageEncoding format, Locale locale) {
         return toString(format);
     }
 

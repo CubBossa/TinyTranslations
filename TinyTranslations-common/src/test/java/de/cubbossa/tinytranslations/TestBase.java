@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Locale;
 
 public class TestBase {
@@ -23,7 +24,11 @@ public class TestBase {
     }
 
     public Component render(Component component, Locale locale) {
-        return GlobalTranslator.renderer().render(component, locale);
+        component = GlobalTranslator.renderer().render(component, locale);
+        List<Component> children = component.children();
+        return component.children(
+                children.stream().map(c -> render(c, locale)).toList()
+        );
     }
 
     @BeforeEach

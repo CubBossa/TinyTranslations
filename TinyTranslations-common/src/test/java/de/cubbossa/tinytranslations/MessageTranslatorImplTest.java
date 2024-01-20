@@ -134,7 +134,7 @@ class MessageTranslatorImplTest extends TestBase {
 
 		List<Boolean> list = List.of(true, false, true);
 		Message a = translator.messageBuilder("a.B.c").withDefault("Header\n<list:','>\nFooter").build();
-		Message b = translator.messageBuilder("b").withDefault("<val:'<green>true</green>':'<red>false</red>'>").build();
+		Message b = translator.messageBuilder("b").withDefault("{val ? '<green>true</green>' : '<red>false</red>' }").build();
 
 		a = a.insertList("list", list, ListSection.paged(0, 2), v -> b.insertBool("val", v));
 		assertEquals(
@@ -144,6 +144,22 @@ class MessageTranslatorImplTest extends TestBase {
 						.append(text("false", NamedTextColor.RED))
 						.append(text("\nFooter")),
 				render(a).compact()
+		);
+	}
+
+	@Test
+	public void testPlaceholder() {
+
+		Message a = translator.messageBuilder("a").withDefault("{value}").build();
+		assertEquals(
+				Component.text("b"),
+				render(a.insertString("value", "b"))
+		);
+
+		Message c = translator.messageBuilder("c").withDefault("<value/>").build();
+		assertEquals(
+				Component.text("d"),
+				render(c.insertString("value", "d"))
 		);
 	}
 

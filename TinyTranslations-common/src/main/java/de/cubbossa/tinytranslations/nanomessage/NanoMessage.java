@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
-import de.cubbossa.tinytranslations.MessageFormat;
+import de.cubbossa.tinytranslations.MessageEncoding;
 import de.cubbossa.tinytranslations.nanomessage.tag.BrighterTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.ClickTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.DarkerTag;
@@ -24,10 +24,10 @@ public interface NanoMessage extends ComponentSerializer<Component, Component, S
 				DefaultResolvers.lower("lower"),
 				DefaultResolvers.shortUrl("shorturl"),
 				DefaultResolvers.preview("shorten"),
-				MessageFormat.NBT.getTagResolver(),
-				MessageFormat.LEGACY_PARAGRAPH.getTagResolver(),
-				MessageFormat.LEGACY_AMPERSAND.getTagResolver(),
-				MessageFormat.PLAIN.getTagResolver(),
+				MessageEncoding.NBT.getTagResolver(),
+				MessageEncoding.LEGACY_PARAGRAPH.getTagResolver(),
+				MessageEncoding.LEGACY_AMPERSAND.getTagResolver(),
+				MessageEncoding.PLAIN.getTagResolver(),
 				ClickTag.RESOLVER,
 				HoverTag.RESOLVER
 		);

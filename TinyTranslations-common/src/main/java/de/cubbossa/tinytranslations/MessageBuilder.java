@@ -39,10 +39,10 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withTranslation(Locale locale, @Language("NanoMessage") String miniMessage) {
-        return this.withTranslation(locale, MessageFormat.MINI_MESSAGE, miniMessage);
+        return this.withTranslation(locale, MessageEncoding.MINI_MESSAGE, miniMessage);
     }
 
-    public MessageBuilder withTranslation(Locale locale, MessageFormat format, String translation) {
+    public MessageBuilder withTranslation(Locale locale, MessageEncoding format, String translation) {
         this.translations.put(locale, format.wrap(translation));
         return this;
     }

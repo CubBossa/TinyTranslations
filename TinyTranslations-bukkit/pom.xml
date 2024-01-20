@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.cubbossa</groupId>
         <artifactId>TinyTranslations</artifactId>
-        <version>4.3.3</version>
+        <version>4.4.0</version>
     </parent>
 
     <artifactId>TinyTranslations-bukkit</artifactId>
@@ -39,12 +39,7 @@
                                 <includes>
                                     <include>de.cubbossa:TinyTranslations-common</include>
                                     <include>de.cubbossa:TinyTranslations-bukkit-common</include>
-                                    <include>net.kyori:adventure-api</include>
-                                    <include>net.kyori:adventure-platform-bukkit</include>
-                                    <include>net.kyori:adventure-text-minimessage</include>
-                                    <include>net.kyori:adventure-text-serializer-legacy</include>
-                                    <include>net.kyori:adventure-text-serializer-gson</include>
-                                    <include>net.kyori:adventure-text-serializer-plain</include>
+                                    <include>net.kyori:*</include>
                                 </includes>
                             </artifactSet>
                             <relocations>
@@ -70,12 +65,12 @@
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-common</artifactId>
-            <version>4.3.3</version>
+            <version>4.4.0</version>
         </dependency>
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-bukkit-common</artifactId>
-            <version>4.3.3</version>
+            <version>4.4.0</version>
         </dependency>
     </dependencies>
 
