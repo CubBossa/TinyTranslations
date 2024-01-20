@@ -2,13 +2,11 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
-import de.cubbossa.tinytranslations.nanomessage.NanoContextImpl;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.translation.Translator;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -51,26 +49,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     MessageBuilder messageBuilder(String key);
 
-
-    /**
-     * Turns a message into a component. All embedded messages or styles will be resolved.
-     * If the message has a target audience specified, it will be used to determine the locale.
-     * If the message has {@link TagResolver}s specified, these will be resolved in the process.
-     *
-     * @param message Any message instance.
-     * @return A component that resembles the message in the locale of the message audience.
-     */
-    Component process(Message message);
-
-    /**
-     * Turns a message into a component. All embedded messages or styles will be resolved.
-     * If the message has {@link TagResolver}s specified, these will be resolved in the process.
-     *
-     * @param message Any message instance.
-     * @param target A target audience that will be used to determine the message locale.
-     * @return A component that resembles the message in the given audience's locale.
-     */
-    Component process(Message message, Audience target);
+    Component translate(Message message, TagResolver... resolvers);
 
     /**
      * Turns a message into a component. All embedded messages or styles will be resolved.
@@ -80,30 +59,17 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * @param locale A target locale that the message will be translated into.
      * @return The message translated into a component.
      */
-    Component process(Message message, Locale locale);
-
-    Component process(Message message, NanoContextImpl context, TagResolver... resolvers);
+    Component translate(Message message, Locale locale, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
-     * The fallback locale ({@link #getUserLocale(Audience)} for null) will be used to resolve embedded messages.
+     * The default locale will be used to resolve messages.
      *
      * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(@Language("NanoMessage") String raw, TagResolver... resolvers);
-
-    /**
-     * Processes a raw string as if it were a translation value of a Message.
-     * The given audience's locale will be used to resolve embedded messages.
-     *
-     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
-     * @param target A target audience that will be used to determine the locale.
-     * @param resolvers A collection of resolvers to include into the resolving process.
-     * @return The processed Component that resembles the input string.
-     */
-    Component process(@Language("NanoMessage") String raw, Audience target, TagResolver... resolvers);
+    Component translate(@Language("NanoMessage") String raw, TagResolver... resolvers);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.
@@ -114,9 +80,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
-    Component process(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
-
-    Component process(@Language("NanoMessage") String raw, NanoContextImpl context, TagResolver... resolvers);
+    Component translate(@Language("NanoMessage") String raw, Locale locale, TagResolver... resolvers);
 
     /**
      * Loads all styles from this application from file. Also propagates to global, so all parenting Translation
@@ -227,12 +191,11 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     void setStyleStorage(@Nullable StyleStorage storage);
 
 
-    void setLocaleProvider(Function<@Nullable Audience, @NotNull Locale> function);
+    void setUseClientLocale(boolean clientLocale);
 
-    /**
-     * Provides a Locale for each user. This might be the same Locale for all Users.
-     * @param user An audience individually representing each user
-     * @return The locale
-     */
-    @NotNull Locale getUserLocale(@Nullable Audience user);
+    boolean isUseClientLocale();
+
+    void setDefaultLocale(Locale locale);
+
+    Locale getDefaultLocale();
 }

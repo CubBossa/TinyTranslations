@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.impl.MessageTranslatorImpl;
 import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;

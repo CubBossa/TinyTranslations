@@ -1,5 +1,6 @@
 package de.cubbossa.tinytranslations.nanomessage.tag;
 
+import de.cubbossa.tinytranslations.TinyTranslations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -10,14 +11,14 @@ import java.util.Queue;
 
 public class ObjectTag {
 
-	public static <T> NanoResolver resolver(String key, T obj) {
-		return context -> TagResolver.resolver(key, (argumentQueue, c) -> {
+	public static <T> TagResolver resolver(String key, T obj) {
+		return TagResolver.resolver(key, (argumentQueue, c) -> {
 			Queue<String> path = new LinkedList<>();
 			while (argumentQueue.hasNext()) {
 				path.add(argumentQueue.pop().value());
 			}
 			argumentQueue.reset();
-			Object resolved = context.getObjectTagResolverMap().resolve(obj, path);
+			Object resolved = TinyTranslations.NM.getObjectTypeResolverMap().resolve(obj, path);
 			if (resolved == null) {
 				return Tag.inserting(Component.text("<" + key + ":" + String.join(":", path) + "/>"));
 			}

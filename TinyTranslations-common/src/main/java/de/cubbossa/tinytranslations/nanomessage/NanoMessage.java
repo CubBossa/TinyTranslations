@@ -36,5 +36,5 @@ public interface NanoMessage extends ComponentSerializer<Component, Component, S
 
 	ObjectTagResolverMap getObjectTypeResolverMap();
 
-	Component deserialize(@Language("NanoMessage") String value, NanoContextImpl context, TagResolver... resolvers);
+	Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers);
 }

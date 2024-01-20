@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
@@ -24,18 +23,16 @@ import static net.kyori.adventure.text.Component.text;
 
 public interface Formattable<ReturnT> {
 
-	Collection<NanoResolver> getResolvers();
-
+	Collection<TagResolver> getResolvers();
 
 	ReturnT formatted(TagResolver... resolver);
 
-	ReturnT formatted(NanoResolver... nanoResolver);
 
 	default ReturnT insertString(final @NotNull String key, String value) {
 		return formatted(Placeholder.unparsed(key, value));
 	}
 
-	default ReturnT insertStringLazy(final @NotNull String key, Supplier<String> value) {
+	default ReturnT insertString(final @NotNull String key, Supplier<String> value) {
 		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
 			return Tag.preProcessParsed(value.get());
 		}));
@@ -45,7 +42,7 @@ public interface Formattable<ReturnT> {
 		return formatted(Placeholder.component(key, value));
 	}
 
-	default ReturnT insertComponentLazy(final @NotNull String key, Supplier<ComponentLike> value) {
+	default ReturnT insertComponent(final @NotNull String key, Supplier<ComponentLike> value) {
 		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
 			return Tag.inserting(value.get());
 		}));
@@ -55,15 +52,10 @@ public interface Formattable<ReturnT> {
 		return formatted(Formatter.number(key, value));
 	}
 
-	default ReturnT insertNumberLazy(final @NotNull String key, Supplier<Number> value) {
+	default ReturnT insertNumber(final @NotNull String key, Supplier<Number> value) {
 		return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
 			return Formatter.number(key, value.get()).resolve(key, argumentQueue, context);
 		}));
-	}
-
-	@Deprecated
-	default ReturnT insertNumberChoice(final @NotNull String key, Number number) {
-		return formatted(Formatter.choice(key, number));
 	}
 
 	default ReturnT insertTemporal(final @NotNull String key, Temporal value) {
@@ -109,7 +101,7 @@ public interface Formattable<ReturnT> {
 				}));
 	}
 
-	default <E> ReturnT insertListLazy(final @NotNull String key, Function<ListSection, List<E>> elementSupplier, ListSection section, Function<E, ComponentLike> renderer) {
+	default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, List<E>> elementSupplier, ListSection section, Function<E, ComponentLike> renderer) {
 		return formatted(
 				Formatter.number("page", section.getPage() + 1),
 				Formatter.number("next-page", section.getPage() + 2),

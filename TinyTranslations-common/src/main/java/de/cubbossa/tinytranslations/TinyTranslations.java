@@ -1,11 +1,9 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.impl.MessageTranslatorImpl;
 import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
 import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import net.kyori.adventure.text.Component;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;

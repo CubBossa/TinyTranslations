@@ -1,36 +1,25 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
-import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.translation.TranslationRegistry;
 
 import java.util.HashMap;
 
 public class StyleSet extends HashMap<String, MessageStyle> {
 
-    private final StyleDeserializer deserializer;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = MiniMessage.builder().strict(true).build();
 
     public StyleSet() {
-        deserializer = new StyleDeserializerImpl();
-    }
-
-    public void put(String key, TagResolver styleResolver) {
-        this.put(key, new MessageStyleImpl(key, styleResolver));
+        super();
     }
 
     public void put(String key, Style style) {
-        this.put(key, new MessageStyleImpl(key, TagResolver.resolver(key, Tag.styling(s -> s.merge(style))),
-                miniMessage.serialize(Component.text("").style(style))));
+        String representation = miniMessage.serialize(Component.text("{slot}", style));
+        put(key, representation);
     }
 
     public void put(String key, String serializedStyle) {
-        this.put(key, new MessageStyleImpl(key, deserializer.deserialize(key, serializedStyle), serializedStyle));
+        this.put(key, MessageStyle.messageStyle(key, serializedStyle));
     }
-
 }

@@ -46,7 +46,7 @@ public class MessageLoopDetector {
 
 	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {
 		stack.push("(style) " + messageTranslator.getPath() + ":" + style.getKey());
-		String s = style.getStringBackup();
+		String s = style.toString();
 		return buildTree(origin, stack, locale, messageTranslator, s);
 	}
 

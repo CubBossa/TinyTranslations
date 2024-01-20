@@ -1,14 +1,18 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
+import de.cubbossa.tinytranslations.annotation.KeyPattern;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.jetbrains.annotations.Nullable;
 
-public interface MessageStyle {
+import java.io.Serializable;
 
-    String getKey();
+public interface MessageStyle extends Key, Serializable, TagResolver {
 
-    NanoResolver getResolver();
+    static MessageStyle messageStyle(String key, String representation) {
+        return new MessageStyleImpl(key, representation);
+    }
 
-    @Nullable String getStringBackup();
+    @KeyPattern String getKey();
+
+    String toString();
 }

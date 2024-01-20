@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.impl.MessageImpl;
 import de.cubbossa.tinytranslations.storage.FileMessageStorage;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
@@ -33,7 +32,7 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
 
         Map<String, StorageEntry> entries = readFile(file);
         Map<Message, String> result = new HashMap<>();
-        entries.forEach((key, value) -> result.put(new MessageImpl(key), value.value()));
+        entries.forEach((key, value) -> result.put(Message.message(key), value.value()));
         return result;
     }
 

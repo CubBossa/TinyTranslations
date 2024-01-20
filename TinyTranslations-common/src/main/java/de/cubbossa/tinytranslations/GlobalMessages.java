@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations;
 
-public class GlobalMessages {
+public final class GlobalMessages {
 
 	public static final Message BRAND = new MessageBuilder("brand")
 			.withDefault("<gradient:#ff2200:#ffff00:#ff2200>My Server Name</gradient>")

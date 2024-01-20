@@ -5,8 +5,6 @@ import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
@@ -17,7 +15,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -60,7 +57,7 @@ class MessageTranslatorImplTest extends TestBase {
 	void newLine() {
 		assertEquals(
 				2,
-				ComponentSplit.split(translator.process(NEW_LINE), "\n").size()
+				ComponentSplit.split(translator.translate(NEW_LINE), "\n").size()
 		);
 	}
 
@@ -69,20 +66,21 @@ class MessageTranslatorImplTest extends TestBase {
 	void translate() {
 		translator.addMessages(TinyTranslations.messageFieldsFromClass(this.getClass()));
 
-		assertEquals(text("Hello world", NamedTextColor.RED), translator.process(SIMPLE));
-		assertEquals(text("Hallo welt - Deutschland"), translator.process(SIMPLE, Locale.GERMANY));
-		assertEquals(text("Hallo welt - Deutsch"), translator.process(SIMPLE, Locale.GERMAN));
-		assertEquals(text("Hallo welt - Deutsch"), translator.process(SIMPLE, Locale.forLanguageTag("de-AT")));
+		assertEquals(text("Hello world", NamedTextColor.RED), translator.translate(SIMPLE));
+		assertEquals(text("Hallo welt - Deutschland"), translator.translate(SIMPLE, Locale.GERMANY));
+		assertEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.GERMAN));
+		assertEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
 
 		assertEquals(
 				text("Embedded: ").append(text("Hello worlda", NamedTextColor.RED)),
-				translator.process(EMBED, Locale.ENGLISH)
+				translator.translate(EMBED, Locale.ENGLISH)
 		);
 	}
 
 	@Test
 	void resolver() {
 		Message m = translator.messageBuilder("a").withDefault("a <b>").build();
+		assertEquals(text("a 1"), render(m.insertNumber("b", 1)));
 		assertEquals(text("a 1"), render(m.formatted(Formatter.number("b", 1))));
 	}
 
@@ -119,14 +117,14 @@ class MessageTranslatorImplTest extends TestBase {
 
 		translator.addMessages(TEST_1, TEST_2);
 
-		assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.process(TEST_1));
-		assertEquals(text("Hallo Welt!", NamedTextColor.RED), translator.process(TEST_1, Locale.GERMAN));
+		assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
+		assertEquals(text("Hallo Welt!", NamedTextColor.RED), translator.translate(TEST_1, Locale.GERMAN));
 
 		translator.saveLocale(Locale.ENGLISH);
 		translator.loadLocale(Locale.ENGLISH);
-		assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.process(TEST_1));
+		assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
 
-		assertEquals(text("Luke - I am your father!", NamedTextColor.GREEN), translator.process(TEST_2));
+		assertEquals(text("Luke - I am your father!", NamedTextColor.GREEN), translator.translate(TEST_2));
 	}
 
 	@Test
@@ -181,17 +179,17 @@ class MessageTranslatorImplTest extends TestBase {
 		Message msg = translator.messageBuilder("msg").withDefault("my test {player}").build();
 		Assertions.assertEquals(
 				Component.text("my test peter"),
-				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+				translator.translate(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
 		);
 		msg = translator.messageBuilder("msg").withDefault("my test {player:name}").build();
 		Assertions.assertEquals(
 				Component.text("my test peter"),
-				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+				translator.translate(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
 		);
 		msg = translator.messageBuilder("msg").withDefault("my test {player:location}").build();
 		Assertions.assertEquals(
 				Component.text("my test <1;2;3>"),
-				translator.process(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
+				translator.translate(msg.insertObject("player", new Player("peter", new Location(1,2,3))))
 		);
 	}
 
@@ -206,7 +204,7 @@ class MessageTranslatorImplTest extends TestBase {
 		Message a = translator.messageBuilder("a").withDefault("{desc:name}").build();
 		Assertions.assertEquals(
 				Component.text("tim"),
-				translator.process(a)
+				translator.translate(a)
 		);
 	}
 
@@ -222,7 +220,7 @@ class MessageTranslatorImplTest extends TestBase {
 
 		Assertions.assertEquals(
 				Component.text("12345"),
-				translator.process(a.insertObject("desc", new Description("5")))
+				translator.translate(a.insertObject("desc", new Description("5")))
 		);
 	}
 
@@ -244,27 +242,27 @@ class MessageTranslatorImplTest extends TestBase {
 
 		Assertions.assertEquals(
 				Component.text("Hello world!"),
-				translator.process(a, Locale.ENGLISH)
+				translator.translate(a, Locale.ENGLISH)
 		);
 		Assertions.assertEquals(
 				Component.text("Hello world!"),
-				translator.process(a, Locale.ITALIAN)
+				translator.translate(a, Locale.ITALIAN)
 		);
 		Assertions.assertEquals(
 				Component.text("Hello world!"),
-				translator.process(a, Locale.GERMAN)
+				translator.translate(a, Locale.GERMAN)
 		);
 		Assertions.assertEquals(
 				Component.text("Hallo Welt!"),
-				translator.process(a, Locale.GERMANY)
+				translator.translate(a, Locale.GERMANY)
 		);
 		Assertions.assertEquals(
 				Component.text("Bonjour le monde!"),
-				translator.process(a, Locale.FRANCE)
+				translator.translate(a, Locale.FRANCE)
 		);
 		Assertions.assertEquals(
 				Component.text("Bonjour le monde!"),
-				translator.process(a, Locale.FRENCH)
+				translator.translate(a, Locale.FRENCH)
 		);
 	}
 
@@ -275,8 +273,8 @@ class MessageTranslatorImplTest extends TestBase {
 		translator.getStyleSet().put("a", "<red>{slot}</red>");
 		PlainTextComponentSerializer p = PlainTextComponentSerializer.plainText();
 		Assertions.assertEquals(
-				p.serialize(translator.process("<a>test</a><green>test</green>").compact()),
-				p.serialize(translator.process("<a>test<green>test</green>").compact())
+				p.serialize(translator.translate("<a>test</a><green>test</green>").compact()),
+				p.serialize(translator.translate("<a>test<green>test</green>").compact())
 		);
 	}
 }

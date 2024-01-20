@@ -1,9 +1,6 @@
 package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.MessageStyle;
-import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
-import de.cubbossa.tinytranslations.StyleDeserializer;
-import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import de.cubbossa.tinytranslations.storage.FileEntry;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
@@ -16,15 +13,9 @@ import java.util.stream.Collectors;
 public class PropertiesStyleStorage implements StyleStorage {
 
     private final File file;
-    private final StyleDeserializer styleDeserializer;
 
     public PropertiesStyleStorage(File file) {
-        this(file, new StyleDeserializerImpl());
-    }
-
-    public PropertiesStyleStorage(File file, StyleDeserializer styleDeserializer) {
         this.file = file;
-        this.styleDeserializer = styleDeserializer;
     }
 
     private File file() {
@@ -57,7 +48,7 @@ public class PropertiesStyleStorage implements StyleStorage {
             }
         }
 
-        toWrite.forEach((s, style) -> lines.add(new StorageEntry(s, style.getStringBackup(), style instanceof FileEntry e ? e.getComments() : Collections.emptyList())));
+        toWrite.forEach((s, style) -> lines.add(new StorageEntry(s, style.toString(), style instanceof FileEntry e ? e.getComments() : Collections.emptyList())));
         writeStyles(lines);
     }
 
@@ -77,7 +68,7 @@ public class PropertiesStyleStorage implements StyleStorage {
     private Map<String, MessageStyle> readStylesFromLines(List<StorageEntry> lines) {
         return lines.stream().collect(Collectors.toMap(
                 StorageEntry::key,
-                e -> new MessageStyleImpl(e.key(), styleDeserializer.deserialize(e.key(), e.value()), e.value()),
+                e -> MessageStyle.messageStyle(e.key(), e.value()),
                 (a, b) -> a,
                 LinkedHashMap::new
         ));

@@ -15,31 +15,31 @@ import java.util.function.Function;
 
 class NanoMessageImpl implements NanoMessage {
 
-	private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 	private static final NanoMessageCompiler COMPILER = new NanoMessageCompiler();
+	private static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
+			.preProcessor(COMPILER::compile)
+			.strict(false)
+			.build();
 
 	@Getter
 	final ObjectTagResolverMap objectTypeResolverMap;
 	TagResolver defaultResolver = TagResolver.empty();
-	final Collection<Function<NanoContextImpl, TagResolver>> nanoResolvers = new HashSet<>();
 
 	public NanoMessageImpl() {
 		this.objectTypeResolverMap = new ObjectTagResolverMap();
 	}
 
-	public Component deserialize(@Language("NanoMessage") String value, NanoContextImpl context, TagResolver... resolvers) {
+	public Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers) {
 		String processed = COMPILER.compile(value);
 		return MINI_MESSAGE.deserialize(processed, TagResolver.builder()
 				.resolver(defaultResolver)
 				.resolvers(resolvers)
-				.resolvers(context.getResolvers().stream().map(n -> n.apply(context)).toList())
-				.resolvers(nanoResolvers.stream().map(f -> f.apply(context)).toArray(TagResolver[]::new))
 				.build());
 	}
 
 	@Override
 	public @NotNull Component deserialize(@NotNull @Language("NanoMessage") String input) {
-		return deserialize(input, new NanoContextImpl(Locale.ENGLISH));
+		return deserialize(input, new TagResolver[0]);
 	}
 
 	@Override

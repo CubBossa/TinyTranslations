@@ -9,8 +9,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 public class MessageTag {
 	public static final String KEY = "msg";
 
-	public static NanoResolver resolver(MessageTranslator messageTranslator) {
-		return context -> TagResolver.resolver(KEY, (queue, ctx) -> {
+	public static TagResolver resolver(MessageTranslator messageTranslator) {
+		return TagResolver.resolver(KEY, (queue, ctx) -> {
 			String nameSpace;
 			String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission/>.").value();
 			if (queue.hasNext()) {
@@ -21,13 +21,13 @@ public class MessageTag {
 				if (msg == null) {
 					return Tag.inserting(Component.text("<msg-not-found:" + key + "/>"));
 				}
-				return Tag.inserting(context.process(msg));
+				return Tag.inserting(msg);
 			}
 			Message msg = messageTranslator.getMessageByNamespace(nameSpace, key);
 			if (msg == null) {
 				return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + "/>"));
 			}
-			return Tag.inserting(context.process(msg));
+			return Tag.inserting(msg);
 		});
 	}
 

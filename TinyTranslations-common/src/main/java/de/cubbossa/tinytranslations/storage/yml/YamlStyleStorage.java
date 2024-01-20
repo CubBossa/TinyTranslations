@@ -1,8 +1,6 @@
 package de.cubbossa.tinytranslations.storage.yml;
 
 import de.cubbossa.tinytranslations.*;
-import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
-import de.cubbossa.tinytranslations.impl.StyleDeserializerImpl;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
@@ -18,27 +16,17 @@ import java.util.stream.Collectors;
 public class YamlStyleStorage implements StyleStorage {
 
   private final File file;
-  private final StyleDeserializer deserializer;
   private final Yaml yaml;
 
   public YamlStyleStorage(File file) {
-    this(file, new StyleDeserializerImpl(), null);
+    this(file, null);
   }
 
-  public YamlStyleStorage(File file, StyleDeserializer deserializer) {
-    this(file, deserializer, null);
-  }
-
-  public YamlStyleStorage(File file, DumperOptions options) {
-    this(file, new StyleDeserializerImpl(), options);
-  }
-
-  public YamlStyleStorage(File file, StyleDeserializer deserializer, @Nullable DumperOptions options) {
+  public YamlStyleStorage(File file, @Nullable DumperOptions options) {
     if (!file.getName().endsWith(".yml")) {
       throw new IllegalArgumentException("YamlStyleStorage file must be of type yml. Instead: " + file.getName());
     }
     this.file = file;
-    this.deserializer = deserializer;
     if (options == null) {
       options = new DumperOptions();
       options.setIndent(2);
@@ -61,7 +49,7 @@ public class YamlStyleStorage implements StyleStorage {
     Map<String, String> toWrite = new LinkedHashMap<>();
     styles.forEach((s, messageStyle) -> {
       if (!present.containsKey(s)) {
-        toWrite.put(s, messageStyle.getStringBackup());
+        toWrite.put(s, messageStyle.toString());
       }
     });
     try (FileWriter writer = new FileWriter(file)) {
@@ -98,7 +86,7 @@ public class YamlStyleStorage implements StyleStorage {
       } else {
         des = o.toString();
       }
-      result.put(s, new MessageStyleImpl(s, deserializer.deserialize(s, des), des));
+      result.put(s, MessageStyle.messageStyle(s, des));
     });
     return result;
   }

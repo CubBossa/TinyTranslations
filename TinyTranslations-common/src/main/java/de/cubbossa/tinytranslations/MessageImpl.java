@@ -1,10 +1,6 @@
-package de.cubbossa.tinytranslations.impl;
+package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.Message;
-import de.cubbossa.tinytranslations.MessageEncoding;
-import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
-import de.cubbossa.tinytranslations.nanomessage.tag.NanoResolver;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.*;
@@ -19,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
-public final class MessageImpl implements Message {
+final class MessageImpl implements Message {
 
     private final @KeyPattern String key;
 
@@ -27,7 +23,6 @@ public final class MessageImpl implements Message {
     private List<Component> children = new ArrayList<>();
     private final List<TranslationArgument> arguments = Collections.emptyList();
     private final Collection<TagResolver> resolvers = new ArrayList<>();
-    private final Collection<NanoResolver> nanoResolvers = new ArrayList<>();
 
     private Map<Locale, String> dictionary;
     private String fallback;
@@ -56,7 +51,6 @@ public final class MessageImpl implements Message {
         this.placeholderTags = new HashMap<>(other.placeholderTags);
         this.comment = other.comment;
         this.resolvers.addAll(other.resolvers);
-        this.nanoResolvers.addAll(other.nanoResolvers);
     }
 
     @KeyPattern
@@ -80,23 +74,14 @@ public final class MessageImpl implements Message {
     }
 
     @Override
-    public Collection<NanoResolver> getResolvers() {
-        var result = new ArrayList<>(nanoResolvers);
-        result.addAll(resolvers.stream().map(resolver -> (NanoResolver) c -> resolver).toList());
-        return result;
+    public Collection<TagResolver> getResolvers() {
+        return new ArrayList<>(resolvers);
     }
 
     @Override
     public Message formatted(TagResolver... resolver) {
         MessageImpl message = new MessageImpl(key, this);
         message.resolvers.addAll(List.of(resolver));
-        return message;
-    }
-
-    @Override
-    public Message formatted(NanoResolver... resolver) {
-        MessageImpl message = new MessageImpl(key, this);
-        message.nanoResolvers.addAll(List.of(resolver));
         return message;
     }
 

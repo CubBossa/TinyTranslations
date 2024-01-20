@@ -1,7 +1,7 @@
 package de.cubbossa.tinytranslations.storage;
 
+import de.cubbossa.tinytranslations.MessageStyle;
 import de.cubbossa.tinytranslations.MessageTranslator;
-import de.cubbossa.tinytranslations.impl.MessageStyleImpl;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.Tag;
@@ -44,7 +44,7 @@ public abstract class StyleStorageTest {
 
         Assertions.assertTrue(storage.loadStyles().isEmpty());
         storage.writeStyles(Map.of(
-                "abc", new MessageStyleImpl("abc", TagResolver.resolver("abc", Tag.styling(NamedTextColor.RED)), "<red>")
+                "abc", MessageStyle.messageStyle("abc", "<red>{slot}</red>")
         ));
         Assertions.assertFalse(storage.loadStyles().isEmpty());
     }

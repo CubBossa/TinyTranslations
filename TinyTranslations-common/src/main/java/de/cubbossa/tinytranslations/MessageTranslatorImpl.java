@@ -1,6 +1,5 @@
-package de.cubbossa.tinytranslations.impl;
+package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.*;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.nanomessage.*;
@@ -9,7 +8,6 @@ import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -21,20 +19,17 @@ import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
 
-public class MessageTranslatorImpl implements MessageTranslator {
+class MessageTranslatorImpl implements MessageTranslator {
 
     @Getter
     private final MessageTranslator parent;
     @Getter
     private final @AppPattern String name;
     private final Map<String, MessageTranslator> children;
-
-    private Function<@Nullable Audience, @NotNull Locale> localeProvider = null;
 
     @Getter
     private final Map<String, Message> messageSet;
@@ -46,9 +41,15 @@ public class MessageTranslatorImpl implements MessageTranslator {
     @Getter
     @Setter
     private @Nullable StyleStorage styleStorage;
+    @Getter
+    @Setter
+    private boolean useClientLocale = true;
+    @Getter
+    @Setter
+    private Locale defaultLocale = Locale.ENGLISH;
 
     @Getter
-    private final Collection<NanoResolver> resolvers = new LinkedList<>();
+    private final Collection<TagResolver> resolvers = new LinkedList<>();
 
     public MessageTranslatorImpl(MessageTranslator parent, String name) {
         this.parent = parent;
@@ -115,47 +116,26 @@ public class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public Component process(Message message) {
-        return process(message, getUserLocale(null));
+    public Component translate(Message message, TagResolver... resolvers) {
+        return translate(getMessageTranslation(message, getDefaultLocale()), getDefaultLocale(), resolvers);
     }
 
     @Override
-    public Component process(Message message, Audience target) {
-        return process(message, getUserLocale(target));
+    public Component translate(Message message, Locale locale, TagResolver... resolvers) {
+        return translate(getMessageTranslation(message, locale), locale, resolvers);
     }
 
     @Override
-    public Component process(Message message, Locale locale) {
-        return process(getMessageTranslation(message, locale), new NanoContextImpl(locale, message.getResolvers()));
+    public Component translate(String raw, TagResolver... resolvers) {
+        return translate(raw, getDefaultLocale(), resolvers);
     }
 
     @Override
-    public Component process(Message message, NanoContextImpl context, TagResolver... resolvers) {
-        return process(getMessageTranslation(message, context.getLocale()), context, resolvers);
-    }
-
-    @Override
-    public Component process(String raw, TagResolver... resolvers) {
-        return process(raw, new NanoContextImpl(getUserLocale(null), resolvers));
-    }
-
-    @Override
-    public Component process(String raw, Audience target, TagResolver... resolvers) {
-        return process(raw, new NanoContextImpl(getUserLocale(target), resolvers));
-    }
-
-    @Override
-    public Component process(String raw, Locale locale, TagResolver... resolvers) {
-        return process(raw, new NanoContextImpl(locale, resolvers));
-    }
-
-    @Override
-    public Component process(String raw, NanoContextImpl context, TagResolver... resolvers) {
+    public Component translate(String raw, Locale locale, TagResolver... resolvers) {
         if (raw == null) {
             return Component.empty();
         }
-        Collection<NanoResolver> r = new LinkedList<>(context.getResolvers());
-        r.addAll(this.resolvers);
+        Collection<TagResolver> r = new LinkedList<>(this.resolvers);
 
         MessageTranslator t = this;
         while (t.getParent() != null) {
@@ -164,7 +144,7 @@ public class MessageTranslatorImpl implements MessageTranslator {
         }
         r.add(MessageTag.resolver(this));
         r.add(StyleTag.resolver(this));
-        return TinyTranslations.NM.deserialize(raw, new NanoContextImpl(context.getLocale(), r), TagResolver.resolver(resolvers));
+        return TinyTranslations.NM.deserialize(raw, TagResolver.resolver(r));
     }
 
     @Override
@@ -303,28 +283,9 @@ public class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public void setLocaleProvider(Function<@Nullable Audience, @NotNull Locale> function) {
-        localeProvider = function;
-    }
-
-    @Override
-    public @NotNull Locale getUserLocale(@Nullable Audience user) {
-        if (localeProvider != null) {
-            return localeProvider.apply(user);
-        }
-        return parent == null ? Locale.ENGLISH : parent.getUserLocale(user);
-    }
-
-    @Override
     public MessageTranslator formatted(TagResolver... resolver) {
-        this.resolvers.addAll(Arrays.stream(resolver).map(r -> (NanoResolver) c -> r).toList());
+        this.resolvers.addAll(List.of(resolver));
         return this;
-    }
-
-    @Override
-    public MessageTranslator formatted(NanoResolver... nanoResolver) {
-        this.resolvers.addAll(List.of(nanoResolver));
-        return null;
     }
 
     @Override
@@ -344,10 +305,11 @@ public class MessageTranslatorImpl implements MessageTranslator {
         if (message == null) {
             return null;
         }
+        locale = useClientLocale ? locale : defaultLocale;
         if (component instanceof Message formatted) {
-            return process(formatted, locale);
+            return translate(getMessageTranslation(formatted, locale), locale, TagResolver.resolver(formatted.getResolvers()));
         } else {
-            return process(message, locale);
+            return translate(message, locale);
         }
     }
 }

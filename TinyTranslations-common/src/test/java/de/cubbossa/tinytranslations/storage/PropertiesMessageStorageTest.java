@@ -51,9 +51,9 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
         messageTranslator.loadLocales();
         Message a = messageTranslator.getMessage("char_a");
         assertNotNull(a);
-        assertEquals(text("äöüß"), messageTranslator.process(a));
+        assertEquals(text("äöüß"), messageTranslator.translate(a));
         Message b = messageTranslator.getMessage("char_b");
         assertNotNull(b);
-        assertEquals(text("ǮǬǱʁʀ"), messageTranslator.process(b));
+        assertEquals(text("ǮǬǱʁʀ"), messageTranslator.translate(b));
     }
 }
