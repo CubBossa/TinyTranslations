@@ -9,7 +9,7 @@
         <version>4.3.3</version>
     </parent>
 
-    <artifactId>TinyTranslations-bukkit</artifactId>
+    <artifactId>TinyTranslations-paper</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -39,20 +39,8 @@
                                 <includes>
                                     <include>de.cubbossa:TinyTranslations-common</include>
                                     <include>de.cubbossa:TinyTranslations-bukkit-common</include>
-                                    <include>net.kyori:adventure-api</include>
-                                    <include>net.kyori:adventure-platform-bukkit</include>
-                                    <include>net.kyori:adventure-text-minimessage</include>
-                                    <include>net.kyori:adventure-text-serializer-legacy</include>
-                                    <include>net.kyori:adventure-text-serializer-gson</include>
-                                    <include>net.kyori:adventure-text-serializer-plain</include>
                                 </includes>
                             </artifactSet>
-                            <relocations>
-                                <relocation>
-                                    <pattern>net.kyori</pattern>
-                                    <shadedPattern>de.cubbossa.tinytranslations.libs.kyori</shadedPattern>
-                                </relocation>
-                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -66,6 +54,7 @@
         </resources>
     </build>
 
+
     <dependencies>
         <dependency>
             <groupId>de.cubbossa</groupId>
@@ -78,5 +67,4 @@
             <version>4.3.3</version>
         </dependency>
     </dependencies>
-
 </project>

@@ -36,25 +36,9 @@ Make sure to use the latest version.
 <dependencies>
     <dependency>
         <groupId>de.cubbossa</groupId>
-        <artifactId>TinyTranslations</artifactId>
+        <!-- alternatively TinyTranslations-paper -->
+        <artifactId>TinyTranslations-bukkit</artifactId>
         <version>[version]</version>
-    </dependency>
-    
-    <!-- All kyori dependencies if not yet present -->
-    <dependency>
-        <groupId>net.kyori</groupId>
-        <artifactId>adventure-api</artifactId>
-        <version>4.14.0</version>
-    </dependency>
-    <dependency>
-        <groupId>net.kyori</groupId>
-        <artifactId>adventure-platform-bukkit</artifactId>
-        <version>4.3.2</version>
-    </dependency>
-    <dependency>
-        <groupId>net.kyori</groupId>
-        <artifactId>adventure-text-minimessage</artifactId>
-        <version>4.14.0</version>
     </dependency>
 </dependencies>
 ```
@@ -82,8 +66,8 @@ plugin can load the latest classes. Occurring errors would potentially disable y
                     <configuration>
                         <relocations>
                             <relocation>
-                                <pattern>de.cubbossa.tinytranslationsde.cubbossa.tinytranslations</pattern>
-                                <shadedPattern>[yourpluginpath].libs.translations</shadedPattern>
+                                <pattern>de.cubbossa.tinytranslations</pattern>
+                                <shadedPattern>[yourpluginpath].libs.tinytranslations</shadedPattern>
                             </relocation>
                         </relocations>
                     </configuration>
@@ -98,24 +82,15 @@ or with gradle:
 ```groovy
 tasks.shadowJar {
     minimize()
-    relocate 'de.cubbossa.tinytranslations', '[yourpluginpath].libs.translations'
+    relocate 'de.cubbossa.tinytranslations', '[yourpluginpath].libs.tinytranslations'
 }
 ```
 
 ### Dependencies (Spigot Libraries)
 
 Your server must find and load the Kyori Adventure classes for Translations to work.
-Either also shade them or instead register them as Spigot Libraries.
-Therefore, go to your plugin.yml and add the section:
-```yml
-libraries:
-  - net.kyori:adventure-api:4.14.0
-  - net.kyori:adventure-platform-bukkit:4.3.2
-  - net.kyori:adventure-text-minimessage:4.14.0
-  - net.kyori:adventure-text-serializer-legacy:4.14.0
-  - net.kyori:adventure-text-serializer-gson:4.14.0
-  - net.kyori:adventure-text-serializer-plain:4.14.0
-```
+Either use `TinyTranslations-paper` to use the Adventure classes provided by paper or use
+`TinyTranslations-bukkit` to include them as shaded dependencies. 
 
 ## Overview
 
@@ -197,10 +172,8 @@ class ExamplePlugin extends JavaPlugin {
 	Translations translations;
 
 	public void onEnable() {
-		// Enable Framework
-		TranslationsFramework.enable(new File(getDataFolder(), "/.."));
 		// create a Translations instance for your plugin 
-		translations = TranslationsFramework.application("MyPlugin");
+		translations = TinyTranslationsBukkit.application(this);
 
 		// define the storage types for your plugins locale
 		translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
@@ -230,7 +203,6 @@ class ExamplePlugin extends JavaPlugin {
 	public void onDisable() {
 		// close open Translations instance
 		translations.close();
-		TranslationsFramework.disable();
 	}
 }
 ```
