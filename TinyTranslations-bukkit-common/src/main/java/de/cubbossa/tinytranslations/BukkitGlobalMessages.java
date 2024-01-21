@@ -27,12 +27,4 @@ public class BukkitGlobalMessages {
 			.withDefault("<{vector:x};{vector:y};{vector:z}>")
 			.withPlaceholder("vector")
 			.build();
-	public static final Message FORMAT_MATERIAL = new MessageBuilder("format.material")
-			.withDefault("{material}")
-			.withPlaceholders("material")
-			.build();
-	public static final Message FORMAT_ENTITY_TYPE = new MessageBuilder("format.entity_type")
-			.withDefault("{type}")
-			.withPlaceholders("type")
-			.build();
 }

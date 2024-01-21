@@ -8,17 +8,20 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.generator.WorldInfo;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -240,7 +243,8 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 				"x", Block::getX,
 				"y", Block::getY,
 				"z", Block::getZ,
-				"world", Block::getWorld
+				"world", Block::getWorld,
+				"biome", Block::getBiome
 		), b -> BukkitGlobalMessages.FORMAT_BLOCK.insertObject("block", b));
 		map.put(Location.class, Map.of(
 				"x", Location::getX,
@@ -255,8 +259,13 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 				"y", Vector::getY,
 				"z", Vector::getZ
 		), v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v));
-		map.put(Material.class, Collections.emptyMap(), m -> BukkitGlobalMessages.FORMAT_MATERIAL.insertObject("material", m));
-		map.put(EntityType.class, Collections.emptyMap(), m -> BukkitGlobalMessages.FORMAT_ENTITY_TYPE.insertObject("type", m));
+
+		map.put(PotionEffectType.class, Collections.emptyMap(), p -> Component.translatable("effect.minecraft." + p.getKey().getKey()));
+		map.put(ChatColor.class, Collections.emptyMap(), c -> Component.translatable("color.minecraft." + c.toString()));
+		map.put(Enchantment.class, Collections.emptyMap(), e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey()));
+		map.put(Material.class, Collections.emptyMap(), m -> Component.translatable(m.getTranslationKey()));
+		map.put(EntityType.class, Collections.emptyMap(), t -> Component.translatable(t.getTranslationKey()));
+		map.put(Biome.class, Collections.emptyMap(), b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey()));
 	}
 	private BukkitTinyTranslations() {}
 }
