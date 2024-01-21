@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static net.kyori.adventure.text.Component.text;
-
 public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message>, Translatable, TranslatableComponent {
 
 	static Message message(@KeyPattern String key) {

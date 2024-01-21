@@ -136,6 +136,7 @@ class MessageTranslatorImpl implements MessageTranslator {
             return Component.empty();
         }
         Collection<TagResolver> r = new LinkedList<>(this.resolvers);
+        r.addAll(List.of(resolvers));
 
         MessageTranslator t = this;
         while (t.getParent() != null) {

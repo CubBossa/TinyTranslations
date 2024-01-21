@@ -37,6 +37,11 @@ public class MessageBuilder {
         return this;
     }
 
+    public MessageBuilder withDefault(Message otherToEmbed) {
+        this.translations.put(TinyTranslations.DEFAULT_LOCALE, "{msg:" + otherToEmbed.getKey() + "}");
+        return this;
+    }
+
     public MessageBuilder withTranslation(Locale locale, @Language("NanoMessage") String miniMessage) {
         return this.withTranslation(locale, MessageEncoding.MINI_MESSAGE, miniMessage);
     }

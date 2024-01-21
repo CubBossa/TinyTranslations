@@ -147,7 +147,6 @@ class MessageTranslatorImplTest extends TestBase {
 
 	@Test
 	public void testPlaceholder() {
-
 		Message a = translator.messageBuilder("a").withDefault("{value}").build();
 		assertEquals(
 				Component.text("b"),
