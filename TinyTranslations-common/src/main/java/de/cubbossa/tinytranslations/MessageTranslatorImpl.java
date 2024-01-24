@@ -138,6 +138,24 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
+    public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
+        String key = component.key();
+        Message message = getMessage(key);
+        if (message == null) {
+            return null;
+        }
+        locale = useClientLocale ? locale : defaultLocale;
+        if (component instanceof Message formatted) {
+            var tr = translate(getMessageTranslation(formatted, locale), locale, TagResolver.resolver(formatted.getResolvers()));
+            for (Component child : component.children()) {
+                tr = tr.append(child);
+            }
+            return tr;
+        }
+        return null;
+    }
+
+    @Override
     public Component translate(String raw, Locale locale, TagResolver... resolvers) {
         if (raw == null) {
             return Component.empty();
@@ -152,7 +170,26 @@ class MessageTranslatorImpl implements MessageTranslator {
         }
         r.add(MessageTag.resolver(this));
         r.add(StyleTag.resolver(this));
-        return TinyTranslations.NM.deserialize(raw, TagResolver.resolver(r));
+        var component = TinyTranslations.NM.deserialize(raw, TagResolver.resolver(r));
+        if (component == null) {
+            return null;
+        }
+        if (component instanceof Message msg) {
+            component = translate(msg, locale);
+        }
+        if (component == null) {
+            return null;
+        }
+        return component.children(component.children().stream()
+                .map(c -> c instanceof TranslatableComponent
+                        ? translate((TranslatableComponent) c, locale)
+                        : c)
+                .toList());
+    }
+
+    @Override
+    public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
+        return null;
     }
 
     @Override
@@ -283,7 +320,7 @@ class MessageTranslatorImpl implements MessageTranslator {
         }
         if (messageStorage != null) {
             messageStorage.readMessages(locale).forEach((translationKey, s) -> {
-                messageSet.computeIfAbsent(translationKey, key -> message(key.key())).getDictionary().put(locale, s);
+                new HashMap<>(messageSet).computeIfAbsent(translationKey, key -> message(key.key())).getDictionary().put(locale, s);
             });
         }
         MessageLoopDetector loopDetector = new MessageLoopDetector();
@@ -321,11 +358,6 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
-        return null;
-    }
-
-    @Override
     public void defaultLocale(@NotNull Locale locale) {
         this.defaultLocale = locale;
     }
@@ -338,23 +370,5 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public void unregister(@NotNull String key) {
         messageSet.remove(key);
-    }
-
-    @Override
-    public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
-        String key = component.key();
-        Message message = getMessage(key);
-        if (message == null) {
-            return null;
-        }
-        locale = useClientLocale ? locale : defaultLocale;
-        if (component instanceof Message formatted) {
-            var tr = translate(getMessageTranslation(formatted, locale), locale, TagResolver.resolver(formatted.getResolvers()));
-            for (Component child : component.children()) {
-                tr = tr.append(child);
-            }
-            return tr;
-        }
-        return null;
     }
 }
