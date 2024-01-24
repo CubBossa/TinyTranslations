@@ -14,7 +14,7 @@ public class PlaceholderCompilation implements CompilationStep {
 			return false;
 		}
 		node.replace("<" + node.getChildren().get(0).toString().trim() + node.getChildren().get(1).getChildren().stream()
-				.map(SimpleStringParser.Node::toString).map(s -> ":" + s).collect(Collectors.joining()) + "/>");
+				.map(SimpleStringParser.Node::toString).map(s -> ":" + s).collect(Collectors.joining()) + ">");
 		return true;
 	}
 }

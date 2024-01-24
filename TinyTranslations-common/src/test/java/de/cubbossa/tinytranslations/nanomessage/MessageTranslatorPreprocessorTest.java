@@ -15,7 +15,7 @@ public class MessageTranslatorPreprocessorTest extends TestBase {
 		NanoMessageCompiler pp = new NanoMessageCompiler();
 
 		Assertions.assertEquals(
-				"<gradient:black:dark_gray:black>----------- <primary><page:'}{}}'/></primary>/<primary_d><pages/></primary_d> -----------</gradient>",
+				"<gradient:black:dark_gray:black>----------- <primary><page:'}{}}'></primary>/<primary_d><pages></primary_d> -----------</gradient>",
 				pp.compile("<gradient:black:dark_gray:black>----------- <primary>{page:'}{}}'}</primary>/<primary_d>{pages}</primary_d> -----------</gradient>")
 		);
 
@@ -30,7 +30,7 @@ public class MessageTranslatorPreprocessorTest extends TestBase {
 		);
 
 		Assertions.assertEquals(
-				"<red><choice:'<time:minutes/>':'minute':'minutes'/></red>",
+				"<red><choice:'<time:minutes>':'minute':'minutes'></red>",
 				pp.compile("<red>{time:minutes ? 'minute' : 'minutes'}</red>")
 		);
 	}

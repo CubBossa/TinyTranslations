@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
-@Pattern("[a-zA-Z0-9._-]+")
+@Pattern("[a-z0-9._-]+")
 public @interface KeyPattern {
 }

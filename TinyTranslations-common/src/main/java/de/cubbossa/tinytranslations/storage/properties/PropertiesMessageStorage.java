@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.TranslationKey;
 import de.cubbossa.tinytranslations.storage.FileMessageStorage;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
@@ -24,15 +25,15 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
     }
 
     @Override
-    public Map<Message, String> readMessages(Locale locale) {
+    public Map<TranslationKey, String> readMessages(Locale locale) {
         File file = localeFileIfExists(locale);
         if (file == null) {
             return new HashMap<>();
         }
 
         Map<String, StorageEntry> entries = readFile(file);
-        Map<Message, String> result = new HashMap<>();
-        entries.forEach((key, value) -> result.put(Message.message(key), value.value()));
+        Map<TranslationKey, String> result = new HashMap<>();
+        entries.forEach((key, value) -> result.put(TranslationKey.of(key), value.value()));
         return result;
     }
 
@@ -44,11 +45,11 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
         Map<String, StorageEntry> entries = readFile(file);
         for (Message msg : messages) {
             if (msg.getDictionary().containsKey(locale)) {
-                if (entries.containsKey(msg.getKey())) {
+                if (entries.containsKey(msg.getKey().key())) {
                     continue;
                 }
                 List<String> comments = msg.getComment() == null ? Collections.emptyList() : List.of(msg.getComment().split("\n"));
-                entries.put(msg.getKey(), new StorageEntry(msg.getKey(), msg.getDictionary().get(locale), comments));
+                entries.put(msg.key(), new StorageEntry(msg.getKey().key(), msg.getDictionary().get(locale), comments));
                 written.add(msg);
             }
         }

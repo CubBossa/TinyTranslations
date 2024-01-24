@@ -2,11 +2,14 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
+import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.translation.TranslationRegistry;
 import net.kyori.adventure.translation.Translator;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, Translator {
+public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, TranslationRegistry {
 
     @AppPathPattern
     String getPath();
@@ -45,9 +48,9 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     MessageTranslator fork(@AppPattern String name);
 
 
-    Message message(String key);
+    Message message(@KeyPattern String key);
 
-    MessageBuilder messageBuilder(String key);
+    MessageBuilder messageBuilder(@KeyPattern String key);
 
     Component translate(Message message, TagResolver... resolvers);
 
@@ -123,6 +126,8 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      */
     @Nullable Message getMessage(String key);
 
+    @Nullable Message getMessage(TranslationKey key);
+
     @Nullable MessageStyle getStyle(String key);
 
     /**
@@ -170,7 +175,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      */
     void addMessage(Iterable<Message> messages);
 
-    Map<String, Message> getMessageSet();
+    Map<TranslationKey, Message> getMessageSet();
 
     /**
      * Returns the potentially not existent MessageStorage instance of this Translation.

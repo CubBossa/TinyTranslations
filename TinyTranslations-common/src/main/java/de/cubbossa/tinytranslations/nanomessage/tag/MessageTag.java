@@ -5,6 +5,9 @@ import de.cubbossa.tinytranslations.MessageTranslator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.translation.GlobalTranslator;
+
+import java.util.Locale;
 
 public class MessageTag {
 	public static final String KEY = "msg";

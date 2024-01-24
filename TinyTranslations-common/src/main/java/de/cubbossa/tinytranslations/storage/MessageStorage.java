@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations.storage;
 
 import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.TranslationKey;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -16,7 +17,7 @@ public interface MessageStorage {
      * @return a map of all values that were present in this storage. The map key is a {@link Message} instance that
      * is not yet part of any translations instance and must be assigned to be translatable.
      */
-    Map<Message, String> readMessages(Locale locale);
+    Map<TranslationKey, String> readMessages(Locale locale);
 
     /**
      * Writes a collection of {@link Message} instances into the storage. If the storage already contains

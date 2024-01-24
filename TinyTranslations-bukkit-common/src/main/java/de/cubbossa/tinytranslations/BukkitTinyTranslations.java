@@ -18,6 +18,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.generator.WorldInfo;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
@@ -63,7 +64,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 		return false;
 	}
 
-	private static void enable(JavaPlugin plugin) {
+	private static void enable(Plugin plugin) {
 		audiences = BukkitAudiences.create(plugin);
 		enable(new File(plugin.getDataFolder(), "/../"));
 	}
@@ -75,33 +76,8 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 			synchronized (mutex) {
 				g = server;
 				if (g == null) {
-					server = new MessageTranslatorImpl(null, "global");
-					g = server;
-
-					if (!pluginDirectory.exists()) {
-						throw new IllegalArgumentException("Global translations directory must exist.");
-					}
-					File globalLangDir = new File(pluginDirectory, "/lang/");
-
-					// If lang dir exists, whatever happens in there is the choice of administrators
-					boolean createStartFiles = !globalLangDir.exists();
-
-					if (createStartFiles && !globalLangDir.mkdirs()) {
-						throw new IllegalStateException("Could not create /lang/ directory for global translations.");
-					}
-					if (createStartFiles) {
-						writeResourceIfNotExists(globalLangDir, "README.txt");
-						writeResourceIfNotExists(globalLangDir, "lang/global_styles.properties", "global_styles.properties");
-					}
-
-					g.setMessageStorage(new PropertiesMessageStorage(globalLangDir));
-					g.setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
-
-					g.addMessages(TinyTranslations.messageFieldsFromClass(GlobalMessages.class));
-					server().addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
-					g.saveLocale(Locale.ENGLISH);
-
-					writeMissingDefaultStyles();
+					server = globalTranslator(pluginDirectory);
+					server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
 				}
 			}
 		}
@@ -111,7 +87,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 		audiences.close();
 	}
 
-	public static MessageTranslator application(JavaPlugin plugin) {
+	public static MessageTranslator application(Plugin plugin) {
 		if (!isEnabled()) {
 			enable(plugin);
 		}
@@ -158,57 +134,6 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 			return;
 		}
 		sendMessage(sender, message);
-	}
-
-	private static void writeResourceIfNotExists(File langDir, String name) {
-		writeResourceIfNotExists(langDir, name, name);
-	}
-
-	private static void writeResourceIfNotExists(File langDir, String name, String as) {
-		File file = new File(langDir, as);
-		if (file.exists()) {
-			return;
-		}
-		try {
-			if (!file.createNewFile()) {
-				throw new IllegalStateException("Could not create resource");
-			}
-			InputStream is =BukkitTinyTranslations.class.getResourceAsStream("/" + name);
-			if (is == null) {
-				throw new IllegalArgumentException("Could not load resource with name '" + name + "'.");
-			}
-			FileOutputStream os = new FileOutputStream(file);
-			os.write(is.readAllBytes());
-			os.close();
-			is.close();
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not load resource with name '" + name + "'.", e);
-		}
-	}
-
-	private static void writeMissingDefaultStyles() {
-		File tempFile;
-		try {
-			tempFile = File.createTempFile("stream_to_file", ".properties");
-			tempFile.deleteOnExit();
-			try (InputStream is = BukkitTinyTranslations.class.getResourceAsStream("/lang/global_styles.properties")) {
-				try (FileOutputStream out = new FileOutputStream(tempFile)) {
-					out.write(is.readAllBytes());
-				}
-			}
-		} catch (Throwable t) {
-			throw new RuntimeException("Could not create temp file to append missing default styles.");
-		}
-		MessageTranslator server = server();
-		PropertiesStyleStorage storage = new PropertiesStyleStorage(tempFile);
-		storage.loadStyles().forEach((s, messageStyle) -> {
-			if (!server.getStyleSet().containsKey(s)) {
-				server.getStyleSet().put(s, messageStyle);
-			}
-		});
-		if (server.getStyleStorage() != null) {
-			server.getStyleStorage().writeStyles(server.getStyleSet());
-		}
 	}
 
 	private static void applyBukkitObjectResolvers(ObjectTagResolverMap map) {

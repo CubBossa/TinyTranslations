@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations.storage.yml;
 
 import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.TranslationKey;
 import de.cubbossa.tinytranslations.storage.FileMessageStorage;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +41,8 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
     }
 
     @Override
-    public Map<Message, String> readMessages(Locale locale) {
-        Map<Message, String> result = new HashMap<>();
+    public Map<TranslationKey, String> readMessages(Locale locale) {
+        Map<TranslationKey, String> result = new HashMap<>();
         File file = localeFileIfExists(locale);
         if (file == null) {
             return new HashMap<>();
@@ -54,11 +55,11 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
         }
         map.forEach((s, o) -> {
             if (o instanceof String val) {
-                result.put(Message.message(s), val);
+                result.put(TranslationKey.of(s), val);
             } else if (o instanceof List<?> list) {
-                result.put(Message.message(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
+                result.put(TranslationKey.of(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
             } else {
-                result.put(Message.message(s), o.toString());
+                result.put(TranslationKey.of(s), o.toString());
             }
         });
         return result;
@@ -79,10 +80,10 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
         }
 
         for (Message message : messages) {
-            if (result.containsKey(message.getKey())) {
+            if (result.containsKey(message.getKey().key())) {
                 continue;
             }
-            result.put(message.getKey(), message.getDictionary().get(locale));
+            result.put(message.getKey().key(), message.getDictionary().get(locale));
             success.add(message);
         }
         file = localeFile(locale);

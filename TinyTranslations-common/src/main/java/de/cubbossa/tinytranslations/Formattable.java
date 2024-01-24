@@ -63,7 +63,7 @@ public interface Formattable<ReturnT> {
 	}
 
 	default ReturnT insertBool(final @NotNull String key, Boolean value) {
-		return formatted(Formatter.booleanChoice(key, value));
+		return formatted(Placeholder.parsed(key, value.toString()));
 	}
 
 	default ReturnT insertTag(final @NotNull String key, Tag tag) {

@@ -3,6 +3,8 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -15,9 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
-final class MessageImpl implements Message {
+class MessageImpl implements Message {
 
-    private final @KeyPattern String key;
+    @Getter
+    private final TranslationKey key;
 
     private Style style = Style.empty();
     private List<Component> children = new ArrayList<>();
@@ -30,11 +33,11 @@ final class MessageImpl implements Message {
     private Map<String, Optional<String>> placeholderTags;
     private String comment;
 
-    public MessageImpl(@KeyPattern String key) {
-        this(key, key);
+    public MessageImpl(TranslationKey key) {
+        this(key, key.asTranslationKey());
     }
 
-    public MessageImpl(@KeyPattern String key, String fallback) {
+    public MessageImpl(TranslationKey key, String fallback) {
         this.key = key;
         this.dictionary = new ConcurrentHashMap<>();
         this.dictionary.put(TinyTranslations.DEFAULT_LOCALE, fallback);
@@ -42,7 +45,7 @@ final class MessageImpl implements Message {
         this.placeholderTags = new HashMap<>();
     }
 
-    public MessageImpl(String key, MessageImpl other) {
+    public MessageImpl(TranslationKey key, MessageImpl other) {
         this.key = key;
         this.style = other.style.color(other.style.color());
         this.children = other.children().stream().map(c -> c.children(c.children())).toList();
@@ -53,14 +56,9 @@ final class MessageImpl implements Message {
         this.resolvers.addAll(other.resolvers);
     }
 
-    @KeyPattern
-    public String getKey() {
-        return key;
-    }
-
     @Override
     public String toString() {
-        return "Message{key='" + getKey().toLowerCase() + "'}";
+        return "Message{key=\"" + getKey().asNamespacedKey() + "\"}";
     }
 
 	@Override
@@ -95,12 +93,12 @@ final class MessageImpl implements Message {
         }
 
         MessageImpl message = (MessageImpl) o;
-        return key.equalsIgnoreCase(message.key);
+        return key.equals(message.key);
     }
 
     @Override
     public int hashCode() {
-        return key.toLowerCase().hashCode();
+        return key.hashCode();
     }
 
     @Override
@@ -110,22 +108,22 @@ final class MessageImpl implements Message {
 
     @Override
     public int compareTo(@NotNull Message o) {
-        return getKey().compareTo(o.getKey());
+        return key().compareTo(o.key());
     }
 
     @Override
     public @NotNull String translationKey() {
-        return key;
+        return key.asTranslationKey();
     }
 
     @Override
     public @NotNull String key() {
-        return key;
+        return translationKey();
     }
 
     @Override
     public @NotNull TranslatableComponent key(@NotNull String key) {
-		return new MessageImpl(key, this);
+        throw new IllegalArgumentException("Cannot change message key.");
     }
 
     @Override

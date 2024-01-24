@@ -12,12 +12,12 @@ public class NanoMessageCompilerTest {
 	void parseSpaceRemoval() {
 
 		StringPair[] strings = {
-				new StringPair("{a : b : c}", "<a:b:c/>"),
-				new StringPair("{ a :    b:c   }", "<a:b:c/>"),
+				new StringPair("{a : b : c}", "<a:b:c>"),
+				new StringPair("{ a :    b:c   }", "<a:b:c>"),
 				new StringPair("<a :    b:c   />", "<a:b:c/>"),
 				new StringPair("<a :    b:c   ></a>", "<a:b:c></a>"),
-				new StringPair("{a ?b :c}", "<choice:'<a/>':b:c/>"),
-				new StringPair("{ a ?  b :  c }", "<choice:'<a/>':b:c/>"),
+				new StringPair("{a ?b :c}", "<choice:'<a>':b:c>"),
+				new StringPair("{ a ?  b :  c }", "<choice:'<a>':b:c>"),
 		};
 
 		NanoMessageCompiler compiler = new NanoMessageCompiler();

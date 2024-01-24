@@ -1,7 +1,11 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.Translator;
 
+import java.awt.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +16,15 @@ public class MessageLoopDetector {
 	private static final Pattern STYLE_PATTERN = Pattern.compile("<([#a-zA-Z0-9-_.]+)>");
 
 	public MessageLoopDetector() {
+	}
+
+	private Translator findOwner(String messageKey, Locale locale) {
+		for (Translator source : GlobalTranslator.translator().sources()) {
+			if (source.translate(Component.translatable(messageKey), locale) != null) {
+				return source;
+			}
+		}
+		return null;
 	}
 
 	public MessageReferenceLoopException detectLoops(Message message, Locale locale) {
@@ -35,7 +48,7 @@ public class MessageLoopDetector {
 	}
 
 	private Node buildTree(Message origin, Stack<String> stack, Message msg, Locale locale) {
-		stack.push("(msg) " + msg.getKey());
+		stack.push("(msg) " + msg.key());
 		String s = msg.getDictionary().get(locale);
 		if (s == null) {
 			return new Node(null, new HashSet<>());

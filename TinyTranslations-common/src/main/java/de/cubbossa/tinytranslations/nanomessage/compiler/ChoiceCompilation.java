@@ -15,13 +15,13 @@ public class ChoiceCompilation implements CompilationStep {
 		}
 		node.replace("<choice:'<" +
 				node.getChildren().get(0).toString().trim() +
-				node.getChildren().get(1).toString().trim() + "/>':" +
+				node.getChildren().get(1).toString().trim() + ">':" +
 				node.getChildren().subList(2, node.getChildren().size()).stream()
 						.map(context::parse)
 						.map(SimpleStringParser.Node::toString)
 						.map(String::trim)
 						.collect(Collectors.joining(":"))
-				+ "/>");
+				+ ">");
 		return true;
 	}
 }

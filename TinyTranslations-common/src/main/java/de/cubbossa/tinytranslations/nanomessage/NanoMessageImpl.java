@@ -30,8 +30,7 @@ class NanoMessageImpl implements NanoMessage {
 	}
 
 	public Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers) {
-		String processed = COMPILER.compile(value);
-		return MINI_MESSAGE.deserialize(processed, TagResolver.builder()
+		return MINI_MESSAGE.deserialize(value, TagResolver.builder()
 				.resolver(defaultResolver)
 				.resolvers(resolvers)
 				.build());

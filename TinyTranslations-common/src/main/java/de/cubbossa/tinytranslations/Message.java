@@ -1,6 +1,8 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.Translatable;
@@ -11,11 +13,11 @@ import java.util.*;
 
 public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message>, Translatable, TranslatableComponent {
 
-	static Message message(@KeyPattern String key) {
-		return new MessageImpl(key);
+	static Message message(String key) {
+		return new UnownedMessageImpl(key);
 	}
 
-	static Message message(@KeyPattern String key, @Language("NanoMessage") String defaultValue) {
+	static Message message(String key, @Language("NanoMessage") String defaultValue) {
 		return new MessageBuilder(key).withDefault(defaultValue).build();
 	}
 
@@ -23,8 +25,8 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
 		return new MessageBuilder(key);
 	}
 
-	@KeyPattern
-	String getKey();
+
+	TranslationKey getKey();
 
 	String toString(MessageEncoding format);
 

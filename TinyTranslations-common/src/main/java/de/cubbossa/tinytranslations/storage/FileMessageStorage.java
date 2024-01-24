@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations.storage;
 
 import de.cubbossa.tinytranslations.Message;
+import de.cubbossa.tinytranslations.TranslationKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -41,7 +42,7 @@ public abstract class FileMessageStorage implements MessageStorage {
     }
 
     @Override
-    public Map<Message, String> readMessages(Locale locale) {
+    public Map<TranslationKey, String> readMessages(Locale locale) {
         return null;
     }
 
