@@ -2,7 +2,6 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
-import de.cubbossa.tinytranslations.nanomessage.*;
 import de.cubbossa.tinytranslations.nanomessage.tag.*;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
@@ -145,14 +144,19 @@ class MessageTranslatorImpl implements MessageTranslator {
             return null;
         }
         locale = useClientLocale ? locale : defaultLocale;
+        TagResolver resolver = TagResolver.empty();
         if (component instanceof Message formatted) {
-            var tr = translate(getMessageTranslation(formatted, locale), locale, TagResolver.resolver(formatted.getResolvers()));
-            for (Component child : component.children()) {
-                tr = tr.append(child);
-            }
-            return tr;
+            message = formatted;
+            resolver = TagResolver.resolver(formatted.getResolvers());
         }
-        return null;
+        var tr = translate(getMessageTranslation(message, locale), locale, resolver);
+        if (tr == null) {
+            return null;
+        }
+        for (Component child : component.children()) {
+            tr = tr.append(child);
+        }
+        return tr;
     }
 
     @Override
@@ -263,11 +267,11 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public void addMessage(Message message) {
-        if (message instanceof UnownedMessage unowned && !unowned.isOwned()) {
-            message = unowned.setOwner(this);
+        if (message instanceof UnownedMessage unowned) {
+            message = unowned.owner(this);
             messageSet.put(message.getKey(), message);
         } else {
-            // TODO throw -> Message already owned
+            throw new IllegalArgumentException("The provided message already belongs to a translator. Messages can only belong to one translator.");
         }
     }
 
@@ -323,7 +327,7 @@ class MessageTranslatorImpl implements MessageTranslator {
                 new HashMap<>(messageSet).computeIfAbsent(translationKey, key -> message(key.key())).getDictionary().put(locale, s);
             });
         }
-        MessageLoopDetector loopDetector = new MessageLoopDetector();
+        MessageReferenceLoopDetector loopDetector = new MessageReferenceLoopDetector();
         messageSet.forEach((s, message) -> {
             var loop = loopDetector.detectLoops(message, locale);
             if (loop == null) {

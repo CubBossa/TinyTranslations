@@ -13,6 +13,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.util.List;
@@ -281,6 +282,38 @@ class MessageTranslatorImplTest extends TestBase {
 		Assertions.assertEquals(
 				p.serialize(translator.translate("<a>test</a><green>test</green>").compact()),
 				p.serialize(translator.translate("<a>test<green>test</green>").compact())
+		);
+	}
+
+	@Test
+	void multipleChildren(@TempDir File d) {
+
+		MessageTranslator server = TinyTranslations.globalTranslator(d);
+		MessageTranslator plugin1 = server.fork("P1");
+		MessageTranslator plugin2 = server.fork("P2");
+		plugin1.messageBuilder("prefix").withDefault("[P1] ").build();
+		plugin2.messageBuilder("prefix").withDefault("[P2] ").build();
+
+		Message msg = Message.message("msg", "{msg:prefix}text");
+		plugin2.addMessage(msg);
+
+		assertEquals(
+				Component.text("[P2] text"),
+				render(msg).compact()
+		);
+		assertEquals(
+				msg.getKey(),
+				TranslationKey.of("msg")
+		);
+		assertEquals(
+				Component.text("[P2] text"),
+				render(Component.translatable("global.p2.msg")).compact()
+		);
+		plugin2.getMessageSet().remove(msg.getKey());
+		plugin1.addMessage(msg);
+		assertEquals(
+				Component.text("[P1] text"),
+				render(msg).compact()
 		);
 	}
 }

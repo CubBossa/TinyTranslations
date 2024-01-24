@@ -1,27 +1,28 @@
-package de.cubbossa.tinytranslations.nanomessage;
+package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.Translator;
 
-import java.awt.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MessageLoopDetector {
+public class MessageReferenceLoopDetector {
 
 	private static final Pattern MESSAGE_PATTERN = Pattern.compile("\\{msg(:[a-zA-Z0-9-_.]+){1,2}}");
 	private static final Pattern STYLE_PATTERN = Pattern.compile("<([#a-zA-Z0-9-_.]+)>");
 
-	public MessageLoopDetector() {
+	public MessageReferenceLoopDetector() {
 	}
 
-	private Translator findOwner(String messageKey, Locale locale) {
+	private MessageTranslator findOwner(Message message) {
 		for (Translator source : GlobalTranslator.translator().sources()) {
-			if (source.translate(Component.translatable(messageKey), locale) != null) {
-				return source;
+			if (!(source instanceof MessageTranslator messageTranslator)) {
+				return null;
+			}
+			if (messageTranslator.getMessage(message.getKey()) != null) {
+				return messageTranslator;
 			}
 		}
 		return null;
@@ -53,8 +54,7 @@ public class MessageLoopDetector {
 		if (s == null) {
 			return new Node(null, new HashSet<>());
 		}
-		return new Node(null, new HashSet<>());
-		// return buildTree(origin, stack, locale, origin.getTranslator(), s);
+		return buildTree(origin, stack, locale, findOwner(origin), s);
 	}
 
 	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {

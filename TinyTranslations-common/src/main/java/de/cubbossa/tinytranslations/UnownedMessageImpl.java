@@ -16,7 +16,6 @@ import java.util.*;
 class UnownedMessageImpl implements UnownedMessage {
 
     private final String key;
-    private boolean owned = false;
     private MessageImpl ref;
 
     public UnownedMessageImpl(@KeyPattern String key) {
@@ -30,17 +29,12 @@ class UnownedMessageImpl implements UnownedMessage {
     }
 
     @Override
-    public Message unwrap() {
-        return ref;
+    public Message owner(String namespace) {
+        return new MessageImpl(TranslationKey.of(namespace, key), ref);
     }
 
     @Override
-    public boolean isOwned() {
-        return owned;
-    }
-
-    @Override
-    public Message setOwner(MessageTranslator translator) {
+    public Message owner(MessageTranslator translator) {
         return new MessageImpl(TranslationKey.of(translator.getPath(), key), ref);
     }
 
@@ -179,9 +173,6 @@ class UnownedMessageImpl implements UnownedMessage {
     }
 
     private Message wrap(MessageImpl ref) {
-        if (owned) {
-            return ref;
-        }
         var msg = new UnownedMessageImpl(key);
         msg.ref = ref;
         return msg;
