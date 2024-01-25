@@ -18,6 +18,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.generator.WorldInfo;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,17 +42,16 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 	private static volatile MessageTranslator server;
 
 	private static final Object mutex = new Object();
+
+	static {
+	}
+
 	public static MessageTranslator server() {
 		MessageTranslator g = server;
 		if (g == null) {
 			throw new IllegalStateException("Accessing global without enabling TranslationsFramework.");
 		}
 		return g;
-	}
-
-
-	static {
-		applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
 	}
 
 	public static boolean isEnabled() {
@@ -76,8 +76,8 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 			synchronized (mutex) {
 				g = server;
 				if (g == null) {
+					applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
 					server = globalTranslator(pluginDirectory);
-					server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
 				}
 			}
 		}
@@ -85,6 +85,20 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 
 	public static void disable() {
 		audiences.close();
+	}
+
+	public static MessageTranslator globalTranslator(File dir) {
+		applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+		var server = TinyTranslations.globalTranslator(dir);
+		server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
+		return server;
+	}
+
+	public static MessageTranslator application(String name) {
+		if (!isEnabled()) {
+			applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+		}
+		return TinyTranslations.application(name);
 	}
 
 	public static MessageTranslator application(Plugin plugin) {
@@ -145,7 +159,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 				"api-version", PluginDescriptionFile::getAPIVersion,
 				"website", PluginDescriptionFile::getWebsite,
 				"contributors", PluginDescriptionFile::getContributors
-		));
+		), d -> Component.text(d.getName()));
 		map.put(Player.class, Map.of(
 				"name", Player::getName,
 				"uuid", Entity::getUniqueId,
@@ -184,11 +198,17 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 				"y", Vector::getY,
 				"z", Vector::getZ
 		), v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v));
+		map.put(ItemStack.class, Map.of(
+				"type", ItemStack::getType,
+				"amount", ItemStack::getAmount,
+				"name", i -> i.hasItemMeta() ? i.getItemMeta().getDisplayName() : i.getType(),
+				"lore", i -> i.hasItemMeta() ? i.getItemMeta().getLore() : Collections.emptyList()
+		), i -> BukkitGlobalMessages.FORMAT_ITEM.insertObject("item", i));
 
 		map.put(PotionEffectType.class, Collections.emptyMap(), p -> Component.translatable("effect.minecraft." + p.getKey().getKey()));
 		map.put(ChatColor.class, Collections.emptyMap(), c -> Component.translatable("color.minecraft." + c.toString()));
 		map.put(Enchantment.class, Collections.emptyMap(), e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey()));
-		map.put(Material.class, Collections.emptyMap(), m -> Component.translatable(m.getTranslationKey()));
+		map.put(Material.class, Collections.emptyMap(), m -> Component.translatable((m.isBlock() ? "block" : "item") + ".minecraft." + m.name().toLowerCase()));
 		map.put(EntityType.class, Collections.emptyMap(), t -> Component.translatable(t.getTranslationKey()));
 		map.put(Biome.class, Collections.emptyMap(), b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey()));
 	}

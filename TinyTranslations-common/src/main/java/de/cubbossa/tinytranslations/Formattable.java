@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -77,6 +78,21 @@ public interface Formattable<ReturnT> {
 
 	default <E> ReturnT insertList(final @NotNull String key, List<E> elements, Function<E, ComponentLike> renderer) {
 		return this.insertList(key, elements, ListSection.paged(0, elements.size()), renderer);
+	}
+
+	default <E> ReturnT insertList(final @NotNull String key, List<E> elements) {
+		return insertList(key, elements, ListSection.paged(0, elements.size()));
+	}
+
+	default <E> ReturnT insertList(final @NotNull String key, List<E> elements, ListSection section) {
+		Function<E, ComponentLike> fun = e -> {
+			var c = TinyTranslations.NM.getObjectTypeResolverMap().resolve(e, "");
+			if (c instanceof ComponentLike cl) {
+				return cl;
+			}
+			return Component.text(c.toString());
+		};
+		return this.insertList(key, elements, section, fun);
 	}
 
 	default <E> ReturnT insertList(final @NotNull String key, List<E> elements, ListSection section, Function<E, ComponentLike> renderer) {

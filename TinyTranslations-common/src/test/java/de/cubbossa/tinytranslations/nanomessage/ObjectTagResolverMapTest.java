@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static net.kyori.adventure.text.Component.*;
+
 class ObjectTagResolverMapTest {
 
 	record Person(String name, int age) {}
@@ -27,28 +29,28 @@ class ObjectTagResolverMapTest {
 				"data", PersonRelations::data,
 				"friends", PersonRelations::friends
 		));
-		map.put(List.class, Collections.emptyMap(), l -> Component.text((String) l.stream()
+		map.put(List.class, Collections.emptyMap(), l -> text((String) l.stream()
 				.map(Object::toString).collect(Collectors.joining(", "))));
 
 		Assertions.assertEquals(
-				Component.text("a, b, c"),
+				text("a, b, c"),
 				map.resolve(List.of("a", "b", "c"), "list")
 		);
 
 		Assertions.assertEquals(
-				"hugo",
+				text("hugo"),
 				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:name")
 		);
 		Assertions.assertEquals(
-				24,
+				text(24),
 				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:age")
 		);
 		Assertions.assertEquals(
-				new Person("hugo", 24),
+				Component.text(new Person("hugo", 24).toString()),
 				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data")
 		);
 		Assertions.assertEquals(
-				Component.empty(),
+				empty(),
 				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friends")
 		);
 		Assertions.assertNull(

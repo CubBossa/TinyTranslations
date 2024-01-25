@@ -185,9 +185,10 @@ class MessageTranslatorImpl implements MessageTranslator {
             return null;
         }
         return component.children(component.children().stream()
-                .map(c -> c instanceof TranslatableComponent
-                        ? translate((TranslatableComponent) c, locale)
+                .map(c -> c instanceof Message
+                        ? GlobalTranslator.translator().translate((TranslatableComponent) c, locale)
                         : c)
+                .filter(Objects::nonNull)
                 .toList());
     }
 
