@@ -107,12 +107,12 @@ Example of the Server folder structure and how translations are included:
     
     /lang
       global_styles.properties # <--- global styling rules
-      en-US.yml # <--- global messages (like the server name)
+      en-US.properties # <--- global messages (like the server name)
     
     /YourPlugin
       /lang
         styles.properties # <--- application only styles
-        en-US.yml # <--- application only messages
+        en-US.properties # <--- application only messages
 ```
 
 Styles are a way to create new tag resolvers
@@ -136,7 +136,7 @@ Messages can be stored in many ways, like SQL, Yaml or properties.
 In a properties file, messages would look like this:
 ```properties
 some.example.message="<text-light>Some light text <aqua>that can also be styled directly</aqua></text-light>"
-some.example.reference="An embedded message: <msg:some.example.message>"
+some.example.reference="An embedded message: {msg:some.example.message}"
 ```
 
 As you can see in the example, messages can be embedded into each other, which
@@ -145,8 +145,8 @@ Why is this useful? Think of the following example from my plugin:
 ```properties
 # c-brand is a style for the main plugin color.
 # bg and bg-dark are global styles.
-prefix="<c-brand>PathFinder </c-brand><bg-dark>| </bg-dark><bg>"
-other.message="<msg:prefix>Hello."
+prefix="<primary>PathFinder </primary><bg_dark>| </bg_dark><bg>"
+other.message="{msg:prefix}Hello."
 ```
 Prefix is not a message that is enforced by the plugin.
 Users can simply create the entry, and it will be loaded by the plugin and
@@ -159,10 +159,10 @@ import de.cubbossa.tinytranslations.MessageBuilder;
 
 class Messages {
 	public static final Message PREFIX = new MessageBuilder("prefix")
-			.withDefault("<gradient:#ff0000:#ffff00:#ff0000>My Awesome Plugin</gradient>: ")
+			.withDefault("<gradient:#ff0000:#ffff00:#ff0000>My Awesome Plugin</gradient>")
 			.build();
 	public static final Message NO_PERM = new MessageBuilder("no_perm")
-			.withDefault("<red>No permissions!</red>")
+			.withDefault("<prefix_negative>No permissions!</prefix_negative>")
 			.build();
 }
 
@@ -173,7 +173,7 @@ class ExamplePlugin extends JavaPlugin {
 
 	public void onEnable() {
 		// create a Translations instance for your plugin 
-		translations = TinyTranslationsBukkit.application(this);
+		translations = BukkitTinyTranslations.application(this);
 
 		// define the storage types for your plugins locale
 		translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
@@ -185,7 +185,7 @@ class ExamplePlugin extends JavaPlugin {
 		translations.addMessages(messageA, messageB, messageC);
 		translations.addMessage(messageD);
 		// just load all public static final messages declared in Messages.class
-		translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
+		translations.addMessages(TinyTranslations.messageFieldsFromClass(Messages.class));
 
 		// They will not overwrite pre-existing values.
 		// You only need to save values that you assigned programmatically, like from a
@@ -216,8 +216,8 @@ as static members.
 A fully defined message:
 ```Java
 public static final Message ERR_NO_PLAYER = new MessageBuilder("error.must_be_player")
-        .withDefault("<c-negative>No player found: '<input>'.</c-negative>")
-        .withTranslation(Locale.GERMAN, "<c-negative>Spieler nicht gefunden: '<input>'.</c-negative>")
+        .withDefault("<prefix_negative>No player found: '{input}'.</prefix_negative>")
+        .withTranslation(Locale.GERMAN, "<prefix_negative>Spieler nicht gefunden: '{input}'.</prefix_negative>")
         .withComment("Used to indicate if no player was found - who would have thought :P")
         .withPlaceholder("input", "The used input that was supposed to be a playername.")
         .build();
@@ -226,7 +226,7 @@ public static final Message ERR_NO_PLAYER = new MessageBuilder("error.must_be_pl
 Or maybe just
 ```Java
 public static final Message ERR_NO_PERM = new MessageBuilder("error.no_perm")
-        .withDefault("<c-negative>No permission!</c-negative>")
+        .withDefault("<prefix_negative>No permission!</prefix_negative>")
         .build();
 ```
 
@@ -249,62 +249,43 @@ to your translations.
 ```Java
 ERR_NO_PERM = translations.message("error.no_perm");
 ERR_NO_PERM = translations.messageBuilder("error.no_perm")
-        .withDefault("<c-negative>No permission!</c-negative>")
+        .withDefault("<prefix_negative>No permission!</prefix_negative>")
         .build();
 ```
 
 ### Message as Component
 
-And now you can use the following code to get a translated component.
+Messages are implementations of the TranslatableComponent interface, which means that they automatically
+render in the player client locale.
 ```Java
 
-// Not in player specific language
-Component myTranslatedComponent = Messages.ERR_NO_PLAYER.asComponent();
-
-// pass player audience to get a translation in player language
-Component myTranslatedComponent = Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).asComponent();
-
-// format the message with placeholders
-Component myTranslatedComponent = Message.ERR_NO_PLAYER.formatted(
-    Placeholder.component("value1", componentabc),
-    Formatter.number("speed", playerSpeed)
-).toComponent();
-
-// or both
-Component myTranslatedComponent = Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).formatted(
-    Placeholder.component("value1", componentabc),
-    Formatter.number("speed", playerSpeed)
-).toComponent();
-
-```
-
-Messages implement the ComponentLike interface, which means that you can use them in places that require components without
-explicitly converting them to a component.
-```Java
-// PaperMC only, for other platforms you still need to convert the player into an Audience.
-// See Kyori Docs for more information
-// https://docs.advntr.dev/platform/bukkit.html#usage
+// on Paper server:
 player.sendMessage(Messages.ERR_NO_PLAYER);
-player.sendMessage(Messages.ERR_NO_PLAYER.formatted(myPlayerAudience).formatted(...));
-```
+player.sendMessage(Messages.ERR_NO_PLAYER.insertString("input", args[0]));
 
-Keep in mind, that the first line is still in the default language and not in the player language.
+// on Spigot server:
+BukkitTinyTranslations.sendMessage(player, Messages.ERR_NO_PLAYER);
+BukkitTinyTranslations.sendMessageIfNotEmpty(player, Messages.ERR_NO_PLAYER);
+```
 
 ### Other Formats
 
 You can also format a Message into any other format with like so:
 ```Java
 Message ERR_NO_PERM = new MessageBuilder("err.no_perm")
-        .withDefault("<c-negative>No permissions!</c-negative>")
+        .withDefault("<prefix_negative>No permissions!</prefix_negative>")
         .build();
 
-String s = ERR_NO_PERM.toString(MessageFormat.LEGACY_PARAGRAPH);
+String s = ERR_NO_PERM.toString(MessageEncoding.LEGACY_PARAGRAPH);
 // -> §cNo permissions!
-String s = ERR_NO_PERM.toString(MessageFormat.LEGACY_AMPERSAND);
+
+String s = ERR_NO_PERM.toString(MessageEncoding.LEGACY_AMPERSAND);
 // -> &cNo permissions!
-String s = ERR_NO_PERM.toString(MessageFormat.PLAIN);
+
+String s = ERR_NO_PERM.toString(MessageEncoding.PLAIN);
 // -> No permissions!
-String s = ERR_NO_PERM.toString(MessageFormat.NBT);
+
+String s = ERR_NO_PERM.toString(MessageEncoding.NBT);
 // -> {"text":"No permissions!","color":"red"}
 ```
 
