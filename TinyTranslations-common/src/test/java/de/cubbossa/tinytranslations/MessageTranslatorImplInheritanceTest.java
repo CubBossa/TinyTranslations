@@ -48,11 +48,14 @@ public class MessageTranslatorImplInheritanceTest extends TestBase {
         MessageTranslator global = server;
         global.messageBuilder("brand").withDefault("<red>Prefix</red> ").build();
 
-        Message a = translator.messageBuilder("a").withDefault("<msg:brand>a").build();
-        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" a")), render(a));
+        Message a = translator.messageBuilder("a").withDefault("<msg:global.brand>a").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" a")), render(a).compact());
 
         Message b = translator.messageBuilder("b").withDefault("<msg:global:brand>b").build();
-        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" b")), render(b));
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" b")), render(b).compact());
+
+        Message c = translator.messageBuilder("a").withDefault("<msg:brand>c").build();
+        assertEquals(empty().append(text("Prefix", NamedTextColor.RED)).append(text(" c")), render(c).compact());
     }
 
     @Test

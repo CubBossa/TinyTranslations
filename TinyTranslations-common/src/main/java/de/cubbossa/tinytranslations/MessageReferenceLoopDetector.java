@@ -28,15 +28,6 @@ public class MessageReferenceLoopDetector {
 		return null;
 	}
 
-	public MessageReferenceLoopException detectLoops(Message message, Locale locale) {
-
-		try {
-			buildTree(message, new Stack<>(), message, locale);
-		} catch (MessageReferenceLoopException e) {
-			return e;
-		}
-		return null;
-	}
 	public Collection<MessageReferenceLoopException> detectLoops(Message message) {
 		Collection<MessageReferenceLoopException> exceptions = new LinkedList<>();
 		message.getDictionary().forEach((locale, s) -> {
@@ -46,6 +37,15 @@ public class MessageReferenceLoopDetector {
 			}
 		});
 		return exceptions;
+	}
+	public MessageReferenceLoopException detectLoops(Message message, Locale locale) {
+
+		try {
+			buildTree(message, new Stack<>(), message, locale);
+		} catch (MessageReferenceLoopException e) {
+			return e;
+		}
+		return null;
 	}
 
 	private Node buildTree(Message origin, Stack<String> stack, Message msg, Locale locale) {
@@ -59,7 +59,7 @@ public class MessageReferenceLoopDetector {
 
 	private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {
 		stack.push("(style) " + messageTranslator.getPath() + ":" + style.getKey());
-		String s = style.toString();
+		String s = style.asString();
 		return buildTree(origin, stack, locale, messageTranslator, s);
 	}
 

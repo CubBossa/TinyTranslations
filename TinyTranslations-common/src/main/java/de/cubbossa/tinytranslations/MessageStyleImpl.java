@@ -66,6 +66,11 @@ class MessageStyleImpl implements MessageStyle {
     }
 
     @Override
+    public String toString() {
+        return representation;
+    }
+
+    @Override
     public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
         return resolver.resolve(name, arguments, ctx);
     }

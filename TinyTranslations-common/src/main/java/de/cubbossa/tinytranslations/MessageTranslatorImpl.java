@@ -139,7 +139,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
         String key = component.key();
-        Message message = getMessage(key);
+        Message message = getMessageInParentTree(key);
         if (message == null) {
             return null;
         }
