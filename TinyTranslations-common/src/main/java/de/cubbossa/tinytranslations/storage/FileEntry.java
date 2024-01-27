@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface FileEntry {
 
-	String getString();
+    String getString();
 
-	String getValue();
+    String getValue();
 
-	List<String> getComments();
+    List<String> getComments();
 }

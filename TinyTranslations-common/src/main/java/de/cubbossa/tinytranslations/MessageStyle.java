@@ -12,7 +12,8 @@ public interface MessageStyle extends Key, Serializable, TagResolver {
         return new MessageStyleImpl(key, representation);
     }
 
-    @KeyPattern String getKey();
+    @KeyPattern
+    String getKey();
 
     String toString();
 }

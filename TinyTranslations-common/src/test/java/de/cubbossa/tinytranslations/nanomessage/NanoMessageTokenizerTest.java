@@ -9,11 +9,11 @@ import static de.cubbossa.tinytranslations.nanomessage.NanoMessageTokenizer.*;
 
 class NanoMessageTokenizerTest {
 
-	@Test
-	void tokenize() {
-		Assertions.assertEquals(
-				List.of(new TokenValue(CHOICE, "?"), new TokenValue(LIT, "abc")),
-				new NanoMessageTokenizer().tokenize("?abc")
-		);
-	}
+    @Test
+    void tokenize() {
+        Assertions.assertEquals(
+                List.of(new TokenValue(CHOICE, "?"), new TokenValue(LIT, "abc")),
+                new NanoMessageTokenizer().tokenize("?abc")
+        );
+    }
 }

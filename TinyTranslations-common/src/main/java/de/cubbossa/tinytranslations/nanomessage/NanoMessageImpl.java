@@ -8,41 +8,36 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.function.Function;
-
 class NanoMessageImpl implements NanoMessage {
 
-	private static final NanoMessageCompiler COMPILER = new NanoMessageCompiler();
-	private static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
-			.preProcessor(COMPILER::compile)
-			.strict(false)
-			.build();
+    private static final NanoMessageCompiler COMPILER = new NanoMessageCompiler();
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
+            .preProcessor(COMPILER::compile)
+            .strict(false)
+            .build();
 
-	@Getter
-	final ObjectTagResolverMap objectTypeResolverMap;
-	TagResolver defaultResolver = TagResolver.empty();
+    @Getter
+    final ObjectTagResolverMap objectTypeResolverMap;
+    TagResolver defaultResolver = TagResolver.empty();
 
-	public NanoMessageImpl() {
-		this.objectTypeResolverMap = new ObjectTagResolverMap();
-	}
+    public NanoMessageImpl() {
+        this.objectTypeResolverMap = new ObjectTagResolverMap();
+    }
 
-	public Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers) {
-		return MINI_MESSAGE.deserialize(value, TagResolver.builder()
-				.resolver(defaultResolver)
-				.resolvers(resolvers)
-				.build());
-	}
+    public Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers) {
+        return MINI_MESSAGE.deserialize(value, TagResolver.builder()
+                .resolver(defaultResolver)
+                .resolvers(resolvers)
+                .build());
+    }
 
-	@Override
-	public @NotNull Component deserialize(@NotNull @Language("NanoMessage") String input) {
-		return deserialize(input, new TagResolver[0]);
-	}
+    @Override
+    public @NotNull Component deserialize(@NotNull @Language("NanoMessage") String input) {
+        return deserialize(input, new TagResolver[0]);
+    }
 
-	@Override
-	public @NotNull String serialize(@NotNull Component component) {
-		return MINI_MESSAGE.serialize(component);
-	}
+    @Override
+    public @NotNull String serialize(@NotNull Component component) {
+        return MINI_MESSAGE.serialize(component);
+    }
 }

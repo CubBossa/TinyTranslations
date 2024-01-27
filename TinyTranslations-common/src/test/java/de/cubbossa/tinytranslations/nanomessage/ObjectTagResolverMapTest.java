@@ -9,55 +9,58 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.Component.empty;
+import static net.kyori.adventure.text.Component.text;
 
 class ObjectTagResolverMapTest {
 
-	record Person(String name, int age) {}
+    @Test
+    void resolve() {
 
-	record PersonRelations(Person data, List<Person> friends) {}
+        ObjectTagResolverMap map = new ObjectTagResolverMap();
+        map.put(Person.class, Map.of(
+                "name", Person::name,
+                "age", Person::age
+        ));
+        map.put(PersonRelations.class, Map.of(
+                "data", PersonRelations::data,
+                "friends", PersonRelations::friends
+        ));
+        map.put(List.class, Collections.emptyMap(), l -> text((String) l.stream()
+                .map(Object::toString).collect(Collectors.joining(", "))));
 
-	@Test
-	void resolve() {
+        Assertions.assertEquals(
+                text("a, b, c"),
+                map.resolve(List.of("a", "b", "c"), "list")
+        );
 
-		ObjectTagResolverMap map = new ObjectTagResolverMap();
-		map.put(Person.class, Map.of(
-				"name", Person::name,
-				"age", Person::age
-		));
-		map.put(PersonRelations.class, Map.of(
-				"data", PersonRelations::data,
-				"friends", PersonRelations::friends
-		));
-		map.put(List.class, Collections.emptyMap(), l -> text((String) l.stream()
-				.map(Object::toString).collect(Collectors.joining(", "))));
+        Assertions.assertEquals(
+                text("hugo"),
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:name")
+        );
+        Assertions.assertEquals(
+                text(24),
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:age")
+        );
+        Assertions.assertEquals(
+                Component.text(new Person("hugo", 24).toString()),
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data")
+        );
+        Assertions.assertEquals(
+                empty(),
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friends")
+        );
+        Assertions.assertNull(
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friend")
+        );
+        Assertions.assertNull(
+                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:names")
+        );
+    }
 
-		Assertions.assertEquals(
-				text("a, b, c"),
-				map.resolve(List.of("a", "b", "c"), "list")
-		);
+    record Person(String name, int age) {
+    }
 
-		Assertions.assertEquals(
-				text("hugo"),
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:name")
-		);
-		Assertions.assertEquals(
-				text(24),
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:age")
-		);
-		Assertions.assertEquals(
-				Component.text(new Person("hugo", 24).toString()),
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data")
-		);
-		Assertions.assertEquals(
-				empty(),
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friends")
-		);
-		Assertions.assertNull(
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friend")
-		);
-		Assertions.assertNull(
-				map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:names")
-		);
-	}
+    record PersonRelations(Person data, List<Person> friends) {
+    }
 }

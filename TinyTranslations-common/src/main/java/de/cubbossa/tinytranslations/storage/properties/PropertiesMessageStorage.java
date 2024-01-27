@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class PropertiesMessageStorage extends FileMessageStorage implements MessageStorage {
 
-    private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1 };
+    private static final Charset[] CHARSETS = {StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1};
 
     public PropertiesMessageStorage(File directory) {
         this(directory, "", "");

@@ -22,6 +22,7 @@ public interface StyleStorage {
 
     /**
      * Loads a map of styles with their MiniMessage tag as key.
+     *
      * @return The loaded map.
      */
     Map<String, MessageStyle> loadStyles();

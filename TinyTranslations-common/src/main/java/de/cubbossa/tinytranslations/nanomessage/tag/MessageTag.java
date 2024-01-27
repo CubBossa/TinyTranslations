@@ -5,33 +5,30 @@ import de.cubbossa.tinytranslations.MessageTranslator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.translation.GlobalTranslator;
-
-import java.util.Locale;
 
 public class MessageTag {
-	public static final String KEY = "msg";
+    public static final String KEY = "msg";
 
-	public static TagResolver resolver(MessageTranslator messageTranslator) {
-		return TagResolver.resolver(KEY, (queue, ctx) -> {
-			String nameSpace;
-			String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission/>.").value();
-			if (queue.hasNext()) {
-				nameSpace = key;
-				key = queue.pop().value();
-			} else {
-				Message msg = messageTranslator.getMessageInParentTree(key);
-				if (msg == null) {
-					return Tag.inserting(Component.text("<msg-not-found:" + key + "/>"));
-				}
-				return Tag.inserting(msg);
-			}
-			Message msg = messageTranslator.getMessageByNamespace(nameSpace, key);
-			if (msg == null) {
-				return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + "/>"));
-			}
-			return Tag.inserting(msg);
-		});
-	}
+    public static TagResolver resolver(MessageTranslator messageTranslator) {
+        return TagResolver.resolver(KEY, (queue, ctx) -> {
+            String nameSpace;
+            String key = queue.popOr("The message tag requires a message key, like <msg:error.no_permission/>.").value();
+            if (queue.hasNext()) {
+                nameSpace = key;
+                key = queue.pop().value();
+            } else {
+                Message msg = messageTranslator.getMessageInParentTree(key);
+                if (msg == null) {
+                    return Tag.inserting(Component.text("<msg-not-found:" + key + "/>"));
+                }
+                return Tag.inserting(msg);
+            }
+            Message msg = messageTranslator.getMessageByNamespace(nameSpace, key);
+            if (msg == null) {
+                return Tag.inserting(Component.text("<msg-not-found:" + nameSpace + ":" + key + "/>"));
+            }
+            return Tag.inserting(msg);
+        });
+    }
 
 }

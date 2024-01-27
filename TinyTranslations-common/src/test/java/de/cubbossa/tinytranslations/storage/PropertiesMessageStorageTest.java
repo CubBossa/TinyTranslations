@@ -5,13 +5,15 @@ import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
-import static net.kyori.adventure.text.Component.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static net.kyori.adventure.text.Component.text;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class PropertiesMessageStorageTest extends MessageStorageTest {
 

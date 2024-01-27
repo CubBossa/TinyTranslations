@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.intellij.lang.annotations.Language;
 

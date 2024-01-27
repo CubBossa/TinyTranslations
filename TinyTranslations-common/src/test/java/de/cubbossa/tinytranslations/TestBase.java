@@ -55,9 +55,9 @@ public class TestBase {
     void replaceInFile(File file, @RegExp String regex, String val) {
         try {
             byte[] bytes = Files.readAllBytes(file.toPath());
-            String fileContent = new String (bytes);
+            String fileContent = new String(bytes);
             fileContent = fileContent.replaceAll(regex, val);
-            try (FileWriter fw = new FileWriter(file)){
+            try (FileWriter fw = new FileWriter(file)) {
                 fw.write(fileContent);
             }
         } catch (IOException e) {

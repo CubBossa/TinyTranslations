@@ -24,8 +24,6 @@
  */
 package de.cubbossa.tinytranslations.nanomessage.tag;
 
-import java.util.UUID;
-
 import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
@@ -44,154 +42,156 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.UUID;
+
 /**
  * Hover tag.
  *
  * @since 4.10.0
  */
 public final class HoverTag {
-	private static final NanoMessageCompiler PREPROCESSOR = new NanoMessageCompiler();
-	private static final String HOVER = "hover";
+    private static final NanoMessageCompiler PREPROCESSOR = new NanoMessageCompiler();
+    private static final String HOVER = "hover";
 
-	public static final TagResolver RESOLVER = SerializableResolver.claimingStyle(
-			HOVER,
-			HoverTag::create,
-			StyleClaim.claim(HOVER, Style::hoverEvent, HoverTag::emit)
-	);
+    public static final TagResolver RESOLVER = SerializableResolver.claimingStyle(
+            HOVER,
+            HoverTag::create,
+            StyleClaim.claim(HOVER, Style::hoverEvent, HoverTag::emit)
+    );
 
-	private HoverTag() {
-	}
+    private HoverTag() {
+    }
 
-	@SuppressWarnings("unchecked")
-	static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
-		final String actionName = args.popOr("Hover event requires an action as its first argument").value();
-		final HoverEvent.Action<Object> action = (HoverEvent.Action<Object>) HoverEvent.Action.NAMES.value(actionName);
-		final ActionHandler<Object> value = actionHandler(action);
-		if (value == null) {
-			throw ctx.newException("Don't know how to turn '" + args + "' into a hover event", args);
-		}
+    @SuppressWarnings("unchecked")
+    static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
+        final String actionName = args.popOr("Hover event requires an action as its first argument").value();
+        final HoverEvent.Action<Object> action = (HoverEvent.Action<Object>) HoverEvent.Action.NAMES.value(actionName);
+        final ActionHandler<Object> value = actionHandler(action);
+        if (value == null) {
+            throw ctx.newException("Don't know how to turn '" + args + "' into a hover event", args);
+        }
 
-		return Tag.styling(HoverEvent.hoverEvent(action, value.parse(args, ctx)));
-	}
+        return Tag.styling(HoverEvent.hoverEvent(action, value.parse(args, ctx)));
+    }
 
-	@SuppressWarnings("unchecked")
-	static void emit(final HoverEvent<?> event, final TokenEmitter emitter) {
-		final ActionHandler<Object> handler = (ActionHandler<Object>) actionHandler(event.action());
-		emitter.tag(HOVER).argument(HoverEvent.Action.NAMES.key(event.action()));
-		handler.emit(event.value(), emitter);
-	}
+    @SuppressWarnings("unchecked")
+    static void emit(final HoverEvent<?> event, final TokenEmitter emitter) {
+        final ActionHandler<Object> handler = (ActionHandler<Object>) actionHandler(event.action());
+        emitter.tag(HOVER).argument(HoverEvent.Action.NAMES.key(event.action()));
+        handler.emit(event.value(), emitter);
+    }
 
-	@SuppressWarnings("unchecked")
-	static <V> @Nullable ActionHandler<V> actionHandler(final HoverEvent.Action<V> action) {
-		ActionHandler<?> ret = null;
-		if (action == HoverEvent.Action.SHOW_TEXT) {
-			ret = ShowText.INSTANCE;
-		} else if (action == HoverEvent.Action.SHOW_ITEM) {
-			ret = ShowItem.INSTANCE;
-		} else if (action == HoverEvent.Action.SHOW_ENTITY) {
-			ret = ShowEntity.INSTANCE;
-		}
+    @SuppressWarnings("unchecked")
+    static <V> @Nullable ActionHandler<V> actionHandler(final HoverEvent.Action<V> action) {
+        ActionHandler<?> ret = null;
+        if (action == HoverEvent.Action.SHOW_TEXT) {
+            ret = ShowText.INSTANCE;
+        } else if (action == HoverEvent.Action.SHOW_ITEM) {
+            ret = ShowItem.INSTANCE;
+        } else if (action == HoverEvent.Action.SHOW_ENTITY) {
+            ret = ShowEntity.INSTANCE;
+        }
 
-		return (ActionHandler<V>) ret;
-	}
+        return (ActionHandler<V>) ret;
+    }
 
-	interface ActionHandler<V> {
-		@NotNull V parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException;
+    static @NotNull String compactAsString(final @NotNull Key key) {
+        if (key.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            return key.value();
+        } else {
+            return key.asString();
+        }
+    }
 
-		void emit(final V event, final TokenEmitter emit);
-	}
+    interface ActionHandler<V> {
+        @NotNull V parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException;
 
-	static final class ShowText implements ActionHandler<Component> {
-		private static final ShowText INSTANCE = new ShowText();
+        void emit(final V event, final TokenEmitter emit);
+    }
 
-		private ShowText() {
-		}
+    static final class ShowText implements ActionHandler<Component> {
+        private static final ShowText INSTANCE = new ShowText();
 
-		@Override
-		public @NotNull Component parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
-			String val = args.popOr("show_text action requires a message").value();
-			val = PREPROCESSOR.compile(val);
-			return ctx.deserialize(val);
-		}
+        private ShowText() {
+        }
 
-		@Override
-		public void emit(final Component event, final TokenEmitter emit) {
-			emit.argument(event);
-		}
-	}
+        @Override
+        public @NotNull Component parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
+            String val = args.popOr("show_text action requires a message").value();
+            val = PREPROCESSOR.compile(val);
+            return ctx.deserialize(val);
+        }
 
-	static final class ShowItem implements ActionHandler<HoverEvent.ShowItem> {
-		private static final ShowItem INSTANCE = new ShowItem();
+        @Override
+        public void emit(final Component event, final TokenEmitter emit) {
+            emit.argument(event);
+        }
+    }
 
-		private ShowItem() {
-		}
+    static final class ShowItem implements ActionHandler<HoverEvent.ShowItem> {
+        private static final ShowItem INSTANCE = new ShowItem();
 
-		@Override
-		public HoverEvent.@NotNull ShowItem parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
-			try {
-				final Key key = Key.key(args.popOr("Show item hover needs at least an item ID").value());
-				final int count = args.hasNext() ? args.pop().asInt().orElseThrow(() -> ctx.newException("The count argument was not a valid integer")) : 1;
-				if (args.hasNext()) {
-					return HoverEvent.ShowItem.showItem(key, count, BinaryTagHolder.binaryTagHolder(args.pop().value()));
-				} else {
-					return HoverEvent.ShowItem.showItem(key, count);
-				}
-			} catch (final InvalidKeyException | NumberFormatException ex) {
-				throw ctx.newException("Exception parsing show_item hover", ex, args);
-			}
-		}
+        private ShowItem() {
+        }
 
-		@Override
-		public void emit(final HoverEvent.ShowItem event, final TokenEmitter emit) {
-			emit.argument(compactAsString(event.item()));
+        @Override
+        public HoverEvent.@NotNull ShowItem parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
+            try {
+                final Key key = Key.key(args.popOr("Show item hover needs at least an item ID").value());
+                final int count = args.hasNext() ? args.pop().asInt().orElseThrow(() -> ctx.newException("The count argument was not a valid integer")) : 1;
+                if (args.hasNext()) {
+                    return HoverEvent.ShowItem.showItem(key, count, BinaryTagHolder.binaryTagHolder(args.pop().value()));
+                } else {
+                    return HoverEvent.ShowItem.showItem(key, count);
+                }
+            } catch (final InvalidKeyException | NumberFormatException ex) {
+                throw ctx.newException("Exception parsing show_item hover", ex, args);
+            }
+        }
 
-			if (event.count() != 1 || event.nbt() != null) {
-				emit.argument(Integer.toString(event.count()));
+        @Override
+        public void emit(final HoverEvent.ShowItem event, final TokenEmitter emit) {
+            emit.argument(compactAsString(event.item()));
 
-				if (event.nbt() != null) {
-					emit.argument(event.nbt().string());
-				}
-			}
-		}
-	}
+            if (event.count() != 1 || event.nbt() != null) {
+                emit.argument(Integer.toString(event.count()));
 
-	static final class ShowEntity implements ActionHandler<HoverEvent.ShowEntity> {
-		static final ShowEntity INSTANCE = new ShowEntity();
+                if (event.nbt() != null) {
+                    emit.argument(event.nbt().string());
+                }
+            }
+        }
+    }
 
-		private ShowEntity() {
-		}
+    static final class ShowEntity implements ActionHandler<HoverEvent.ShowEntity> {
+        static final ShowEntity INSTANCE = new ShowEntity();
 
-		@Override
-		public HoverEvent.@NotNull ShowEntity parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
-			try {
-				final Key key = Key.key(args.popOr("Show entity needs a type argument").value());
-				final UUID id = UUID.fromString(args.popOr("Show entity needs an entity UUID").value());
-				if (args.hasNext()) {
-					final Component name = ctx.deserialize(args.pop().value());
-					return HoverEvent.ShowEntity.showEntity(key, id, name);
-				}
-				return HoverEvent.ShowEntity.showEntity(key, id);
-			} catch (final IllegalArgumentException | InvalidKeyException ex) {
-				throw ctx.newException("Exception parsing show_entity hover", ex, args);
-			}
-		}
+        private ShowEntity() {
+        }
 
-		@Override
-		public void emit(final HoverEvent.ShowEntity event, final TokenEmitter emit) {
-			emit.argument(compactAsString(event.type()))
-					.argument(event.id().toString());
+        @Override
+        public HoverEvent.@NotNull ShowEntity parse(final @NotNull ArgumentQueue args, final @NotNull Context ctx) throws ParsingException {
+            try {
+                final Key key = Key.key(args.popOr("Show entity needs a type argument").value());
+                final UUID id = UUID.fromString(args.popOr("Show entity needs an entity UUID").value());
+                if (args.hasNext()) {
+                    final Component name = ctx.deserialize(args.pop().value());
+                    return HoverEvent.ShowEntity.showEntity(key, id, name);
+                }
+                return HoverEvent.ShowEntity.showEntity(key, id);
+            } catch (final IllegalArgumentException | InvalidKeyException ex) {
+                throw ctx.newException("Exception parsing show_entity hover", ex, args);
+            }
+        }
 
-			if (event.name() != null) {
-				emit.argument(event.name());
-			}
-		}
-	}
+        @Override
+        public void emit(final HoverEvent.ShowEntity event, final TokenEmitter emit) {
+            emit.argument(compactAsString(event.type()))
+                    .argument(event.id().toString());
 
-	static @NotNull String compactAsString(final @NotNull Key key) {
-		if (key.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
-			return key.value();
-		} else {
-			return key.asString();
-		}
-	}
+            if (event.name() != null) {
+                emit.argument(event.name());
+            }
+        }
+    }
 }

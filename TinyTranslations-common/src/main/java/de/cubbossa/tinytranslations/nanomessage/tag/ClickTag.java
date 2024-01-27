@@ -39,32 +39,32 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.Nullable;
 
 public class ClickTag {
-	private static final NanoMessageCompiler PREPROCESSOR = new NanoMessageCompiler();
-	private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
-	private static final String NAME = "click";
+    private static final NanoMessageCompiler PREPROCESSOR = new NanoMessageCompiler();
+    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
+    private static final String NAME = "click";
 
-	public static final TagResolver RESOLVER = SerializableResolver.claimingStyle(
-			NAME,
-			ClickTag::tag,
-			StyleClaim.claim(NAME, Style::clickEvent, (event, emitter) -> {
-				emitter.tag(NAME)
-						.argument(ClickEvent.Action.NAMES.key(event.action()))
-						.argument(event.value(), QuotingOverride.QUOTED);
-			})
-			);
+    public static final TagResolver RESOLVER = SerializableResolver.claimingStyle(
+            NAME,
+            ClickTag::tag,
+            StyleClaim.claim(NAME, Style::clickEvent, (event, emitter) -> {
+                emitter.tag(NAME)
+                        .argument(ClickEvent.Action.NAMES.key(event.action()))
+                        .argument(event.value(), QuotingOverride.QUOTED);
+            })
+    );
 
-	static Tag tag(final ArgumentQueue queue, final Context ctx) {
-		final String actionName = queue.popOr(() -> "A click tag requires an action of one of " + ClickEvent.Action.NAMES.keys()).lowerValue();
-		final ClickEvent.@Nullable Action action = ClickEvent.Action.NAMES.value(actionName);
-		if (action == null) {
-			throw ctx.newException("Unknown click event action '" + actionName + "'", queue);
-		}
+    static Tag tag(final ArgumentQueue queue, final Context ctx) {
+        final String actionName = queue.popOr(() -> "A click tag requires an action of one of " + ClickEvent.Action.NAMES.keys()).lowerValue();
+        final ClickEvent.@Nullable Action action = ClickEvent.Action.NAMES.value(actionName);
+        if (action == null) {
+            throw ctx.newException("Unknown click event action '" + actionName + "'", queue);
+        }
 
-		String value = queue.popOr("Click event actions require a value").value();
-		value = PREPROCESSOR.compile(value);
-		Component c = ctx.deserialize(value);
-		value = PLAIN.serialize(c);
+        String value = queue.popOr("Click event actions require a value").value();
+        value = PREPROCESSOR.compile(value);
+        Component c = ctx.deserialize(value);
+        value = PLAIN.serialize(c);
 
-		return Tag.styling(ClickEvent.clickEvent(action, value));
-	}
+        return Tag.styling(ClickEvent.clickEvent(action, value));
+    }
 }

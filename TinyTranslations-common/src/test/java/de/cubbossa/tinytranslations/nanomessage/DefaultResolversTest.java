@@ -94,7 +94,7 @@ class DefaultResolversTest {
 
     @Test
     void reverse() {
-         TagResolver resolver = DefaultResolvers.reverse("reverse");
+        TagResolver resolver = DefaultResolvers.reverse("reverse");
 
         Assertions.assertEquals(Component.text("cba"), miniMessage.deserialize("<reverse>abc</reverse>", resolver).compact());
         Assertions.assertEquals(Component.text(""), miniMessage.deserialize("<reverse></reverse>", resolver).compact());
@@ -118,8 +118,8 @@ class DefaultResolversTest {
 
         // we cannot access parent color of component, also colors should only be darkened if existing on component
         Assertions.assertNotEquals(
-            Component.text("test", NamedTextColor.RED).append(Component.text("child").color(TextColor.color(new Color(0xff0000).darker().getRGB()))),
-            miniMessage.deserialize("<#ff0000>test<darker>child</darker></#ff0000>", resolver)
+                Component.text("test", NamedTextColor.RED).append(Component.text("child").color(TextColor.color(new Color(0xff0000).darker().getRGB()))),
+                miniMessage.deserialize("<#ff0000>test<darker>child</darker></#ff0000>", resolver)
         );
     }
 

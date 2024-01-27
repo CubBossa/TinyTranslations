@@ -5,19 +5,14 @@ import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
-import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.translation.Translator;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
 
 public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, TranslationRegistry {
 
@@ -31,6 +26,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     /**
      * Gets a reference to the parent Translations. This parent must only be null for the global Translations.
      * All other Translations refer to the global translations or to any successor of global.
+     *
      * @return The parent instance or null for global Translations.
      */
     @Nullable MessageTranslator getParent();
@@ -39,7 +35,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Create a sub Translations instance for the current instance.
      * The new produced fork inherits all styles and all messages as tags. Meaning msg:x.y.z will be resolved from
      * this Translations message set or from the parents message set.
-     *
+     * <p>
      * Storages are not inherited and must be set manually.
      *
      * @param name An individual key for this specific instance. There must not be two nest siblings with the same key.
@@ -59,7 +55,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * If the message has {@link TagResolver}s specified, these will be resolved in the process.
      *
      * @param message Any message instance.
-     * @param locale A target locale that the message will be translated into.
+     * @param locale  A target locale that the message will be translated into.
      * @return The message translated into a component.
      */
     Component translate(Message message, Locale locale, TagResolver... resolvers);
@@ -68,7 +64,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Processes a raw string as if it were a translation value of a Message.
      * The default locale will be used to resolve messages.
      *
-     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
+     * @param raw       A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
@@ -78,8 +74,8 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Processes a raw string as if it were a translation value of a Message.
      * The given locale will be used to resolve embedded messages.
      *
-     * @param raw A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
-     * @param locale A locale to use to resolve embedded messages.
+     * @param raw       A raw string that might start with a MessageEncoding prefix. Otherwise, assuming MiniMessage format.
+     * @param locale    A locale to use to resolve embedded messages.
      * @param resolvers A collection of resolvers to include into the resolving process.
      * @return The processed Component that resembles the input string.
      */
@@ -108,6 +104,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Loads a locale from storage, if a storage instance is set. Propagates to all parenting Translations.
      * It saves the results in the dictionary of all registered messages. So clones of a message will only be
      * updated if the clone again is part of this Translations instance.
+     *
      * @param locale A locale instance to load from a storage.
      */
     void loadLocale(Locale locale);
@@ -115,12 +112,14 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     /**
      * Saves the current dictionary values for the given language and all registered messages of this Translations instance
      * to a storage if a storage instance is set.
+     *
      * @param locale A locale instance to save message values for.
      */
     void saveLocale(Locale locale);
 
     /**
      * Find a registered message by key.
+     *
      * @param key The message key without namespace.
      * @return A message instance if the message existed and otherwise null.
      */
@@ -147,7 +146,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * if a child Translation also has a translation by key 'a'.
      *
      * @param namespace The exact application path (global.A.B.C)
-     * @param key The exact message key (a.b.c)
+     * @param key       The exact message key (a.b.c)
      * @return The found message instance or null if none found.
      */
     @Nullable Message getMessageByNamespace(@AppPathPattern String namespace, String key);
@@ -165,12 +164,14 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     /**
      * {@link #addMessage(Message)} for multiple Messages at once.
+     *
      * @param messages An array of Messages to add
      */
     void addMessages(Message... messages);
 
     /**
      * {@link #addMessage(Message)} for multiple Messages at once.
+     *
      * @param messages An iterable of Messages to add
      */
     void addMessage(Iterable<Message> messages);
@@ -182,7 +183,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * If no storage is set, the Translation works in memory only and on restart, changes to
      * Messages and Message dictionaries are gone.
      * To persist changes if a MessageStorage is present, call {@link #saveLocale(Locale)}.
-     * 
+     *
      * @return the MessageStorage instance or null if not present.
      */
     @Nullable MessageStorage getMessageStorage();
@@ -195,12 +196,11 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     void setStyleStorage(@Nullable StyleStorage storage);
 
+    boolean isUseClientLocale();
 
     void setUseClientLocale(boolean clientLocale);
 
-    boolean isUseClientLocale();
+    Locale getDefaultLocale();
 
     void setDefaultLocale(Locale locale);
-
-    Locale getDefaultLocale();
 }

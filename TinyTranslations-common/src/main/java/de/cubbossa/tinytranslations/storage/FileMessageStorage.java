@@ -52,8 +52,8 @@ public abstract class FileMessageStorage implements MessageStorage {
     }
 
 
-
-    @Nullable protected File localeFileIfExists(Locale locale) {
+    @Nullable
+    protected File localeFileIfExists(Locale locale) {
         File file = new File(directory, locale.toLanguageTag() + fileSuffix);
         if (!file.exists()) {
             return null;
@@ -85,7 +85,7 @@ public abstract class FileMessageStorage implements MessageStorage {
     }
 
     private Charset detectCharset(File f, Charset charset) {
-        try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(f))){
+        try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(f))) {
 
             CharsetDecoder decoder = charset.newDecoder();
             decoder.reset();

@@ -1,11 +1,11 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Keyed;
-import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
@@ -21,12 +21,10 @@ class MessageImpl implements Message {
 
     @Getter
     private final TranslationKey key;
-
-    private Style style = Style.empty();
-    private List<Component> children = new ArrayList<>();
     private final List<TranslationArgument> arguments = Collections.emptyList();
     private final Collection<TagResolver> resolvers = new ArrayList<>();
-
+    private Style style = Style.empty();
+    private List<Component> children = new ArrayList<>();
     private Map<Locale, String> dictionary;
     private String fallback;
 
@@ -61,7 +59,7 @@ class MessageImpl implements Message {
         return "Message{key=\"" + getKey().asNamespacedKey() + "\"}";
     }
 
-	@Override
+    @Override
     public String toString(MessageEncoding format) {
         return format.format(asComponent());
     }

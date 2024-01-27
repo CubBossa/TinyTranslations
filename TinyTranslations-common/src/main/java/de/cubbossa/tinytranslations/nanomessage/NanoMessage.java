@@ -12,29 +12,29 @@ import org.intellij.lang.annotations.Language;
 
 public interface NanoMessage extends ComponentSerializer<Component, Component, String> {
 
-	static NanoMessage nanoMessage() {
-		NanoMessageImpl nm = new NanoMessageImpl();
-		nm.defaultResolver = TagResolver.resolver(
-				DefaultResolvers.choice("choice"),
-				DarkerTag.RESOLVER,
-				BrighterTag.RESOLVER,
-				DefaultResolvers.repeat("repeat"),
-				DefaultResolvers.reverse("reverse"),
-				DefaultResolvers.upper("upper"),
-				DefaultResolvers.lower("lower"),
-				DefaultResolvers.shortUrl("shorturl"),
-				DefaultResolvers.preview("shorten"),
-				MessageEncoding.NBT.getTagResolver(),
-				MessageEncoding.LEGACY_PARAGRAPH.getTagResolver(),
-				MessageEncoding.LEGACY_AMPERSAND.getTagResolver(),
-				MessageEncoding.PLAIN.getTagResolver(),
-				ClickTag.RESOLVER,
-				HoverTag.RESOLVER
-		);
-		return nm;
-	}
+    static NanoMessage nanoMessage() {
+        NanoMessageImpl nm = new NanoMessageImpl();
+        nm.defaultResolver = TagResolver.resolver(
+                DefaultResolvers.choice("choice"),
+                DarkerTag.RESOLVER,
+                BrighterTag.RESOLVER,
+                DefaultResolvers.repeat("repeat"),
+                DefaultResolvers.reverse("reverse"),
+                DefaultResolvers.upper("upper"),
+                DefaultResolvers.lower("lower"),
+                DefaultResolvers.shortUrl("shorturl"),
+                DefaultResolvers.preview("shorten"),
+                MessageEncoding.NBT.getTagResolver(),
+                MessageEncoding.LEGACY_PARAGRAPH.getTagResolver(),
+                MessageEncoding.LEGACY_AMPERSAND.getTagResolver(),
+                MessageEncoding.PLAIN.getTagResolver(),
+                ClickTag.RESOLVER,
+                HoverTag.RESOLVER
+        );
+        return nm;
+    }
 
-	ObjectTagResolverMap getObjectTypeResolverMap();
+    ObjectTagResolverMap getObjectTypeResolverMap();
 
-	Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers);
+    Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers);
 }

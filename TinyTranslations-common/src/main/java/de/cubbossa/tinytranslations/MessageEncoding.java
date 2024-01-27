@@ -15,11 +15,18 @@ import java.util.Set;
 public class MessageEncoding {
 
     private static final MiniMessage S_MM = MiniMessage.miniMessage();
+    public static final MessageEncoding MINI_MESSAGE = new MessageEncoding("minimessage", S_MM) {
+        @Override
+        public String wrap(String content) {
+            return content;
+        }
+    };
     private static final GsonComponentSerializer S_GSON = GsonComponentSerializer.gson();
+    public static final MessageEncoding NBT = new MessageEncoding(List.of("nbt", "json", "gson"), S_GSON);
     private static final LegacyComponentSerializer S_LEGACY = LegacyComponentSerializer.legacySection();
     private static final LegacyComponentSerializer S_LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
     private static final PlainTextComponentSerializer S_PLAIN = PlainTextComponentSerializer.plainText();
-
+    public static final MessageEncoding PLAIN = new MessageEncoding(List.of("plain", "pre"), S_PLAIN);
     private static final TagResolver LEGACY_RESOLVER = TagResolver.resolver("legacy", (argumentQueue, context) -> {
         if (!argumentQueue.hasNext()) {
             return Tag.preProcessParsed("");
@@ -42,14 +49,6 @@ public class MessageEncoding {
         }
         return Tag.inserting(translator.deserialize(content));
     });
-
-    public static final MessageEncoding MINI_MESSAGE = new MessageEncoding("minimessage", S_MM) {
-        @Override
-        public String wrap(String content) {
-            return content;
-        }
-    };
-    public static final MessageEncoding NBT = new MessageEncoding(List.of("nbt", "json", "gson"), S_GSON);
     public static final MessageEncoding LEGACY_PARAGRAPH = new MessageEncoding("legacy", S_LEGACY, LEGACY_RESOLVER) {
         @Override
         public String wrap(String content) {
@@ -62,18 +61,10 @@ public class MessageEncoding {
             return "<legacy:'&'>" + content + "</legacy>";
         }
     };
-    public static final MessageEncoding PLAIN = new MessageEncoding(List.of("plain", "pre"), S_PLAIN);
-    private static final MessageEncoding[] VALUES = { MINI_MESSAGE, NBT, LEGACY_PARAGRAPH, LEGACY_AMPERSAND, PLAIN };
-
-
-    public static MessageEncoding[] values() {
-        return VALUES;
-    }
-
+    private static final MessageEncoding[] VALUES = {MINI_MESSAGE, NBT, LEGACY_PARAGRAPH, LEGACY_AMPERSAND, PLAIN};
     final List<String> tag;
     final TagResolver resolver;
     final ComponentSerializer<Component, ? extends Component, String> translator;
-
     MessageEncoding(String tag, ComponentSerializer<Component, ? extends Component, String> translator) {
         this(List.of(tag), translator);
     }
@@ -96,6 +87,10 @@ public class MessageEncoding {
         this.tag = tag;
         this.translator = translator;
         this.resolver = resolver;
+    }
+
+    public static MessageEncoding[] values() {
+        return VALUES;
     }
 
     public String wrap(String content) {

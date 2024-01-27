@@ -25,7 +25,7 @@ public interface MessageStorage {
      * The value to write will be provided by the dictionary of the message and the given {@link Locale}.
      *
      * @param messages A collection of messages to write.
-     * @param locale A locale to write the message translations for.
+     * @param locale   A locale to write the message translations for.
      * @return A collection of Messages that were successfully written into storage.
      */
     Collection<Message> writeMessages(Collection<Message> messages, Locale locale);

@@ -8,13 +8,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class PlaceholderCompilation implements CompilationStep {
-	@Override
-	public boolean apply(SimpleStringParser<NanoMessageTokenizer.Token, NanoMessageTokenizer.TokenValue, String>.Node node, Context context) {
-		if (!Objects.equals(node.getType(), NanoMessageParser.PLACEHOLDER)) {
-			return false;
-		}
-		node.replace("<" + node.getChildren().get(0).toString().trim() + node.getChildren().get(1).getChildren().stream()
-				.map(SimpleStringParser.Node::toString).map(s -> ":" + s).collect(Collectors.joining()) + ">");
-		return true;
-	}
+    @Override
+    public boolean apply(SimpleStringParser<NanoMessageTokenizer.Token, NanoMessageTokenizer.TokenValue, String>.Node node, Context context) {
+        if (!Objects.equals(node.getType(), NanoMessageParser.PLACEHOLDER)) {
+            return false;
+        }
+        node.replace("<" + node.getChildren().get(0).toString().trim() + node.getChildren().get(1).getChildren().stream()
+                .map(SimpleStringParser.Node::toString).map(s -> ":" + s).collect(Collectors.joining()) + ">");
+        return true;
+    }
 }

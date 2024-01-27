@@ -1,20 +1,18 @@
 package de.cubbossa.tinytranslations;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.Translator;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.awt.*;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.translatable;
 
 public class BukkitTinyTranslationsTest {
 
@@ -47,7 +45,7 @@ public class BukkitTinyTranslationsTest {
                 text("1x")
                         .append(translatable("block.minecraft.gold_ore"))
                         .append(text(", 3x")
-                            .append(translatable("block.minecraft.diamond_ore"))),
+                                .append(translatable("block.minecraft.diamond_ore"))),
                 GlobalTranslator.renderer().render(l, Locale.ENGLISH).compact()
         );
     }

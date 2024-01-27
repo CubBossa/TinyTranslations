@@ -10,31 +10,31 @@ import java.util.Locale;
 
 class MessageReferenceLoopDetectorTest extends TestBase {
 
-	@Test
-	void detectLoops() {
+    @Test
+    void detectLoops() {
 
-		Message a = translator.messageBuilder("a").withDefault("{msg:a}").build();
-		Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(a).isEmpty());
+        Message a = translator.messageBuilder("a").withDefault("{msg:a}").build();
+        Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(a).isEmpty());
 
-		Message b = translator.messageBuilder("b").withDefault("{msg:c}").build();
-		translator.messageBuilder("c").withDefault("{msg:b}").build();
-		Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(b).isEmpty());
+        Message b = translator.messageBuilder("b").withDefault("{msg:c}").build();
+        translator.messageBuilder("c").withDefault("{msg:b}").build();
+        Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(b).isEmpty());
 
-		Message d = translator.messageBuilder("d").withDefault("<e>abc</e>").build();
-		translator.getStyleSet().put("e", "{msg:f}{slot}");
-		translator.messageBuilder("f").withDefault("{msg:d}").build();
-		Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(d).isEmpty());
-	}
+        Message d = translator.messageBuilder("d").withDefault("<e>abc</e>").build();
+        translator.getStyleSet().put("e", "{msg:f}{slot}");
+        translator.messageBuilder("f").withDefault("{msg:d}").build();
+        Assertions.assertFalse(new MessageReferenceLoopDetector().detectLoops(d).isEmpty());
+    }
 
-	@Test
-	void detectLoopsOnLoad() {
+    @Test
+    void detectLoopsOnLoad() {
 
-		translator.messageBuilder("a")
-				.withTranslation(Locale.ENGLISH, "{msg:a}").build();
-		translator.loadLocale(Locale.ENGLISH);
-		Assertions.assertNotEquals(
-				"{msg:a}",
-				translator.getMessage("a").getDictionary().get(Locale.ENGLISH)
-		);
-	}
+        translator.messageBuilder("a")
+                .withTranslation(Locale.ENGLISH, "{msg:a}").build();
+        translator.loadLocale(Locale.ENGLISH);
+        Assertions.assertNotEquals(
+                "{msg:a}",
+                translator.getMessage("a").getDictionary().get(Locale.ENGLISH)
+        );
+    }
 }

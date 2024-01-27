@@ -2,12 +2,15 @@ package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.MessageStyle;
 import de.cubbossa.tinytranslations.storage.FileEntry;
-import de.cubbossa.tinytranslations.storage.StyleStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
+import de.cubbossa.tinytranslations.storage.StyleStorage;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PropertiesStyleStorage implements StyleStorage {

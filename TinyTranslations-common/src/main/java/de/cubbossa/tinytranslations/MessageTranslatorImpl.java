@@ -2,7 +2,8 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
-import de.cubbossa.tinytranslations.nanomessage.tag.*;
+import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import lombok.Getter;
@@ -35,6 +36,8 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Getter
     private final StyleSet styleSet;
     @Getter
+    private final Collection<TagResolver> resolvers = new LinkedList<>();
+    @Getter
     @Setter
     private @Nullable MessageStorage messageStorage;
     @Getter
@@ -46,9 +49,6 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Getter
     @Setter
     private Locale defaultLocale = Locale.ENGLISH;
-
-    @Getter
-    private final Collection<TagResolver> resolvers = new LinkedList<>();
 
     public MessageTranslatorImpl(MessageTranslator parent, String name) {
         this.parent = parent;
