@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, TranslationRegistry {
 
@@ -71,8 +69,6 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * @return The processed Component that resembles the input string.
      */
     Component translate(@Language("NanoMessage") String raw, TagResolver... resolvers);
-
-    <F extends Formattable<F>> Component translate(@Language("NanoMessage") String raw, Function<Formattable<F>, Formattable<F>> resolver);
 
     /**
      * Processes a raw string as if it were a translation value of a Message.

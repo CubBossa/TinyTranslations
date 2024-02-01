@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -142,10 +143,9 @@ class MessageTranslatorImplTest extends TestBase {
     public void testList() {
 
         List<Boolean> list = List.of(true, false, true);
-        Message a = translator.messageBuilder("a.b.c").withDefault("Header\n<list:','>\nFooter").build();
-        Message b = translator.messageBuilder("b").withDefault("{val ? '<green>true</green>' : '<red>false</red>' }").build();
+        Message a = translator.messageBuilder("a.b.c").withDefault("Header\n<list:','>{el ? <green>true</green> : <red>false</red>}</list>\nFooter").build();
 
-        a = a.insertList("list", list, ListSection.paged(0, 2), v -> b.insertBool("val", v));
+        a = a.insertList("list", list, ListSection.paged(0, 2));
         assertEquals(
                 text("Header\n")
                         .append(text("true", NamedTextColor.GREEN))
@@ -153,6 +153,17 @@ class MessageTranslatorImplTest extends TestBase {
                         .append(text("false", NamedTextColor.RED))
                         .append(text("\nFooter")),
                 render(a).compact()
+        );
+
+        Message b = translator.messageBuilder("a.b.c").withDefault("Header\n<list:'\n'>{index}.) {el ? <green>true</green> : <red>false</red>}</list>\nFooter").build();
+
+        b = b.insertList("list", list, ListSection.paged(0, 2));
+        assertEquals(
+                text("Header\n")
+                        .append(text("1.) ").append(text("true", NamedTextColor.GREEN)))
+                        .append(text("\n2.) ").append(text("false", NamedTextColor.RED)))
+                        .append(text("\nFooter")).compact(),
+                render(b).compact()
         );
     }
 

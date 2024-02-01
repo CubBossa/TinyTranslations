@@ -20,7 +20,7 @@ public class BukkitTinyTranslationsTest {
     @Test
     void testMaterial() {
         MessageTranslator t = BukkitTinyTranslations.application("test");
-        Message l = t.messageBuilder("a").withDefault("{materials}").build();
+        Message l = t.messageBuilder("a").withDefault("<materials>{el}</materials>").build();
 
         l = l.insertList("materials", List.of(Material.GOLD_ORE, Material.DIAMOND_ORE));
 
@@ -37,7 +37,7 @@ public class BukkitTinyTranslationsTest {
     void testItemStack(@TempDir File dir) {
         MessageTranslator g = BukkitTinyTranslations.globalTranslator(dir);
         MessageTranslator t = g.fork("test");
-        Message l = t.messageBuilder("a").withDefault("{materials}").build();
+        Message l = t.messageBuilder("a").withDefault("<materials>{el}</materials>").build();
 
         l = l.insertList("materials", List.of(new ItemStack(Material.GOLD_ORE, 1), new ItemStack(Material.DIAMOND_ORE, 3)));
 
