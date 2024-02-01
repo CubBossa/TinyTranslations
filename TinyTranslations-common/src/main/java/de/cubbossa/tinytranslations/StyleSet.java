@@ -3,6 +3,7 @@ package de.cubbossa.tinytranslations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.intellij.lang.annotations.Language;
 
 import java.util.HashMap;
 
@@ -19,7 +20,7 @@ public class StyleSet extends HashMap<String, MessageStyle> {
         put(key, representation);
     }
 
-    public void put(String key, String serializedStyle) {
+    public void put(String key, @Language("NanoMessage") String serializedStyle) {
         this.put(key, MessageStyle.messageStyle(key, serializedStyle));
     }
 }
