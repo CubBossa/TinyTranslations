@@ -78,9 +78,10 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
 
     default <T> ReturnT insertObject(final @NotNull String key, T obj) {
         return formatted(ObjectTag.resolver(key, obj));
-
     }
 
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0")
     default <E> ReturnT insertList(final @NotNull String key, List<E> elements, Function<E, ComponentLike> renderer) {
         return this.insertList(key, elements, ListSection.paged(0, elements.size()), renderer);
     }
