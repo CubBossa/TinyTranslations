@@ -308,6 +308,21 @@ class MessageTranslatorImplTest extends TestBase {
         );
     }
 
+    @Test
+    void testMessageToString() {
+        Message m = translator.messageBuilder("msg").withDefault("Hello").build();
+        assertEquals(
+                "Hello",
+                m.toString(MessageEncoding.PLAIN)
+        );
+
+        Message p = translator.messageBuilder("parent").withDefault("{msg:msg} world!").build();
+        assertEquals(
+                "Hello world!",
+                p.toString(MessageEncoding.PLAIN)
+        );
+    }
+
     private record Location(int x, int y, int z) {
     }
 

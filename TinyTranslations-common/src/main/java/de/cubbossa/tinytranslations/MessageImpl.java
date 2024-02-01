@@ -8,6 +8,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -61,7 +62,7 @@ class MessageImpl implements Message {
 
     @Override
     public String toString(MessageEncoding format) {
-        return format.format(asComponent());
+        return format.format(GlobalTranslator.render(asComponent(), Locale.ENGLISH));
     }
 
     @Override
