@@ -1,25 +1,27 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
+import lombok.Getter;
 import org.intellij.lang.annotations.Language;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NanoMessageTokenizer {
 
-    public static final Token ESC = new Token("Esc", Pattern.compile("^\\\\"));
-    public static final Token PH_OPEN = new Token("{", Pattern.compile("^\\{"));
-    public static final Token PH_CLOSE = new Token("}", Pattern.compile("^}"));
-    public static final Token TAG_OPEN = new Token("<", Pattern.compile("^<"));
-    public static final Token TAG_CLOSE = new Token(">", Pattern.compile("^\\>"));
-    public static final Token TAG_END = new Token("/", Pattern.compile("^/"));
-    public static final Token CHOICE = new Token("?", Pattern.compile("^\\?"));
-    public static final Token SEPARATOR = new Token(":", Pattern.compile("^:"));
+    public static final Token ESC = new Token("Esc", "\\");
+    public static final Token TAG_OPEN = new Token("<", "<");
+    public static final Token TAG_CLOSE = new Token(">",">");
+    public static final Token TAG_END = new Token("/","/");
+    public static final Token PH_OPEN = new Token("{", "{");
+    public static final Token PH_CLOSE = new Token("}", "}");
+    public static final Token SEPARATOR = new Token(":",":");
+    public static final Token SQUOTE = new Token("'","'");
+    public static final Token DQUOTE = new Token("\"","\"");
+    public static final Token CHOICE = new Token("?","?");
     public static final Token WS = new Token(" ", Pattern.compile("^[ \t]+"));
-    public static final Token SQUOTE = new Token("'", Pattern.compile("^'"));
-    public static final Token DQUOTE = new Token("\"", Pattern.compile("^\""));
     public static final Token LIT = new Token("Literal", Pattern.compile("^[a-zA-Z0-9#._,-]+"));
     public static final Token MISC = new Token("MISC", Pattern.compile("^(.|\n)"));
 
@@ -36,15 +38,27 @@ public class NanoMessageTokenizer {
 
     public List<TokenValue> tokenize(@Language("NanoMessage") String s) {
         List<TokenValue> values = new ArrayList<>();
-        while (!s.isEmpty()) {
+        int offset = 0;
+        while (offset < s.length()) {
             if (state == State.ANY) {
                 for (Token token : tokens) {
-                    Matcher m = token.pattern.matcher(s);
-                    if (!m.find()) {
-                        continue;
+
+                    String content;
+                    if (token.pattern == null) {
+                        if (!s.startsWith(token.text, offset)) {
+                            continue;
+                        }
+                        offset += token.text.length();
+                        content = token.text;
+                    } else {
+                        Matcher m = token.pattern.matcher(s.substring(offset));
+                        if (!m.find()) {
+                            continue;
+                        }
+                        offset += m.end();
+                        content = m.group();
                     }
-                    s = s.substring(m.end());
-                    values.add(new TokenValue(token, m.group()));
+                    values.add(new TokenValue(token, content));
 
                     if (token.equals(ESC)) {
                         state = State.ESC;
@@ -52,10 +66,10 @@ public class NanoMessageTokenizer {
                     break;
                 }
             } else if (state == State.ESC) {
-                String l = s.substring(0, 1);
-                s = s.substring(1);
+                String l = s.substring(offset, offset + 1);
                 values.add(new TokenValue(MISC, l));
                 state = State.ANY;
+                offset++;
             }
         }
         return values;
@@ -66,7 +80,40 @@ public class NanoMessageTokenizer {
         ESC
     }
 
-    public record Token(String name, Pattern pattern) {
+    @Getter
+    public static class Token {
+
+        private final int diff;
+        private final String name;
+        private final Pattern pattern;
+        private final String text;
+
+        public Token(String name, Pattern pattern) {
+            this.name = name;
+            this.diff = this.name.hashCode();
+            this.pattern = pattern;
+            this.text = null;
+        }
+
+        public Token(String name, String text) {
+            this.name = name;
+            this.diff = this.name.hashCode();
+            this.pattern = null;
+            this.text = text;
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (object == null || getClass() != object.getClass()) return false;
+            Token token = (Token) object;
+            return getDiff() == token.getDiff();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getDiff());
+        }
     }
 
     public record TokenValue(Token type, String text) {
