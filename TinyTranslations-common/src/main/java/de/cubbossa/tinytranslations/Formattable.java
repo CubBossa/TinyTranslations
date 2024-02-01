@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
-public interface Formattable<ReturnT> {
+public interface Formattable<ReturnT extends Formattable<ReturnT>> {
 
     Collection<TagResolver> getResolvers();
 

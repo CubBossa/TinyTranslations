@@ -6,6 +6,7 @@ import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
+import de.cubbossa.tinytranslations.util.SimpleFormattable;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
@@ -134,6 +136,14 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public Component translate(String raw, TagResolver... resolvers) {
         return translate(raw, getDefaultLocale(), resolvers);
+    }
+
+    @Override
+    public <F extends Formattable<F>> Component translate(String raw, Function<Formattable<F>, Formattable<F>> resolver) {
+
+        Formattable<F> formattable = (Formattable<F>) new SimpleFormattable();
+        formattable = resolver.apply(formattable);
+        return translate(raw, formattable.getResolvers().toArray(new TagResolver[0]));
     }
 
     @Override
