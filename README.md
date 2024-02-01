@@ -111,16 +111,16 @@ Example of the Server folder structure and how translations are included:
 
 ```YML
 /Server
-/plugins
+  /plugins
 
-/lang
-global_styles.properties # <--- global styling rules
-en-US.properties # <--- global messages (like the server name)
+    /lang
+      global_styles.properties # <--- global styling rules
+      en-US.properties # <--- global messages (like the server name)
 
-/YourPlugin
-/lang
-styles.properties # <--- application only styles
-en-US.properties # <--- application only messages
+    /YourPlugin
+      /lang
+        styles.properties # <--- application only styles
+        en-US.properties # <--- application only messages
 ```
 
 Styles are a way to create new tag resolvers
