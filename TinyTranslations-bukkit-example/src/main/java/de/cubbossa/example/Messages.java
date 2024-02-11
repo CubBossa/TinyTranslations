@@ -1,11 +1,12 @@
 package de.cubbossa.example;
 
 import de.cubbossa.tinytranslations.GlobalMessages;
-import de.cubbossa.tinytranslations.GlobalStyles;
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageBuilder;
 
 public class Messages {
+
+    // Everything within "withDefault" method calls represents ENGLISH
 
     public static final Message NO_PERM = new MessageBuilder("error.no_permission")
             // Let's just use {msg:global:no_perm} so that the global preferences are being used

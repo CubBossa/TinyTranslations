@@ -53,8 +53,18 @@ public class ExamplePlugin extends JavaPlugin {
 
         // save all locales that you want to exist in your lang directory.
         // this will not override user changes to the file, only add missing translations in the file and create file
-        // if not existing yet
+        // if not existing yet.
+        // You will use this if you haven't created an en.yml by hand but rely on "withDefault" calls.
         translator.saveLocale(Locale.ENGLISH);
+
+        // Run this for all files in yourr resources/lang/ directory that you created by hand and want to save.
+        // Also run it for ENGLISH if you didn't use "withDefault" calls while creating Messages
+        for (Locale locale : List.of(Locale.GERMAN)) {
+            if (!new File(getDataFolder(), "/lang/" + locale.toLanguageTag() + ".yml").exists()) {
+                saveResource("lang/" + locale.toLanguageTag() + ".yml", false);
+            }
+        }
+
         // load all locales that can possibly be loaded
         translator.loadLocales();
         // load styles
