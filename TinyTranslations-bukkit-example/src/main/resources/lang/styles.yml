@@ -1,0 +1,1 @@
+text: <gray>{slot}</gray> # the tag <text> now resolves as <gray>
