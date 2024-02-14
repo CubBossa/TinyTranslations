@@ -127,12 +127,12 @@ Styles are a way to create new tag resolvers
 
 ```properties
 # We use opening tags to define simple styles.
-text-light="<white>"
+text_l="<white>"
 text="<gray>"
-text-dark="<dark-gray>"
+text_d="<dark-gray>"
 # Or slot based styles for more complex patterns
 # The list-el example will render "<list-el>abc</list-el>" as "- abc", where the "-" is gray and "abc" is white.
-list-el="<gray>- </gray><white>{slot}</white>\n"
+list_el="<gray>- </gray><white>{slot}</white>\n"
 # the url tag renders only a short version but opens the whole url on click.
 #     https://docs.advntr.dev/minimessage/format.html
 # becomes
@@ -250,17 +250,11 @@ Don't forget to register all messages to your application!!
 
 ```Java
 translations.addMessage(Messages.ERR_NO_PLAYER);
-translations.
-
-addMessage(Messages.ERR_NO_PERM);
+translations.addMessage(Messages.ERR_NO_PERM);
 // or
-translations.
-
-addMessages(Messages.ERR_NO_PLAYER, Messages.ERR_NO_PERM);
+translations.addMessages(Messages.ERR_NO_PLAYER, Messages.ERR_NO_PERM);
 // or just:
-translations.
-
-addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
+translations.addMessages(TranslationsFramework.messageFieldsFromClass(Messages.class));
 ```
 
 ### Build Messages from Translations directly
@@ -269,19 +263,11 @@ If you use your translations instance to create a message, it will automatically
 to your translations.
 
 ```Java
-ERR_NO_PERM =translations.
+ERR_NO_PERM = translations.message("error.no_perm");
 
-message("error.no_perm");
-
-ERR_NO_PERM =translations.
-
-messageBuilder("error.no_perm")
-        .
-
-withDefault("<prefix_negative>No permission!</prefix_negative>")
-        .
-
-build();
+ERR_NO_PERM = translations.messageBuilder("error.no_perm")
+        .withDefault("<prefix_negative>No permission!</prefix_negative>")
+        .build();
 ```
 
 ### Message as Component
@@ -293,17 +279,11 @@ render in the player client locale.
 
 // on Paper server:
 player.sendMessage(Messages.ERR_NO_PLAYER);
-player.
-
-sendMessage(Messages.ERR_NO_PLAYER.insertString("input", args[0]));
+player.sendMessage(Messages.ERR_NO_PLAYER.insertString("input", args[0]));
 
 // on Spigot server:
-        BukkitTinyTranslations.
-
-sendMessage(player, Messages.ERR_NO_PLAYER);
-BukkitTinyTranslations.
-
-sendMessageIfNotEmpty(player, Messages.ERR_NO_PLAYER);
+BukkitTinyTranslations.sendMessage(player, Messages.ERR_NO_PLAYER);
+BukkitTinyTranslations.sendMessageIfNotEmpty(player, Messages.ERR_NO_PLAYER);
 ```
 
 ### Other Formats
