@@ -18,7 +18,7 @@ public class MessageReferenceLoopDetector {
     private MessageTranslator findOwner(Message message) {
         for (Translator source : GlobalTranslator.translator().sources()) {
             if (!(source instanceof MessageTranslator messageTranslator)) {
-                return null;
+                continue;
             }
             if (messageTranslator.getMessage(message.getKey()) != null) {
                 return messageTranslator;
@@ -44,6 +44,8 @@ public class MessageReferenceLoopDetector {
             buildTree(message, new Stack<>(), message, locale);
         } catch (MessageReferenceLoopException e) {
             return e;
+        } catch (Throwable t) {
+            return new MessageReferenceLoopException(t);
         }
         return null;
     }
@@ -54,7 +56,11 @@ public class MessageReferenceLoopDetector {
         if (s == null) {
             return new Node(null, new HashSet<>());
         }
-        return buildTree(origin, stack, locale, findOwner(origin), s);
+        MessageTranslator translator = findOwner(origin);
+        if (translator == null) {
+            throw new IllegalStateException("Could not find translator for message '" + msg.getKey() + "'.");
+        }
+        return buildTree(origin, stack, locale, translator, s);
     }
 
     private Node buildTree(Message origin, Stack<String> stack, MessageStyle style, MessageTranslator messageTranslator, Locale locale) {
