@@ -6,10 +6,8 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bstats.bukkit.Metrics;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -21,6 +19,7 @@ import org.bukkit.generator.WorldInfo;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +34,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 
     private static final Object mutex = new Object();
     private static BukkitAudiences audiences;
+    private static Metrics metrics = null;
     private static volatile MessageTranslator server;
 
     static {
@@ -63,6 +63,11 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 
     private static void enable(Plugin plugin) {
         audiences = BukkitAudiences.create(plugin);
+
+        if (metrics == null && plugin instanceof JavaPlugin jp) {
+            metrics = new Metrics(jp, 20979);
+        }
+
         enable(new File(plugin.getDataFolder(), "/../"));
     }
 
@@ -148,6 +153,10 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     private static void applyBukkitObjectResolvers(ObjectTagResolverMap map) {
+        map.put(NamespacedKey.class, Map.of(
+                "namespace", NamespacedKey::getNamespace,
+                "key", NamespacedKey::getKey
+        ), k -> Component.text(k.toString()));
         map.put(PluginDescriptionFile.class, Map.of(
                 "name", PluginDescriptionFile::getName,
                 "fullName", PluginDescriptionFile::getFullName,
