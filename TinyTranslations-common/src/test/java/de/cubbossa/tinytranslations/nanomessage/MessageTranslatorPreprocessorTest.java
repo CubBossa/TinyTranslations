@@ -30,6 +30,11 @@ public class MessageTranslatorPreprocessorTest extends TestBase {
         );
 
         Assertions.assertEquals(
+                "<red><choice:'<time>':'minute':'minutes'></red>",
+                pp.compile("<red>{time ? 'minute' : 'minutes'}</red>")
+        );
+
+        Assertions.assertEquals(
                 "<red><choice:'<time:minutes>':'minute':'minutes'></red>",
                 pp.compile("<red>{time:minutes ? 'minute' : 'minutes'}</red>")
         );

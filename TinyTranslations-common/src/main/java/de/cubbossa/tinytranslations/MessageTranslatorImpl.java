@@ -123,12 +123,12 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public Component translate(Message message, TagResolver... resolvers) {
-        return translate(getMessageTranslation(message, getDefaultLocale()), getDefaultLocale(), resolvers);
+        return translate(message.formatted(resolvers), getDefaultLocale());
     }
 
     @Override
     public Component translate(Message message, Locale locale, TagResolver... resolvers) {
-        return translate(getMessageTranslation(message, locale), locale, resolvers);
+        return translate(message.formatted(resolvers), locale);
     }
 
     @Override
@@ -146,7 +146,6 @@ class MessageTranslatorImpl implements MessageTranslator {
         locale = useClientLocale ? locale : defaultLocale;
         TagResolver resolver = TagResolver.empty();
         if (component instanceof Message formatted) {
-            message = formatted;
             resolver = TagResolver.resolver(formatted.getResolvers());
         }
         var tr = translate(getMessageTranslation(message, locale), locale, resolver);
@@ -324,9 +323,15 @@ class MessageTranslatorImpl implements MessageTranslator {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
+            Map<String, String> keys = new HashMap<>();
             messageStorage.readMessages(locale).forEach((translationKey, s) -> {
-                new HashMap<>(messageSet).computeIfAbsent(translationKey, key -> message(key.key())).getDictionary().put(locale, s);
+                if (messageSet.containsKey(translationKey)) {
+                    messageSet.get(translationKey).getDictionary().put(locale, s);
+                } else {
+                    keys.put(translationKey.key(), s);
+                }
             });
+            keys.forEach((k, v) -> messageBuilder(k).withTranslation(locale, v).build());
         }
         MessageReferenceLoopDetector loopDetector = new MessageReferenceLoopDetector();
         messageSet.forEach((s, message) -> {

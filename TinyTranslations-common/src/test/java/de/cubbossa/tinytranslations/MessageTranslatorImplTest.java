@@ -1,5 +1,6 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
@@ -12,13 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static net.kyori.adventure.text.Component.newline;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MessageTranslatorImplTest extends TestBase {
 
@@ -137,6 +137,49 @@ class MessageTranslatorImplTest extends TestBase {
         assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
 
         assertEquals(text("Luke - I am your father!", NamedTextColor.GREEN), translator.translate(TEST_2));
+    }
+
+    @Test
+    public void testLoad2() {
+
+        Message abc = translator.messageBuilder("a").withDefault("Yo!").build();
+
+        translator.setMessageStorage(new MessageStorage() {
+            @Override
+            public Map<TranslationKey, String> readMessages(Locale locale) {
+                return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
+            }
+
+            @Override
+            public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+                return Collections.emptyList();
+            }
+        });
+        assertEquals(translator.translate(abc), Component.text("Yo!"));
+        translator.loadLocales();
+        assertEquals(translator.translate(abc), Component.text("Worked!"));
+    }
+
+    @Test
+    public void testLoad3() {
+
+        Message abc = new MessageBuilder("a").withDefault("Yo!").build();
+
+        translator.addMessages(abc);
+        translator.setMessageStorage(new MessageStorage() {
+            @Override
+            public Map<TranslationKey, String> readMessages(Locale locale) {
+                return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
+            }
+
+            @Override
+            public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+                return Collections.emptyList();
+            }
+        });
+        assertEquals(Component.text("Yo!"), translator.translate(abc));
+        translator.loadLocales();
+        assertEquals(Component.text("Worked!"), translator.translate(abc));
     }
 
     @Test
