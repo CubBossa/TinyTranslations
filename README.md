@@ -4,6 +4,8 @@ A translation framework to translate chat messages.
 This framework builds
 upon [Kyori Components and the MiniMessage format](https://docs.adventure.kyori.net/minimessage/format.html).
 
+Join the [Discord Server](https://discord.com/invite/wDecCCRXFv) for support
+
 ## Wiki
 
 - [Overview](https://github.com/CubBossa/Translations/wiki)
