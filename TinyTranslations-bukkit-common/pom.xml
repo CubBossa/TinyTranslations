@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.cubbossa</groupId>
         <artifactId>TinyTranslations</artifactId>
-        <version>4.4.1</version>
+        <version>4.4.2</version>
     </parent>
 
     <artifactId>TinyTranslations-bukkit-common</artifactId>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-common</artifactId>
-            <version>4.4.1</version>
+            <version>4.4.2</version>
         </dependency>
 
         <!--This adds the Spigot API artifact to the build -->
@@ -37,6 +37,13 @@
             <artifactId>spigot-api</artifactId>
             <version>1.20.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.0.2</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
