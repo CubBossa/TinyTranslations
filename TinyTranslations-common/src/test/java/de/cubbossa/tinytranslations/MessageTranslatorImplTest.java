@@ -6,7 +6,9 @@ import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -15,8 +17,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.util.*;
 
-import static net.kyori.adventure.text.Component.newline;
-import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.*;
+import static net.kyori.adventure.text.format.TextColor.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -57,9 +59,22 @@ class MessageTranslatorImplTest extends TestBase {
 
     @Test
     void newLine() {
+        translator.addMessages(NEW_LINE);
         assertEquals(
                 2,
                 ComponentSplit.split(translator.translate(NEW_LINE), "\n").size()
+        );
+    }
+
+    @Test
+    void translateHover() {
+
+        translator.messageBuilder("a").withDefault("A").build();
+        translator.messageBuilder("b").withDefault("B").build();
+
+        assertEquals(
+                text("A").hoverEvent(text("B")),
+                translator.translate("<hover:show_text:'{msg:b}'>{msg:a}</hover>")
         );
     }
 
@@ -84,7 +99,7 @@ class MessageTranslatorImplTest extends TestBase {
         assertEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
 
         assertEquals(
-                text("Embedded: ").append(text("Hello world", NamedTextColor.RED).append(text("a"))),
+                text("Embedded: ").append(text("Hello world", NamedTextColor.RED).append(text("a"))).compact(),
                 render(EMBED, Locale.ENGLISH)
         );
     }
@@ -180,6 +195,31 @@ class MessageTranslatorImplTest extends TestBase {
         assertEquals(Component.text("Yo!"), translator.translate(abc));
         translator.loadLocales();
         assertEquals(Component.text("Worked!"), translator.translate(abc));
+    }
+
+    @Test
+    public void placeholderInTag() {
+
+        assertEquals(
+                text("<hi>"),
+                translator.translate("<{ph}>", Placeholder.parsed("ph", "hi"))
+        );
+    }
+
+    @Test
+    public void testPrefix(@TempDir File d) {
+
+        MessageTranslator global = TinyTranslations.globalTranslator(d);
+        global.getStyleSet().put("prefix", "<primary>{msg:prefix}</primary> {slot}");
+        MessageTranslator plugin = global.fork("plugin");
+        plugin.getStyleSet().put("primary", "<#ff00ff>{slot}</#ff00ff>");
+        plugin.messageBuilder("prefix").withDefault("Plugin").build();
+        Message msg = plugin.messageBuilder("test").withDefault("<prefix>Message</prefix>").build();
+
+        assertEquals(
+                empty().append(text("Plugin", color(0xff00ff))).append(text(" Message")),
+                plugin.translate(msg).compact()
+        );
     }
 
     @Test

@@ -20,7 +20,12 @@ public class ChoiceCompilation implements CompilationStep {
                         .map(context::parse)
                         .map(SimpleStringParser.Node::toString)
                         .map(String::trim)
-                        .map(s -> "'" + s + "'")
+                        .map(s -> {
+                            if (!(s.startsWith("'") && s.endsWith("'"))) {
+                                return "'" + s + "'";
+                            }
+                            return s;
+                        })
                         .collect(Collectors.joining(":"))
                 + ">");
         return true;

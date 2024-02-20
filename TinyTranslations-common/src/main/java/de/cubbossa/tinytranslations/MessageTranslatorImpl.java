@@ -155,13 +155,14 @@ class MessageTranslatorImpl implements MessageTranslator {
         for (Component child : component.children()) {
             tr = tr.append(child);
         }
+        tr = Component.empty().style(component.style()).append(tr).compact();
         return tr;
     }
 
     @Override
     public Component translate(String raw, Locale locale, TagResolver... resolvers) {
         if (raw == null) {
-            return Component.empty();
+            return null;
         }
         Collection<TagResolver> r = new LinkedList<>(this.resolvers);
         r.addAll(List.of(resolvers));
@@ -183,12 +184,22 @@ class MessageTranslatorImpl implements MessageTranslator {
         if (component == null) {
             return null;
         }
-        return component.children(component.children().stream()
-                .map(c -> c instanceof Message
-                        ? GlobalTranslator.translator().translate((TranslatableComponent) c, locale)
-                        : c)
-                .filter(Objects::nonNull)
-                .toList());
+        // translate children
+        if (!component.children().isEmpty()) {
+            component = component.children(component.children().stream()
+                    .map(c -> c instanceof Message tr
+                            ? GlobalTranslator.translator().translate(tr, locale)
+                            : c)
+                    .filter(Objects::nonNull)
+                    .toList());
+        }
+        // translate hover
+        if (component.hoverEvent() != null) {
+            if (component.hoverEvent().value() instanceof Message tc) {
+                component = component.hoverEvent(GlobalTranslator.translator().translate(tc, locale));
+            }
+        }
+        return component;
     }
 
     @Override

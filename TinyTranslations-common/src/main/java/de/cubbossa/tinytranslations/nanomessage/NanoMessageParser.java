@@ -50,9 +50,9 @@ public class NanoMessageParser extends SimpleStringParser<Token, TokenValue, Str
         boolean ret = true;
         while (getTokenType() != null && predicate.get()) {
             boolean parsedAnything = parseContentTag()
-                    || parsePlaceholder()
                     || parseSelfClosingTag()
                     || parseChoice()
+                    || parsePlaceholder()
                     || parseText();
             if (!parsedAnything) {
                 advance();
