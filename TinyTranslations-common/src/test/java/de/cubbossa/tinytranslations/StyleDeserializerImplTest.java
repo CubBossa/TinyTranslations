@@ -73,4 +73,24 @@ class StyleDeserializerImplTest {
         Component result = nanoMessage.deserialize(testString, MessageStyle.messageStyle("a", style));
         Assertions.assertEquals(expected, result);
     }
+
+    @Test
+    void deserializeArgs() {
+        MessageStyle style = MessageStyle.messageStyle("a", "{slot}: {arg0}/{arg1}");
+        String msg = "<a:1:2>test</a>";
+        Assertions.assertEquals(
+                Component.text("test: 1/2"),
+                nanoMessage.deserialize(msg, style)
+        );
+    }
+
+    @Test
+    void deserializeArgs1() {
+        MessageStyle style = MessageStyle.messageStyle("a", "{slot}: 1/{arg1}");
+        String msg = "<a:1:2>test</a>";
+        Assertions.assertEquals(
+                Component.text("test: 1/2"),
+                nanoMessage.deserialize(msg, style)
+        );
+    }
 }

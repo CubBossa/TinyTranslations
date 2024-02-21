@@ -11,7 +11,11 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class MessageStyleImpl implements MessageStyle {
 
@@ -28,7 +32,23 @@ class MessageStyleImpl implements MessageStyle {
 
         resolver = TagResolver.resolver(key, (argumentQueue, ctx) -> (Modifying) (c, depth) -> {
             if (depth > 0) return Component.empty();
-            return ctx.deserialize(this.representation, Placeholder.component("slot", c));
+
+            Matcher matcher = Pattern.compile("\\{arg([0-9]+)}").matcher(this.representation);
+            int highest = -1;
+            while (matcher.find()) {
+                int x = Integer.parseInt(matcher.group(1));
+                if (x > highest) {
+                    highest = x;
+                }
+            }
+            Collection<TagResolver> r = new ArrayList<>();
+            int i = 0;
+            while (i <= highest && argumentQueue.hasNext()) {
+                r.add(Placeholder.parsed("arg" + i++, argumentQueue.pop().value()));
+            }
+            r.add(Placeholder.component("slot", c));
+
+            return ctx.deserialize(this.representation, r.toArray(TagResolver[]::new));
         });
     }
 
