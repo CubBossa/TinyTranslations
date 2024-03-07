@@ -1,9 +1,10 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
-import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import net.kyori.adventure.text.Component;
 
 import java.io.File;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -26,7 +26,7 @@ public class TinyTranslations {
     public static final NanoMessage NM = NanoMessage.nanoMessage();
 
     static {
-        applyDefaultObjectResolvers(NM.getObjectTypeResolverMap());
+        applyDefaultObjectResolvers(NM.getObjectResolver());
     }
 
     protected TinyTranslations() {
@@ -138,19 +138,18 @@ public class TinyTranslations {
         }
     }
 
-    private static void applyDefaultObjectResolvers(ObjectTagResolverMap map) {
-        map.put(List.class, Collections.emptyMap(), list -> Component.text(
+    private static void applyDefaultObjectResolvers(TinyObjectResolver map) {
+        map.add(TinyObjectMapping.builder(List.class).withFallback(list -> Component.text(
                 (String) list.stream().map(Object::toString).collect(Collectors.joining(", "))
-        ));
-        map.put(String.class, Collections.emptyMap(), Component::text);
-        map.put(Integer.class, Collections.emptyMap(), Component::text);
-        map.put(Short.class, Collections.emptyMap(), Component::text);
-        map.put(Double.class, Collections.emptyMap(), Component::text);
-        map.put(Float.class, Collections.emptyMap(), Component::text);
-        map.put(Long.class, Collections.emptyMap(), Component::text);
-        map.put(Boolean.class, Collections.emptyMap(), Component::text);
-        map.put(char.class, Collections.emptyMap(), Component::text);
-        map.put(Locale.class, Collections.emptyMap(), l -> Component.text(l.toLanguageTag()));
+        )).build());
+        map.add(TinyObjectMapping.builder(Integer.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Short.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Double.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Float.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Long.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Boolean.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(char.class).withFallback(Component::text).build());
+        map.add(TinyObjectMapping.builder(Locale.class).withFallback(l -> Component.text(l.toLanguageTag())).build());
 
     }
 }

@@ -2,11 +2,11 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -18,9 +18,8 @@ import java.io.File;
 import java.util.*;
 
 import static net.kyori.adventure.text.Component.*;
-import static net.kyori.adventure.text.format.TextColor.*;
+import static net.kyori.adventure.text.format.TextColor.color;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MessageTranslatorImplTest extends TestBase {
 
@@ -75,6 +74,23 @@ class MessageTranslatorImplTest extends TestBase {
         assertEquals(
                 text("A").hoverEvent(text("B")),
                 translator.translate("<hover:show_text:'{msg:b}'>{msg:a}</hover>")
+        );
+    }
+
+    @Test
+    void translateHover2() {
+
+        translator.messageBuilder("a").withDefault("A").build();
+        translator.messageBuilder("b").withDefault("{tr:'spectatorMenu.next_page'}").build();
+
+        assertEquals(
+                text("A").hoverEvent(translatable("spectatorMenu.next_page")),
+                translator.translate("<hover:show_text:'{msg:b}'>{msg:a}</hover>")
+        );
+        translator.messageBuilder("next_page").withDefault("<tr:spectatorMenu.next_page>").build();
+        assertEquals(
+                translatable("spectatorMenu.next_page").hoverEvent(translatable("spectatorMenu.next_page")),
+                translator.translate("<hover:show_text:\"{msg:next_page}\">{msg:next_page}")
         );
     }
 
@@ -276,15 +292,17 @@ class MessageTranslatorImplTest extends TestBase {
 
     @Test
     public void testObject() {
-        TinyTranslations.NM.getObjectTypeResolverMap().put(Player.class, Map.of(
-                "name", Player::name,
-                "location", Player::location
-        ), player -> Component.text(player.name));
-        TinyTranslations.NM.getObjectTypeResolverMap().put(Location.class, Map.of(
-                "x", Location::x,
-                "y", Location::y,
-                "z", Location::z
-        ), l -> Component.text("<" + l.x + ";" + l.y + ";" + l.z + ">"));
+        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Player.class)
+                .with("name", Player::name)
+                .with("location", Player::location)
+                .withFallback(player -> Component.text(player.name))
+                .build());
+        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Location.class)
+                .with("x", Location::x)
+                .with("y", Location::y)
+                .with("z", Location::z)
+                .withFallback(l -> Component.text("<" + l.x + ";" + l.y + ";" + l.z + ">"))
+                .build());
 
         Message msg = translator.messageBuilder("msg").withDefault("my test {player}").build();
         Assertions.assertEquals(
@@ -305,9 +323,10 @@ class MessageTranslatorImplTest extends TestBase {
 
     @Test
     public void testAppResolvers() {
-        TinyTranslations.NM.getObjectTypeResolverMap().put(Description.class, Map.of(
-                "name", Description::name
-        ), d -> Component.text(d.name));
+        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Description.class)
+                .with("name", Description::name)
+                .withFallback(d -> Component.text(d.name))
+                .build());
         translator.insertObject("desc", new Description("tim"));
         Message a = translator.messageBuilder("a").withDefault("{desc:name}").build();
         Assertions.assertEquals(

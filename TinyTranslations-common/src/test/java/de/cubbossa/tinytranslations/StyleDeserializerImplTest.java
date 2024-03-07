@@ -93,4 +93,14 @@ class StyleDeserializerImplTest {
                 nanoMessage.deserialize(msg, style)
         );
     }
+
+    @Test
+    void passArgs() {
+        MessageStyle a = MessageStyle.messageStyle("a", "{slot}: <b:'{arg0}':'{arg0}'>val</b>");
+        MessageStyle b = MessageStyle.messageStyle("b", "{arg0}{slot}{arg1}");
+        Assertions.assertEquals(
+                Component.text("test: \"val\""),
+                nanoMessage.deserialize("<a:'\"'>test", a, b)
+        );
+    }
 }

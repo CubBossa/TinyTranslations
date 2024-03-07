@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.ObjectTagResolverMap;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Function;
 
 public final class BukkitTinyTranslations extends TinyTranslations {
@@ -78,7 +78,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
             synchronized (mutex) {
                 g = server;
                 if (g == null) {
-                    applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+                    applyBukkitObjectResolvers(NM.getObjectResolver());
                     server = globalTranslator(pluginDirectory);
                 }
             }
@@ -90,7 +90,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     public static MessageTranslator globalTranslator(File dir) {
-        applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+        applyBukkitObjectResolvers(NM.getObjectResolver());
         var server = TinyTranslations.globalTranslator(dir);
         server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
         return server;
@@ -98,7 +98,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
 
     public static MessageTranslator application(String name) {
         if (!isEnabled()) {
-            applyBukkitObjectResolvers(NM.getObjectTypeResolverMap());
+            applyBukkitObjectResolvers(NM.getObjectResolver());
         }
         return TinyTranslations.application(name);
     }
@@ -152,70 +152,79 @@ public final class BukkitTinyTranslations extends TinyTranslations {
         sendMessage(sender, message);
     }
 
-    private static void applyBukkitObjectResolvers(ObjectTagResolverMap map) {
-        map.put(NamespacedKey.class, Map.of(
-                "namespace", NamespacedKey::getNamespace,
-                "key", NamespacedKey::getKey
-        ), k -> Component.text(k.toString()));
-        map.put(PluginDescriptionFile.class, Map.of(
-                "name", PluginDescriptionFile::getName,
-                "fullName", PluginDescriptionFile::getFullName,
-                "authors", d -> String.join(", ", d.getAuthors()),
-                "version", PluginDescriptionFile::getVersion,
-                "api-version", PluginDescriptionFile::getAPIVersion,
-                "website", PluginDescriptionFile::getWebsite,
-                "contributors", PluginDescriptionFile::getContributors
-        ), d -> Component.text(d.getName()));
-        map.put(Player.class, Map.of(
-                "name", Player::getName,
-                "uuid", Entity::getUniqueId,
-                "type", Entity::getType,
-                "display", Player::getDisplayName,
-                "location", Player::getLocation
-        ), p -> BukkitGlobalMessages.FORMAT_PLAYER.insertObject("player", p));
-        map.put(Entity.class, Map.of(
-                "name", Entity::getName,
-                "uuid", Entity::getUniqueId,
-                "type", Entity::getType,
-                "location", Entity::getLocation
-        ), p -> BukkitGlobalMessages.FORMAT_ENTITY.insertObject("entity", p));
-        map.put(World.class, Map.of(
-                "name", WorldInfo::getName,
-                "uuid", WorldInfo::getUID
-        ), w -> BukkitGlobalMessages.FORMAT_WORLD.insertObject("world", w));
-        map.put(Block.class, Map.of(
-                "type", Block::getType,
-                "x", Block::getX,
-                "y", Block::getY,
-                "z", Block::getZ,
-                "world", Block::getWorld,
-                "biome", Block::getBiome
-        ), b -> BukkitGlobalMessages.FORMAT_BLOCK.insertObject("block", b));
-        map.put(Location.class, Map.of(
-                "x", Location::getX,
-                "y", Location::getY,
-                "z", Location::getZ,
-                "yaw", Location::getZ,
-                "pitch", Location::getZ,
-                "world", Location::getWorld
-        ), l -> BukkitGlobalMessages.FORMAT_LOCATION.insertObject("loc", l));
-        map.put(Vector.class, Map.of(
-                "x", Vector::getX,
-                "y", Vector::getY,
-                "z", Vector::getZ
-        ), v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v));
-        map.put(ItemStack.class, Map.of(
-                "type", ItemStack::getType,
-                "amount", ItemStack::getAmount,
-                "name", i -> i.hasItemMeta() ? i.getItemMeta().getDisplayName() : i.getType(),
-                "lore", i -> i.hasItemMeta() ? i.getItemMeta().getLore() : Collections.emptyList()
-        ), i -> BukkitGlobalMessages.FORMAT_ITEM.insertObject("item", i));
+    private static void applyBukkitObjectResolvers(TinyObjectResolver map) {
+        map.add(TinyObjectMapping.builder(NamespacedKey.class)
+                .with("namespace", NamespacedKey::getNamespace)
+                .with("key", NamespacedKey::getKey)
+                .withFallback(k -> Component.text(k.toString()))
+                .build());
+        map.add(TinyObjectMapping.builder(PluginDescriptionFile.class)
+                .with("name", PluginDescriptionFile::getName)
+                .with("fullName", PluginDescriptionFile::getFullName)
+                .with("authors", d -> String.join(", ", d.getAuthors()))
+                .with("version", PluginDescriptionFile::getVersion)
+                .with("api-version", PluginDescriptionFile::getAPIVersion)
+                .with("website", PluginDescriptionFile::getWebsite)
+                .with("contributors", PluginDescriptionFile::getContributors)
+                .withFallback(d -> Component.text(d.getName()))
+                .build());
+        map.add(TinyObjectMapping.builder(Player.class)
+                .with("name", Player::getName)
+                .with("uuid", Entity::getUniqueId)
+                .with("type", Entity::getType)
+                .with("display", Player::getDisplayName)
+                .with("location", Player::getLocation)
+                .withFallback(p -> BukkitGlobalMessages.FORMAT_PLAYER.insertObject("player", p))
+                .build());
+        map.add(TinyObjectMapping.builder(Entity.class)
+                .with("name", Entity::getName)
+                .with("uuid", Entity::getUniqueId)
+                .with("type", Entity::getType)
+                .with("location", Entity::getLocation)
+                .withFallback(p -> BukkitGlobalMessages.FORMAT_ENTITY.insertObject("entity", p))
+                .build());
+        map.add(TinyObjectMapping.builder(World.class)
+                .with("name", WorldInfo::getName)
+                .with("uuid", WorldInfo::getUID)
+                .withFallback(w -> BukkitGlobalMessages.FORMAT_WORLD.insertObject("world", w))
+                .build());
+        map.add(TinyObjectMapping.builder(Block.class)
+                .with("type", Block::getType)
+                .with("x", Block::getX)
+                .with("y", Block::getY)
+                .with("z", Block::getZ)
+                .with("world", Block::getWorld)
+                .with("biome", Block::getBiome)
+                .withFallback(b -> BukkitGlobalMessages.FORMAT_BLOCK.insertObject("block", b))
+                .build());
+        map.add(TinyObjectMapping.builder(Location.class)
+                .with("x", Location::getX)
+                .with("y", Location::getY)
+                .with("z", Location::getZ)
+                .with("yaw", Location::getZ)
+                .with("pitch", Location::getZ)
+                .with("world", Location::getWorld)
+                .withFallback(l -> BukkitGlobalMessages.FORMAT_LOCATION.insertObject("loc", l))
+                .build());
+        map.add(TinyObjectMapping.builder(Vector.class)
+                .with("x", Vector::getX)
+                .with("y", Vector::getY)
+                .with("z", Vector::getZ)
+                .withFallback(v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v))
+                .build());
+        map.add(TinyObjectMapping.builder(ItemStack.class)
+                .with("type", ItemStack::getType)
+                .with("amount", ItemStack::getAmount)
+                .with("name", i -> i.hasItemMeta() ? i.getItemMeta().getDisplayName() : i.getType())
+                .with("lore", i -> i.hasItemMeta() ? i.getItemMeta().getLore() : Collections.emptyList())
+                .withFallback(i -> BukkitGlobalMessages.FORMAT_ITEM.insertObject("item", i))
+                .build());
 
-        map.put(PotionEffectType.class, Collections.emptyMap(), p -> Component.translatable("effect.minecraft." + p.getKey().getKey()));
-        map.put(ChatColor.class, Collections.emptyMap(), c -> Component.translatable("color.minecraft." + c.toString()));
-        map.put(Enchantment.class, Collections.emptyMap(), e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey()));
-        map.put(Material.class, Collections.emptyMap(), m -> Component.translatable((m.isBlock() ? "block" : "item") + ".minecraft." + m.name().toLowerCase()));
-        map.put(EntityType.class, Collections.emptyMap(), t -> Component.translatable(t.getTranslationKey()));
-        map.put(Biome.class, Collections.emptyMap(), b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey()));
+        map.add(TinyObjectMapping.builder(PotionEffectType.class).withFallback(p -> Component.translatable("effect.minecraft." + p.getKey().getKey())).build());
+        map.add(TinyObjectMapping.builder(ChatColor.class).withFallback(c -> Component.translatable("color.minecraft." + c.toString())).build());
+        map.add(TinyObjectMapping.builder(Enchantment.class).withFallback(e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey())).build());
+        map.add(TinyObjectMapping.builder(Material.class).withFallback(m -> Component.translatable((m.isBlock() ? "block" : "item") + ".minecraft." + m.name().toLowerCase())).build());
+        map.add(TinyObjectMapping.builder(EntityType.class).withFallback(t -> Component.translatable(t.getTranslationKey())).build());
+        map.add(TinyObjectMapping.builder(Biome.class).withFallback(b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey())).build());
     }
 }

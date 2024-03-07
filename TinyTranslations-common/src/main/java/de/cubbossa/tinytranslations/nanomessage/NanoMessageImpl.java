@@ -1,6 +1,8 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolverImpl;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -17,11 +19,11 @@ class NanoMessageImpl implements NanoMessage {
             .build();
 
     @Getter
-    final ObjectTagResolverMap objectTypeResolverMap;
+    final TinyObjectResolver objectResolver;
     TagResolver defaultResolver = TagResolver.empty();
 
     public NanoMessageImpl() {
-        this.objectTypeResolverMap = new ObjectTagResolverMap();
+        this.objectResolver = new TinyObjectResolverImpl();
     }
 
     public Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers) {

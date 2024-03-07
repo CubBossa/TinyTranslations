@@ -1,12 +1,15 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import de.cubbossa.tinytranslations.util.FormattableBuilder;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.minimessage.internal.parser.node.*;
+import net.kyori.adventure.text.minimessage.internal.parser.node.TagNode;
+import net.kyori.adventure.text.minimessage.internal.parser.node.TagPart;
+import net.kyori.adventure.text.minimessage.internal.parser.node.TextNode;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
@@ -17,10 +20,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.temporal.Temporal;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -29,10 +32,20 @@ import static net.kyori.adventure.text.Component.text;
 
 public interface Formattable<ReturnT extends Formattable<ReturnT>> {
 
+    String[] LIST_PLACEHOLDERS = {
+            "has-pages", "page", "pages", "next-page", "prev-page", "offset", "range"
+    };
+    String[] DYNAMIC_LIST_PLACEHOLDERS = {
+            "page", "next-page", "prev-page", "offset", "range"
+    };
+
     Collection<TagResolver> getResolvers();
 
     ReturnT formatted(TagResolver... resolver);
 
+    default ReturnT insertParsed(final @NotNull String key, String minimessage) {
+        return formatted(Placeholder.parsed(key, minimessage));
+    }
 
     default ReturnT insertString(final @NotNull String key, String value) {
         return formatted(Placeholder.unparsed(key, value));
@@ -86,7 +99,11 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
         return this.insertList(key, elements, ListSection.paged(0, elements.size()), renderer);
     }
 
-    default <E> ReturnT insertList(final @NotNull String key, List<E> elements) {
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements) {
+        return insertList(key, elements, ListSection.paged(0, elements.size()));
+    }
+
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, Consumer<TinyObjectMapping.Builder<E>> mapping) {
         return insertList(key, elements, ListSection.paged(0, elements.size()));
     }
 
@@ -114,7 +131,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                 }));
     }
 
-    default <E> ReturnT insertList(final @NotNull String key, List<E> elements, ListSection section) {
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section) {
         return formatted(
                 Formatter.choice("has-pages", section.getMaxPages(elements.size())),
                 Formatter.number("page", section.getPage() + 1),
@@ -127,7 +144,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                     String separator = argumentQueue.hasNext() ? argumentQueue.pop().value() : null;
                     Component separatorParsed = separator == null ? text(", ") : context.deserialize(separator);
 
-                    List<E> sublist = section.apply(elements);
+                    List<E> sublist = section.apply(formList(elements));
                     AtomicInteger index = new AtomicInteger(section.getOffset());
                     AtomicReference<String> format = new AtomicReference<>("");
 
@@ -183,7 +200,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                 }));
     }
 
-    default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, List<E>> elementSupplier, ListSection section) {
+    default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section) {
         return formatted(
                 Formatter.number("page", section.getPage() + 1),
                 Formatter.number("next-page", section.getPage() + 2),
@@ -195,7 +212,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                     Component separatorParsed = separator == null ? text(", ") : context.deserialize(separator);
 
                     AtomicInteger startIndex = new AtomicInteger(section.getOffset());
-                    List<E> sublist = elementSupplier.apply(section);
+                    List<E> sublist = formList(elementSupplier.apply(section));
                     AtomicReference<String> format = new AtomicReference<>("");
 
                     return new Modifying() {
@@ -220,6 +237,18 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                     };
                 })
         );
+    }
+
+    private static <E> List<E> formList(Collection<E> collection) {
+        if (collection instanceof List<E> list) {
+            return list;
+        }
+        if (collection instanceof SortedSet<E> set) {
+            return new ArrayList<>(set);
+        }
+        List<E> val = new ArrayList<>(collection);
+        val.sort(Comparator.comparing(Object::toString));
+        return val;
     }
 
     private static String serializeChildren(Node node) {

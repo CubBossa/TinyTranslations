@@ -44,7 +44,7 @@ class MessageStyleImpl implements MessageStyle {
             Collection<TagResolver> r = new ArrayList<>();
             int i = 0;
             while (i <= highest && argumentQueue.hasNext()) {
-                r.add(Placeholder.parsed("arg" + i++, argumentQueue.pop().value()));
+                r.add(Placeholder.component("arg" + i++, ctx.deserialize(argumentQueue.pop().value())));
             }
             r.add(Placeholder.component("slot", c));
 

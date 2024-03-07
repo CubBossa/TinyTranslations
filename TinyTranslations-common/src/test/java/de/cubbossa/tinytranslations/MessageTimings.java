@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

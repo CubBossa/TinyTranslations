@@ -155,6 +155,11 @@ class MessageTranslatorImpl implements MessageTranslator {
         for (Component child : component.children()) {
             tr = tr.append(child);
         }
+        if (component.hoverEvent() != null) {
+            if (component.hoverEvent().value() instanceof TranslatableComponent tc) {
+                component = component.hoverEvent(GlobalTranslator.translator().translate(tc, locale));
+            }
+        }
         tr = Component.empty().style(component.style()).append(tr).compact();
         return tr;
     }
@@ -192,12 +197,6 @@ class MessageTranslatorImpl implements MessageTranslator {
                             : c)
                     .filter(Objects::nonNull)
                     .toList());
-        }
-        // translate hover
-        if (component.hoverEvent() != null) {
-            if (component.hoverEvent().value() instanceof Message tc) {
-                component = component.hoverEvent(GlobalTranslator.translator().translate(tc, locale));
-            }
         }
         return component;
     }

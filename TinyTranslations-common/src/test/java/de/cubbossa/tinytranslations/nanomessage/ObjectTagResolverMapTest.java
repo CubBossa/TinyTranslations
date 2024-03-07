@@ -1,66 +1,175 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
+import de.cubbossa.tinytranslations.tinyobject.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ObjectTagResolverMapTest {
 
     @Test
     void resolve() {
 
-        ObjectTagResolverMap map = new ObjectTagResolverMap();
-        map.put(Person.class, Map.of(
-                "name", Person::name,
-                "age", Person::age
-        ));
-        map.put(PersonRelations.class, Map.of(
-                "data", PersonRelations::data,
-                "friends", PersonRelations::friends
-        ));
-        map.put(List.class, Collections.emptyMap(), l -> text((String) l.stream()
-                .map(Object::toString).collect(Collectors.joining(", "))));
+        TinyObjectResolver map = new TinyObjectResolverImpl();
+        map.add(TinyObjectMapping.builder(Person.class)
+                .with("name", Person::name)
+                .with("age", Person::age)
+                .build());
+        map.add(TinyObjectMapping.builder(Employee.class)
+                .with("salary", Employee::salary)
+                .build());
+        map.add(TinyObjectMapping.builder(PersonRelations.class)
+                .with("data", PersonRelations::data)
+                .with("friends", PersonRelations::friends)
+                .build());
+        map.add(TinyObjectMapping.builder(List.class)
+                .withFallback(l -> text((String) l.stream().map(Object::toString).collect(Collectors.joining(", "))))
+                .build());
 
-        Assertions.assertEquals(
+        assertEquals(
                 text("a, b, c"),
-                map.resolve(List.of("a", "b", "c"), "list")
+                map.resolveObject(List.of("a", "b", "c"), "")
         );
 
-        Assertions.assertEquals(
+        assertEquals(
                 text("hugo"),
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:name")
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:name")
         );
-        Assertions.assertEquals(
+        assertEquals(
                 text(24),
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:age")
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:age")
         );
-        Assertions.assertEquals(
+        assertEquals(
                 Component.text(new Person("hugo", 24).toString()),
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data")
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data")
         );
-        Assertions.assertEquals(
+        assertEquals(
                 empty(),
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friends")
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friends")
         );
-        Assertions.assertNull(
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friend")
+        assertEquals(
+                text("100"),
+                map.resolveObject(new Employee("hugo", 24, 100), "salary")
         );
-        Assertions.assertNull(
-                map.resolve(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:names")
+        assertEquals(
+                text("hugo"),
+                map.resolveObject(new Employee("hugo", 24, 100), "name")
+        );
+        assertNull(
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "friend")
+        );
+        assertNull(
+                map.resolveObject(new PersonRelations(new Person("hugo", 24), Collections.emptyList()), "data:names")
         );
     }
 
-    record Person(String name, int age) {
+    @Test
+    void testAnnotations() {
+
+        TinyObjectResolver map = new TinyObjectResolverImpl();
+        map.add(TinyObjectMapping.builder(Person.class)
+                .with("name", Person::name)
+                .with("age", Person::age)
+                .build());
+
+        assertEquals(
+                text(100),
+                map.resolveObject(new Employer("hugo", 10, 100), "salary")
+        );
+        assertEquals(
+                text("dog"),
+                map.resolveObject(new Animal("dog", "canis lupus familiaris"), "name")
+        );
+        assertEquals(
+                text("dog"),
+                map.resolveObject(new Animal("dog", "canis lupus familiaris"), "")
+        );
+        assertEquals(
+                text("canis lupus familiaris"),
+                map.resolveObject(new Animal("dog", "canis lupus familiaris"), "latin_name")
+        );
+    }
+
+    @Test
+    void testOverride() {
+
+        TinyObjectResolver map = new TinyObjectResolverImpl();
+        map.add(TinyObjectMapping.builder(List.class)
+                .withFallback(l -> "a")
+                .build());
+        map.add(TinyObjectMapping.builder(ArrayList.class)
+                .withFallback(l -> "b")
+                .build());
+        assertEquals(
+                text("b"),
+                map.resolveObject(new ArrayList<>(), "")
+        );
+        map = new TinyObjectResolverImpl();
+        map.add(TinyObjectMapping.builder(ArrayList.class).withFallback(l -> "b").build());
+        map.add(TinyObjectMapping.builder(List.class).withFallback(l -> "a").build());
+        map.add(TinyObjectMapping.builder(Sel.class).withFallback(l -> "c").build());
+        assertEquals(
+                text("c"),
+                map.resolveObject(new Sel(), "")
+        );
+    }
+
+    static class Sel extends ArrayList<Integer> {}
+
+    @Accessors(fluent = true)
+    @Getter
+    @AllArgsConstructor
+    @ToString
+    class Person {
+        private String name;
+        private int age;
+    }
+
+    @Accessors(fluent = true)
+    @Getter
+    class Employee extends Person {
+        private int salary;
+
+        public Employee(String name, int age, int salary) {
+            super(name, age);
+            this.salary = salary;
+        }
+    }
+
+    @TinyObject
+    class Employer extends Person {
+        @TinyProperty
+        private int salary;
+
+        public Employer(String name, int age, int salary) {
+            super(name, age);
+            this.salary = salary;
+        }
     }
 
     record PersonRelations(Person data, List<Person> friends) {
+    }
+
+    @TinyObject
+    @AllArgsConstructor
+    static class Animal {
+        @TinyDefault
+        @TinyProperty(name = "name")
+        private String englishName;
+        @TinyProperty(name = "latin_name")
+        private String nomenclature;
     }
 }

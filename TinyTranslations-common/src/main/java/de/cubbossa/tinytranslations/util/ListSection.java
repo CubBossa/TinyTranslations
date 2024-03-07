@@ -31,10 +31,14 @@ public class ListSection {
     }
 
     public int getPage() {
+        if (range == 0) {
+            return 0;
+        }
         return offset / range;
     }
 
     public int getMaxPages(int size) {
+        if (range == 0) return 1;
         return (int) Math.ceil(size / (double) range);
     }
 }
