@@ -69,7 +69,7 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
     }
 
     private Map<String, StorageEntry> readFile(File file) {
-        try (Reader reader = new FileReader(file, detectCharset(file, CHARSETS))) {
+        try (Reader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             return PropertiesUtils.loadProperties(reader).stream().collect(Collectors.toMap(
                     StorageEntry::key, e -> e
             ));

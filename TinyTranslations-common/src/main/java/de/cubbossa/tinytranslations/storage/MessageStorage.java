@@ -10,6 +10,12 @@ import java.util.Map;
 public interface MessageStorage {
 
     /**
+     * Collects all present locales, even if custom locales like Pirate Speech.
+     * @return a Collection of all present locale files. A locale must not have a translation for every key.
+     */
+    Collection<Locale> fetchLocales();
+
+    /**
      * Reads and returns a whole message storage.
      * The operation does not affect the dictionary of any message instance.
      *

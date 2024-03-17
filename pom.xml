@@ -6,7 +6,7 @@
 
     <groupId>de.cubbossa</groupId>
     <artifactId>TinyTranslations</artifactId>
-    <version>4.4.3</version>
+    <version>4.5.0</version>
     <packaging>pom</packaging>
 
     <name>TinyTranslations</name>
@@ -17,7 +17,15 @@
         <module>TinyTranslations-bukkit</module>
     </modules>
 
+    <distributionManagement>
+        <repository>
+            <id>nexus_cubbossa</id>
+            <url>https://nexus.leonardbausenwein.de/repository/maven-public/</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
@@ -32,43 +40,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <distributionManagement>
-        <repository>
-            <id>nexus-release</id>
-            <url>https://nexus.leonardbausenwein.de/repository/maven-public/</url>
-        </repository>
-    </distributionManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.5.1</version>
-                <executions>
-                    <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <serverId>nexus</serverId>
-                    <nexusUrl>http://localhost:8081/nexus/</nexusUrl>
-                    <skipStaging>true</skipStaging>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

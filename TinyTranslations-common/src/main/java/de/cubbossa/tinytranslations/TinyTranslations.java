@@ -15,12 +15,14 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class TinyTranslations {
 
+    private static final Logger LOGGER = Logger.getLogger("Translations");
     public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
     public static final NanoMessage NM = NanoMessage.nanoMessage();
@@ -30,6 +32,10 @@ public class TinyTranslations {
     }
 
     protected TinyTranslations() {
+    }
+
+    public static Logger getLogger() {
+        return LOGGER;
     }
 
     public static MessageTranslator application(String name) {
@@ -52,40 +58,78 @@ public class TinyTranslations {
             try {
                 messages[i++] = (Message) messageField.get(messageClass);
             } catch (Throwable t) {
-                Logger.getLogger("Translations").log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName(), t);
+                LOGGER.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName(), t);
             }
         }
         return messages;
     }
 
-    public static MessageTranslator globalTranslator(File directory) {
-        MessageTranslator global = new MessageTranslatorImpl(null, "global");
+    /**
+     * Creates the lang directory
+     * @param root The root directory, in terms of plugins the /plugin/ directory.
+     * @return The global MessageTranslator instance.
+     */
+    public static MessageTranslator globalTranslator(File root) {
 
+        initGlobalFiles(root);
+        MessageTranslator global = new MessageTranslatorImpl(null, "global") {
+            @Override
+            public void loadStyles() {
+                if (initGlobalFiles(root) || !new File(root, "/lang/global_styles.properties").exists()) {
+                    writeResourceIfNotExists(root, "lang/global_styles.properties", "lang/global_styles.properties");
+                } else {
+                    writeMissingDefaultStyles(this);
+                }
+                super.loadStyles();
+            }
+
+            @Override
+            public void loadLocales() {
+                boolean init = initGlobalFiles(root);
+                for (Locale locale : GlobalMessages.LOCALES) {
+                    String s = "lang/global_messages_" + locale.toLanguageTag().replaceAll("-", "_") + ".properties";
+                    if (init || !new File(root, s).exists()) {
+                        writeResourceIfNotExists(root, s);
+                    }
+                }
+                super.loadLocales();
+            }
+
+            @Override
+            public void loadLocale(Locale locale) {
+                String s = "lang/global_messages_" + locale.toLanguageTag().replaceAll("-", "_") + ".properties";
+                if (initGlobalFiles(root) || !new File(root, s).exists()) {
+                    writeResourceIfNotExists(root, s);
+                }
+                super.loadLocale(locale);
+            }
+        };
+
+        global.setMessageStorage(new PropertiesMessageStorage(new File(root, "/lang/"), "global_messages_", ""));
+        global.setStyleStorage(new PropertiesStyleStorage(new File(root, "lang/global_styles.properties")));
+
+        global.addMessages(messageFieldsFromClass(GlobalMessages.class));
+
+        global.loadStyles();
+        global.loadLocales();
+
+        return global;
+    }
+
+    private static boolean initGlobalFiles(File directory) {
         if (!directory.exists()) {
             throw new IllegalArgumentException("Global translations directory must exist.");
         }
         File globalLangDir = new File(directory, "/lang/");
 
-        // If lang dir exists, whatever happens in there is the choice of administrators
-        boolean createStartFiles = !globalLangDir.exists();
-
-        if (createStartFiles && !globalLangDir.mkdirs()) {
+        boolean init = !globalLangDir.exists();
+        if (init && !globalLangDir.mkdirs()) {
             throw new IllegalStateException("Could not create /lang/ directory for global translations.");
         }
-        if (createStartFiles) {
+        if (init) {
             writeResourceIfNotExists(globalLangDir, "README.txt");
-            writeResourceIfNotExists(globalLangDir, "lang/global_styles.properties", "global_styles.properties");
         }
-
-        global.setMessageStorage(new PropertiesMessageStorage(globalLangDir));
-        global.setStyleStorage(new PropertiesStyleStorage(new File(globalLangDir, "global_styles.properties")));
-
-        global.addMessages(messageFieldsFromClass(GlobalMessages.class));
-        global.saveLocale(Locale.ENGLISH);
-        global.loadLocale(Locale.ENGLISH);
-
-        writeMissingDefaultStyles(global);
-        return global;
+        return init;
     }
 
     private static void writeResourceIfNotExists(File langDir, String name) {

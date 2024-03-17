@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
@@ -50,6 +51,8 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Setter
     private Locale defaultLocale = Locale.ENGLISH;
 
+    private Logger logger = Logger.getLogger("TinyTranslations");
+
     public MessageTranslatorImpl(MessageTranslator parent, String name) {
         this.parent = parent;
         this.name = name.toLowerCase();
@@ -61,6 +64,7 @@ class MessageTranslatorImpl implements MessageTranslator {
 
         this.messageSet = new HashMap<>();
         this.styleSet = new StyleSet();
+        this.logger = Logger.getLogger("TinyTranslations:" + getPath());
 
         // remove in close
         GlobalTranslator.translator().addSource(this);
@@ -309,7 +313,7 @@ class MessageTranslatorImpl implements MessageTranslator {
                 styleSet.putAll(styleStorage.loadStyles());
             }
         } catch (Throwable t) {
-
+            logger.log(Level.SEVERE, t.getMessage());
         }
     }
 
@@ -322,14 +326,23 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public void loadLocales() {
-        for (Locale availableLocale : Locale.getAvailableLocales()) {
-            loadLocale(availableLocale);
+        if (parent != null) {
+            parent.loadLocales();
+        }
+        if (messageStorage != null) {
+            for (Locale availableLocale : messageStorage.fetchLocales()) {
+                loadLocale(availableLocale, false);
+            }
         }
     }
 
     @Override
     public void loadLocale(Locale locale) {
-        if (parent != null) {
+        loadLocale(locale, true);
+    }
+
+    private void loadLocale(Locale locale, boolean parentCall) {
+        if (parentCall && parent != null) {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
@@ -350,7 +363,7 @@ class MessageTranslatorImpl implements MessageTranslator {
                 return;
             }
             message.getDictionary().remove(locale);
-            Logger.getLogger("TinyTranslations").severe(loop.getMessage());
+            logger.severe(loop.getMessage());
         });
     }
 

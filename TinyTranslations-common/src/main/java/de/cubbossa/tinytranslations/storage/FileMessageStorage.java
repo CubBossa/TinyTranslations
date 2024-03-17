@@ -13,9 +13,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public abstract class FileMessageStorage implements MessageStorage {
 
@@ -42,6 +40,23 @@ public abstract class FileMessageStorage implements MessageStorage {
     }
 
     @Override
+    public Collection<Locale> fetchLocales() {
+        if (directory == null || !directory.exists()) {
+            return Collections.emptyList();
+        }
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(files)
+                .map(File::getName)
+                .filter(name -> name.matches(filePrefix + ".+" + fileSuffix))
+                .map(s -> s.substring(filePrefix.length(), s.length() - fileSuffix.length()))
+                .map(Locale::new)
+                .toList();
+    }
+
+    @Override
     public Map<TranslationKey, String> readMessages(Locale locale) {
         return null;
     }
@@ -54,7 +69,7 @@ public abstract class FileMessageStorage implements MessageStorage {
 
     @Nullable
     protected File localeFileIfExists(Locale locale) {
-        File file = new File(directory, locale.toLanguageTag() + fileSuffix);
+        File file = new File(directory, filePrefix + locale.toLanguageTag() + fileSuffix);
         if (!file.exists()) {
             return null;
         }
@@ -63,7 +78,7 @@ public abstract class FileMessageStorage implements MessageStorage {
 
     protected File localeFile(Locale locale) {
         mkDir();
-        File file = new File(directory, locale.toLanguageTag() + fileSuffix);
+        File file = new File(directory, filePrefix + locale.toLanguageTag() + fileSuffix);
         if (!file.exists()) {
             try {
                 file.createNewFile();

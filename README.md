@@ -190,7 +190,7 @@ class ExamplePlugin extends JavaPlugin {
         translations = BukkitTinyTranslations.application(this);
 
         // define the storage types for your plugins locale
-        translations.setMessageStorage(new PropertiesMessageStorage(getLogger(), new File(getDataFolder(), "/lang/")));
+        translations.setMessageStorage(new PropertiesMessageStorage(new File(getDataFolder(), "/lang/")));
         translations.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
 
         // register all your messages to your Translations instance

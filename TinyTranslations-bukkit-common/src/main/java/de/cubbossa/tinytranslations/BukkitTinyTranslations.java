@@ -37,10 +37,8 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     private static Metrics metrics = null;
     private static volatile MessageTranslator server;
 
-    static {
-    }
-
     private BukkitTinyTranslations() {
+        TinyTranslations.getLogger().setParent(Bukkit.getLogger());
     }
 
     public static MessageTranslator server() {
@@ -90,7 +88,9 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     public static MessageTranslator globalTranslator(File dir) {
-        applyBukkitObjectResolvers(NM.getObjectResolver());
+        if (!isEnabled()) {
+            applyBukkitObjectResolvers(NM.getObjectResolver());
+        }
         var server = TinyTranslations.globalTranslator(dir);
         server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
         return server;

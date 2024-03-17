@@ -15,7 +15,7 @@ public class PropertiesUtils {
     private static final String SEPARATOR_FORMAT = " = ";
 
     private static final Pattern COMMENT = Pattern.compile("^[!#].*$");
-    private static final Pattern LINE = Pattern.compile("^([a-zA-Z0-9._-]+)( *[:=] *)(.+)$");
+    private static final Pattern LINE = Pattern.compile("^([a-zA-Z0-9._-]+)( *[:=] *)(.*)$");
     private static final Pattern MULTILINE = Pattern.compile("^.+[^\\\\]+(\\\\\\\\)*\\\\$");
 
     public static List<StorageEntry> loadProperties(Reader file) throws IOException {

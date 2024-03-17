@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class MessageReferenceLoopDetector {
 
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("\\{msg(:[a-zA-Z0-9-_.]+){1,2}}");
-    private static final Pattern STYLE_PATTERN = Pattern.compile("<([#a-zA-Z0-9-_.]+)>");
+    private static final Pattern STYLE_PATTERN = Pattern.compile("<([!#]?[a-zA-Z0-9-_.]+)>");
 
     public MessageReferenceLoopDetector() {
     }
@@ -51,7 +51,7 @@ public class MessageReferenceLoopDetector {
     }
 
     private Node buildTree(Message origin, Stack<String> stack, Message msg, Locale locale) {
-        stack.push("(msg) " + msg.key());
+        stack.push("(msg:" + locale.toLanguageTag() + ") " + msg.key());
         String s = msg.getDictionary().get(locale);
         if (s == null) {
             return new Node(null, new HashSet<>());
@@ -86,7 +86,9 @@ public class MessageReferenceLoopDetector {
                 style = t.getStyleInParentTree(key);
             }
             if (style != null) {
-                references.add(buildTree(origin, stack, style, t, locale));
+                Stack<String> stackCopy = new Stack<>();
+                stackCopy.addAll(stack);
+                references.add(buildTree(origin, stackCopy, style, t, locale));
             }
         }
         Matcher msgMatcher = MESSAGE_PATTERN.matcher(msg);
@@ -100,10 +102,12 @@ public class MessageReferenceLoopDetector {
                 ref = t.getMessageInParentTree(key);
             }
             if (ref != null) {
-                if (stack.contains("(msg) " + ref.translationKey())) {
+                if (stack.contains("(msg:" + locale.toLanguageTag() + ") " + ref.translationKey())) {
                     throw new MessageReferenceLoopException(origin, stack);
                 }
-                references.add(buildTree(origin, stack, ref, locale));
+                Stack<String> stackCopy = new Stack<>();
+                stackCopy.addAll(stack);
+                references.add(buildTree(origin, stackCopy, ref, locale));
             }
         }
         return new Node(msg, references);

@@ -177,6 +177,11 @@ class MessageTranslatorImplTest extends TestBase {
 
         translator.setMessageStorage(new MessageStorage() {
             @Override
+            public Collection<Locale> fetchLocales() {
+                return List.of(Locale.ENGLISH);
+            }
+
+            @Override
             public Map<TranslationKey, String> readMessages(Locale locale) {
                 return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
             }
@@ -198,6 +203,11 @@ class MessageTranslatorImplTest extends TestBase {
 
         translator.addMessages(abc);
         translator.setMessageStorage(new MessageStorage() {
+            @Override
+            public Collection<Locale> fetchLocales() {
+                return List.of(Locale.ENGLISH);
+            }
+
             @Override
             public Map<TranslationKey, String> readMessages(Locale locale) {
                 return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");

@@ -1189,6 +1189,9 @@ ij_properties_keep_blank_lines = false
 ij_properties_key_value_delimiter = equals
 ij_properties_spaces_around_key_value_delimiter = false
 
+[*.properties]
+charset = utf-8
+
 [{*.qute.htm,*.qute.html,*.qute.json,*.qute.txt,*.qute.yaml,*.qute.yml}]
 ij_qute_keep_indents_on_empty_lines = false
 
