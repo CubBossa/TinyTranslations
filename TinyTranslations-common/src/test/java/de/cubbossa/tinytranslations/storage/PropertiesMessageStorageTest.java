@@ -21,6 +21,11 @@ class PropertiesMessageStorageTest extends MessageStorageTest {
         return new PropertiesMessageStorage(dir);
     }
 
+    @Override
+    String fileName(String languageTag) {
+        return languageTag + ".properties";
+    }
+
     @Test
     void testRead() {
         messageTranslator.saveLocale(Locale.ENGLISH);

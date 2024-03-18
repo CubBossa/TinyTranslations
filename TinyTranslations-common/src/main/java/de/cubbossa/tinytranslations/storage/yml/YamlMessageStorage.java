@@ -61,7 +61,7 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
                 result.put(TranslationKey.of(s), val);
             } else if (o instanceof List<?> list) {
                 result.put(TranslationKey.of(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
-            } else {
+            } else if (o != null) {
                 result.put(TranslationKey.of(s), o.toString());
             }
         });

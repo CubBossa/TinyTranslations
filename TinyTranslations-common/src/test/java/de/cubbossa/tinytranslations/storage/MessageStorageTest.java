@@ -10,16 +10,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 public abstract class MessageStorageTest {
 
     File gDir;
+    File testDir;
     MessageTranslator messageTranslator;
     MessageStorage storage;
     Message a, b, c, d;
+
+    abstract String fileName(String languageTag);
 
     abstract MessageStorage getMessageStorage(File dir);
 
@@ -30,7 +32,8 @@ public abstract class MessageStorageTest {
 
         messageTranslator = TinyTranslations.application("TestApp");
 
-        storage = getMessageStorage(new File(gDir, "/TestApp/lang/"));
+        testDir = new File(gDir, "/TestApp/lang/");
+        storage = getMessageStorage(testDir);
         messageTranslator.setMessageStorage(storage);
         a = messageTranslator.messageBuilder("a").withDefault("A").build();
         b = messageTranslator.messageBuilder("h.b").withDefault("B").build();
@@ -77,6 +80,23 @@ public abstract class MessageStorageTest {
     }
 
     @Test
-    void writeMessages() {
+    void fetchLocales() {
+        List<Locale> locales = List.of(
+                new Locale("de"), new Locale("uk", "UA"), new Locale("pi")
+        );
+        for (Locale locale : locales) {
+            try {
+                File file = new File(testDir, fileName(locale.toLanguageTag()));
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        Assertions.assertEquals(
+                new HashSet<>(locales),
+                new HashSet<>(storage.fetchLocales())
+        );
     }
 }

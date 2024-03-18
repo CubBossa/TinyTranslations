@@ -52,7 +52,7 @@ public abstract class FileMessageStorage implements MessageStorage {
                 .map(File::getName)
                 .filter(name -> name.matches(filePrefix + ".+" + fileSuffix))
                 .map(s -> s.substring(filePrefix.length(), s.length() - fileSuffix.length()))
-                .map(Locale::new)
+                .map(Locale::forLanguageTag)
                 .toList();
     }
 
