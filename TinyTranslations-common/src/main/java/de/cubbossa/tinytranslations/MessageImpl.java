@@ -72,7 +72,7 @@ class MessageImpl implements Message {
 
     @Override
     public Collection<TagResolver> getResolvers() {
-        return new ArrayList<>(resolvers);
+        return List.copyOf(resolvers);
     }
 
     @Override

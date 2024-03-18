@@ -7,22 +7,27 @@ import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.minimessage.Context;
+import net.kyori.adventure.text.minimessage.ParsingException;
 import net.kyori.adventure.text.minimessage.internal.parser.node.TagNode;
 import net.kyori.adventure.text.minimessage.internal.parser.node.TagPart;
 import net.kyori.adventure.text.minimessage.internal.parser.node.TextNode;
 import net.kyori.adventure.text.minimessage.tag.Modifying;
 import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.minimessage.tree.Node;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -30,65 +35,182 @@ import java.util.stream.Collectors;
 
 import static net.kyori.adventure.text.Component.text;
 
+/**
+ * Adds the option to add {@link TagResolver}s to an object. The object might use the resolvers to resolve a string.
+ * Most methods are pre-implemented and turn primitives into their most fitting {@link TagResolver} representations.
+ *
+ * @param <ReturnT> The type of the implementing class to allow a builder-like pattern.
+ */
 public interface Formattable<ReturnT extends Formattable<ReturnT>> {
 
+    /**
+     * All placeholders that are being introduced by using {@link this#insertList(String, Collection)},
+     * {@link this#insertList(String, Collection, ListSection)} or {@link this#insertList(String, Collection, Consumer)}
+     */
     String[] LIST_PLACEHOLDERS = {
             "has-pages", "page", "pages", "next-page", "prev-page", "offset", "range"
     };
+    /**
+     * All placeholders that are being introduced by using {@link this#insertList(String, Function, ListSection)}
+     */
     String[] DYNAMIC_LIST_PLACEHOLDERS = {
             "page", "next-page", "prev-page", "offset", "range"
     };
 
+    /**
+     * @return a copy of the set resolvers on this object.
+     */
     Collection<TagResolver> getResolvers();
 
+    /**
+     * Returns an instance with the resolver set.
+     * For the current implementations, {@link Message} returns a new instance while {@link MessageTranslator} modifies
+     * its values.
+     *
+     * @param resolver An array of {@link TagResolver}s to add.
+     * @return this object or a new object if the implementation is pure
+     */
     ReturnT formatted(TagResolver... resolver);
 
+    /**
+     * Parses a MiniMessage/NanoMessage string and inserts it as component
+     *
+     * @param key         The tag key
+     * @param minimessage The MiniMessage/NanoMessage value to parse
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertParsed(final @NotNull String key, String minimessage) {
         return formatted(Placeholder.parsed(key, minimessage));
     }
 
+    /**
+     * Replaces <pre><[tag]></pre> with the raw string value, even if it contains MiniMessage formatting.
+     *
+     * @param key   The tag key
+     * @param value The string value to insert
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertString(final @NotNull String key, String value) {
         return formatted(Placeholder.unparsed(key, value));
     }
 
+    /**
+     * Replaces <pre><[tag]></pre> with the raw string value, even if it contains MiniMessage formatting.
+     * This placeholder is lazy and the according supplier is only being called when the tag is actually being used.
+     *
+     * @param key   The tag key
+     * @param value A supplier producing the string value to insert
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertString(final @NotNull String key, Supplier<String> value) {
-        return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-            return Tag.preProcessParsed(value.get());
-        }));
+        return formatted(new PlaceholderTag(key, () -> Component.text(value.get())));
     }
 
+    /**
+     * Replaces <pre><[tag]></pre> with a {@link ComponentLike}.
+     *
+     * @param key   The tag key
+     * @param value The {@link ComponentLike} to insert.
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertComponent(final @NotNull String key, ComponentLike value) {
         return formatted(Placeholder.component(key, value));
     }
 
+    /**
+     * Replaces <pre><[tag]></pre> with the ComponentLike.
+     * This placeholder is lazy and the according supplier is only being called when the tag is actually being used.
+     *
+     * @param key   The tag key
+     * @param value The {@link ComponentLike} to insert.
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertComponent(final @NotNull String key, Supplier<ComponentLike> value) {
-        return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-            return Tag.inserting(value.get());
-        }));
+        return formatted(new PlaceholderTag(key, value));
     }
 
+    /**
+     * Inserts a Number tag.
+     *
+     * @param key   The tag key
+     * @param value The number value to insert
+     * @return this object or a new object if the implementation is pure
+     * @see <a href="https://docs.advntr.dev/minimessage/dynamic-replacements.html#insert-a-number">MiniMessage Docs</a> for a full
+     * guide about how to use number tags.
+     */
     default ReturnT insertNumber(final @NotNull String key, Number value) {
         return formatted(Formatter.number(key, value));
     }
 
+    /**
+     * Inserts a Number tag.
+     *
+     * @param key   The tag key
+     * @param value
+     * @return this object or a new object if the implementation is pure
+     * @see <a href="https://docs.advntr.dev/minimessage/dynamic-replacements.html#insert-a-number">MiniMessage Docs</a> for a full
+     * guide about how to use number tags.
+     * This placeholder is lazy and the according supplier is only being called when the tag is actually being used.
+     */
     default ReturnT insertNumber(final @NotNull String key, Supplier<Number> value) {
-        return formatted(TagResolver.resolver(key, (argumentQueue, context) -> {
-            return Formatter.number(key, value.get()).resolve(key, argumentQueue, context);
+        return formatted(TagResolver.resolver(key, new BiFunction<>() {
+
+            Number cached = null;
+
+            @Override
+            public Tag apply(ArgumentQueue argumentQueue, Context context) {
+                if (cached == null) {
+                    cached = value.get();
+                }
+                return Formatter.number(key, cached).resolve(key, argumentQueue, context);
+            }
         }));
     }
 
+    /**
+     * @param key   The tag key
+     * @param value
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertTemporal(final @NotNull String key, Temporal value) {
         return formatted(Formatter.date(key, value));
     }
 
+    /**
+     * Inserts a boolean as a simple string.
+     *
+     * @param key   The tag key
+     * @param value A boolean value to insert
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertBool(final @NotNull String key, Boolean value) {
         return formatted(Placeholder.parsed(key, value.toString()));
     }
 
+    /**
+     * Short form of {@link TagResolver#resolver(String, Tag)}
+     * 
+     * @param key The tag key
+     * @param tag A tag implementation to insert
+     * @return this object or a new object if the implementation is pure
+     */
     default ReturnT insertTag(final @NotNull String key, Tag tag) {
         return formatted(TagResolver.resolver(key, tag));
     }
 
+    /**
+     * Inserts any object as {@link TagResolver}.
+     * Generally, objects will be inserted via their according methods if present (insertNumber, ...)
+     * or as <pre>Component.text(object.toString())</pre>
+     *
+     * To define a specific way for turning objects into components, you want to use
+     * {@link de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver}
+     *
+     * @param key The tag key
+     * @param obj Any object to insert
+     * @param <T> The object type
+     * @return this object or a new object if the implementation is pure
+     */
     default <T> ReturnT insertObject(final @NotNull String key, T obj) {
         return formatted(ObjectTag.resolver(key, obj));
     }
@@ -99,10 +221,23 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
         return this.insertList(key, elements, ListSection.paged(0, elements.size()), renderer);
     }
 
+    /**
+     * @param key      The tag key
+     * @param elements
+     * @param <E>
+     * @return this object or a new object if the implementation is pure
+     */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements) {
         return insertList(key, elements, ListSection.paged(0, elements.size()));
     }
 
+    /**
+     * @param key      The tag key
+     * @param elements
+     * @param mapping
+     * @param <E>
+     * @return this object or a new object if the implementation is pure
+     */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, Consumer<TinyObjectMapping.Builder<E>> mapping) {
         return insertList(key, elements, ListSection.paged(0, elements.size()));
     }
@@ -131,6 +266,13 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                 }));
     }
 
+    /**
+     * @param key      The tag key
+     * @param elements
+     * @param section
+     * @param <E>
+     * @return this object or a new object if the implementation is pure
+     */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section) {
         return formatted(
                 Formatter.choice("has-pages", section.getMaxPages(elements.size())),
@@ -200,6 +342,13 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                 }));
     }
 
+    /**
+     * @param key             The tag key
+     * @param elementSupplier
+     * @param section
+     * @param <E>
+     * @return this object or a new object if the implementation is pure
+     */
     default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section) {
         return formatted(
                 Formatter.number("page", section.getPage() + 1),
@@ -270,5 +419,36 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
             s.append(serialize(child));
         }
         return s.toString();
+    }
+
+    class PlaceholderTag implements TagResolver {
+
+        private final String key;
+        private final Supplier<ComponentLike> supplier;
+        private Tag tag;
+
+        public PlaceholderTag(String key, ComponentLike value) {
+            this.key = key;
+            this.supplier = null;
+            this.tag = Tag.inserting(value);
+        }
+
+        public PlaceholderTag(String key, Supplier<ComponentLike> value) {
+            this.key = key;
+            this.supplier = value;
+        }
+
+        @Override
+        public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
+            if (tag == null) {
+                tag = Tag.inserting(supplier.get());
+            }
+            return tag;
+        }
+
+        @Override
+        public boolean has(@NotNull String name) {
+            return name.equals(key);
+        }
     }
 }
