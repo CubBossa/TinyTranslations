@@ -15,7 +15,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class TinyTranslations {
 
     private static final Logger LOGGER = Logger.getLogger("Translations");
-    public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
+    public static final Locale FALLBACK_DEFAULT_LOCALE = Locale.ENGLISH;
 
     public static final NanoMessage NM = NanoMessage.nanoMessage();
 

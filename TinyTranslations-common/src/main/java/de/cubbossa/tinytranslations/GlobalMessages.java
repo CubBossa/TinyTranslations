@@ -22,7 +22,7 @@ public final class GlobalMessages {
             .withPlaceholder("player")
             .build();
     public static final Message JOIN_RENAMED = Message.builder("multiplayer.join_renamed")
-            .withPlaceholder("player", "old_name")
+            .withPlaceholders("player", "old_name")
             .build();
     public static final Message QUIT = Message.builder("multiplayer.quit")
             .withPlaceholder("player")

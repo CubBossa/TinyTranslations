@@ -121,7 +121,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     public static Locale getLocale(CommandSender sender) {
-        return getLocale(sender, DEFAULT_LOCALE);
+        return getLocale(sender, FALLBACK_DEFAULT_LOCALE);
     }
 
     public static Locale getLocale(CommandSender sender, Locale fallback) {

@@ -39,7 +39,7 @@ class MessageImpl implements Message {
     public MessageImpl(TranslationKey key, String fallback) {
         this.key = key;
         this.dictionary = new ConcurrentHashMap<>();
-        this.dictionary.put(TinyTranslations.DEFAULT_LOCALE, fallback);
+        this.dictionary.put(TinyTranslations.FALLBACK_DEFAULT_LOCALE, fallback);
 
         this.placeholderTags = new HashMap<>();
     }

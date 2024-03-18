@@ -27,12 +27,12 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withDefault(@Language("NanoMessage") String defaultValue) {
-        this.translations.put(TinyTranslations.DEFAULT_LOCALE, defaultValue);
+        this.translations.put(TinyTranslations.FALLBACK_DEFAULT_LOCALE, defaultValue);
         return this;
     }
 
     public MessageBuilder withDefault(Message otherToEmbed) {
-        this.translations.put(TinyTranslations.DEFAULT_LOCALE, "{msg:" + otherToEmbed.key() + "}");
+        this.translations.put(TinyTranslations.FALLBACK_DEFAULT_LOCALE, "{msg:" + otherToEmbed.key() + "}");
         return this;
     }
 
