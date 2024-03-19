@@ -23,19 +23,19 @@ class ObjectTagResolverMapTest {
     @Test
     void resolve() {
 
-        TinyObjectResolver map = new TinyObjectResolverImpl();
-        map.add(TinyObjectMapping.builder(Person.class)
+        TinyObjectTagResolver map = new TinyObjectTagResolverImpl();
+        map.add(TinyObjectResolver.builder(Person.class)
                 .with("name", Person::name)
                 .with("age", Person::age)
                 .build());
-        map.add(TinyObjectMapping.builder(Employee.class)
+        map.add(TinyObjectResolver.builder(Employee.class)
                 .with("salary", Employee::salary)
                 .build());
-        map.add(TinyObjectMapping.builder(PersonRelations.class)
+        map.add(TinyObjectResolver.builder(PersonRelations.class)
                 .with("data", PersonRelations::data)
                 .with("friends", PersonRelations::friends)
                 .build());
-        map.add(TinyObjectMapping.builder(List.class)
+        map.add(TinyObjectResolver.builder(List.class)
                 .withFallback(l -> text((String) l.stream().map(Object::toString).collect(Collectors.joining(", "))))
                 .build());
 
@@ -79,8 +79,8 @@ class ObjectTagResolverMapTest {
     @Test
     void testAnnotations() {
 
-        TinyObjectResolver map = new TinyObjectResolverImpl();
-        map.add(TinyObjectMapping.builder(Person.class)
+        TinyObjectTagResolver map = new TinyObjectTagResolverImpl();
+        map.add(TinyObjectResolver.builder(Person.class)
                 .with("name", Person::name)
                 .with("age", Person::age)
                 .build());
@@ -106,21 +106,21 @@ class ObjectTagResolverMapTest {
     @Test
     void testOverride() {
 
-        TinyObjectResolver map = new TinyObjectResolverImpl();
-        map.add(TinyObjectMapping.builder(List.class)
+        TinyObjectTagResolver map = new TinyObjectTagResolverImpl();
+        map.add(TinyObjectResolver.builder(List.class)
                 .withFallback(l -> "a")
                 .build());
-        map.add(TinyObjectMapping.builder(ArrayList.class)
+        map.add(TinyObjectResolver.builder(ArrayList.class)
                 .withFallback(l -> "b")
                 .build());
         assertEquals(
                 text("b"),
                 map.resolveObject(new ArrayList<>(), "")
         );
-        map = new TinyObjectResolverImpl();
-        map.add(TinyObjectMapping.builder(ArrayList.class).withFallback(l -> "b").build());
-        map.add(TinyObjectMapping.builder(List.class).withFallback(l -> "a").build());
-        map.add(TinyObjectMapping.builder(Sel.class).withFallback(l -> "c").build());
+        map = new TinyObjectTagResolverImpl();
+        map.add(TinyObjectResolver.builder(ArrayList.class).withFallback(l -> "b").build());
+        map.add(TinyObjectResolver.builder(List.class).withFallback(l -> "a").build());
+        map.add(TinyObjectResolver.builder(Sel.class).withFallback(l -> "c").build());
         assertEquals(
                 text("c"),
                 map.resolveObject(new Sel(), "")

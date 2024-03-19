@@ -2,7 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
@@ -302,12 +302,12 @@ class MessageTranslatorImplTest extends TestBase {
 
     @Test
     public void testObject() {
-        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Player.class)
+        translator.add(TinyObjectResolver.builder(Player.class)
                 .with("name", Player::name)
                 .with("location", Player::location)
                 .withFallback(player -> Component.text(player.name))
                 .build());
-        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Location.class)
+        translator.add(TinyObjectResolver.builder(Location.class)
                 .with("x", Location::x)
                 .with("y", Location::y)
                 .with("z", Location::z)
@@ -333,7 +333,7 @@ class MessageTranslatorImplTest extends TestBase {
 
     @Test
     public void testAppResolvers() {
-        TinyTranslations.NM.getObjectResolver().add(TinyObjectMapping.builder(Description.class)
+        translator.add(TinyObjectResolver.builder(Description.class)
                 .with("name", Description::name)
                 .withFallback(d -> Component.text(d.name))
                 .build());

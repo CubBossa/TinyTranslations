@@ -5,12 +5,15 @@ import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.TranslationRegistry;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -203,4 +206,15 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     Locale getDefaultLocale();
 
     void setDefaultLocale(Locale locale);
+
+
+    // Tiny object resolving
+
+    Collection<TinyObjectResolver> getTinyObjectResolvers();
+
+    void addAll(Iterable<TinyObjectResolver> resolvers);
+
+    void add(TinyObjectResolver resolver);
+
+    void remove(TinyObjectResolver resolver);
 }

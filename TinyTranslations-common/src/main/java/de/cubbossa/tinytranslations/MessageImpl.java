@@ -1,5 +1,7 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -15,6 +17,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @Getter
 @Setter
@@ -23,7 +26,9 @@ class MessageImpl implements Message {
     @Getter
     private final TranslationKey key;
     private final List<TranslationArgument> arguments = Collections.emptyList();
-    private final Collection<TagResolver> resolvers = new ArrayList<>();
+    private final Collection<TagResolver> resolvers = new LinkedList<>();
+    @Setter
+    private Supplier<Collection<TinyObjectResolver>> objectResolverSupplier = Collections::emptyList;
     private Style style = Style.empty();
     private List<Component> children = new ArrayList<>();
     private Map<Locale, String> dictionary;
@@ -80,6 +85,11 @@ class MessageImpl implements Message {
         MessageImpl message = new MessageImpl(key, this);
         message.resolvers.addAll(List.of(resolver));
         return message;
+    }
+
+    @Override
+    public Collection<TinyObjectResolver> getObjectResolversInScope() {
+        return objectResolverSupplier.get();
     }
 
     @Override

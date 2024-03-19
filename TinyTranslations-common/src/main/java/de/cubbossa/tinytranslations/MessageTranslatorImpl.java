@@ -3,9 +3,11 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
+import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -38,6 +40,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     private final StyleSet styleSet;
     @Getter
     private final Collection<TagResolver> resolvers = new LinkedList<>();
+    private final Collection<TinyObjectResolver> objectResolvers = new LinkedList<>();
     @Getter
     @Setter
     private @Nullable MessageStorage messageStorage;
@@ -283,6 +286,9 @@ class MessageTranslatorImpl implements MessageTranslator {
     public void addMessage(Message message) {
         if (message instanceof UnownedMessage unowned) {
             message = unowned.owner(this);
+            if (message instanceof MessageImpl impl) {
+                impl.setObjectResolverSupplier(this::getTinyObjectResolvers);
+            }
             messageSet.put(message.getKey(), message);
         } else {
             throw new IllegalArgumentException("The provided message already belongs to a translator. Messages can only belong to one translator.");
@@ -301,6 +307,30 @@ class MessageTranslatorImpl implements MessageTranslator {
         for (Message message : messages) {
             addMessage(message);
         }
+    }
+
+    @Override
+    public Collection<TinyObjectResolver> getTinyObjectResolvers() {
+        Collection<TinyObjectResolver> result = new LinkedList<>(objectResolvers);
+        if (parent != null) {
+            result.addAll(parent.getTinyObjectResolvers());
+        }
+        return result;
+    }
+
+    @Override
+    public void addAll(Iterable<TinyObjectResolver> resolvers) {
+        resolvers.forEach(objectResolvers::add);
+    }
+
+    @Override
+    public void add(TinyObjectResolver resolver) {
+        objectResolvers.add(resolver);
+    }
+
+    @Override
+    public void remove(TinyObjectResolver resolver) {
+        objectResolvers.remove(resolver);
     }
 
     @Override
@@ -378,6 +408,11 @@ class MessageTranslatorImpl implements MessageTranslator {
     public MessageTranslator formatted(TagResolver... resolver) {
         this.resolvers.addAll(List.of(resolver));
         return this;
+    }
+
+    @Override
+    public Collection<TinyObjectResolver> getObjectResolversInScope() {
+        return getTinyObjectResolvers();
     }
 
     @Override

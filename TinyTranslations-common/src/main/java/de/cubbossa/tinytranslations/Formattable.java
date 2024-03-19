@@ -1,7 +1,8 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
 import de.cubbossa.tinytranslations.util.FormattableBuilder;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
@@ -204,7 +205,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * or as <pre>Component.text(object.toString())</pre>
      *
      * To define a specific way for turning objects into components, you want to use
-     * {@link de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver}
+     * {@link TinyObjectTagResolver}
      *
      * @param key The tag key
      * @param obj Any object to insert
@@ -212,8 +213,16 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @return this object or a new object if the implementation is pure
      */
     default <T> ReturnT insertObject(final @NotNull String key, T obj) {
-        return formatted(ObjectTag.resolver(key, obj));
+        return insertObject(key, obj, Collections.emptyList());
     }
+
+    default <T> ReturnT insertObject(final @NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
+        Collection<TinyObjectResolver> r = new LinkedList<>(additionalResolvers);
+        r.addAll(getObjectResolversInScope());
+        return formatted(ObjectTag.resolver(key, obj, r));
+    }
+
+    Collection<TinyObjectResolver> getObjectResolversInScope();
 
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "5.0")
@@ -222,9 +231,24 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
     }
 
     /**
-     * @param key      The tag key
-     * @param elements
-     * @param <E>
+     * Inserts a list of objects as tag.
+     * <br><br>
+     * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
+     * within slot.
+     * <br><br>
+     * Objects are resolved via {@link TinyObjectTagResolver}s,
+     * see {@link #insertObject(String, Object)}
+     * <br><br>
+     * Example:
+     * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
+     * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
+     * Will render all players in new lines with a "- " prefix.
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * for the org.bukkit.Player class.
+     *
+     * @param key      The tag key for the list
+     * @param elements A list of objects to render as list
+     * @param <E>      The generic type of the elements
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements) {
@@ -238,7 +262,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @param <E>
      * @return this object or a new object if the implementation is pure
      */
-    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, Consumer<TinyObjectMapping.Builder<E>> mapping) {
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, Consumer<TinyObjectResolver.Builder<E>> mapping) {
         return insertList(key, elements, ListSection.paged(0, elements.size()));
     }
 
@@ -303,8 +327,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e)
-                                            .insertObject("el", e)
+                                            .insertObject("element", e, getObjectResolversInScope())
+                                            .insertObject("el", e, getObjectResolversInScope())
                                             .insertNumber("index", index.incrementAndGet())
                                             .toResolver()))
                                     .toList());
@@ -377,8 +401,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e)
-                                            .insertObject("el", e)
+                                            .insertObject("element", e, getObjectResolversInScope())
+                                            .insertObject("el", e, getObjectResolversInScope())
                                             .insertNumber("index", startIndex.incrementAndGet())
                                             .toResolver()))
                                     .toList());

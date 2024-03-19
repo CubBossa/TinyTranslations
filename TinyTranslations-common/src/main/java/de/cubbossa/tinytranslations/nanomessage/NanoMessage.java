@@ -5,7 +5,6 @@ import de.cubbossa.tinytranslations.nanomessage.tag.BrighterTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.ClickTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.DarkerTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.HoverTag;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.ComponentSerializer;
@@ -34,8 +33,6 @@ public interface NanoMessage extends ComponentSerializer<Component, Component, S
         );
         return nm;
     }
-
-    TinyObjectResolver getObjectResolver();
 
     Component deserialize(@Language("NanoMessage") String value, TagResolver... resolvers);
 }
