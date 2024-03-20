@@ -43,7 +43,13 @@ class UnownedMessageImpl implements UnownedMessage {
 
     @Override
     public Message owner(MessageTranslator translator) {
-        return owner(translator.getPath());
+        Message m = new MessageImpl(TranslationKey.of(translator.getPath(), key), ref);
+        for (TempObjectTag tempTag : tempTags) {
+            Collection<TinyObjectResolver> merged = new LinkedList<>(translator.getObjectResolversInScope());
+            merged.addAll(tempTag.additionalResolvers);
+            m = m.insertObject(tempTag.key, tempTag.obj, merged);
+        }
+        return m;
     }
 
     @Override
@@ -63,14 +69,14 @@ class UnownedMessageImpl implements UnownedMessage {
 
     @Override
     public <T> Message insertObject(@NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
-        ref.insertObject(key, obj, additionalResolvers);
-//        tempTags.add(new TempObjectTag(key, obj, additionalResolvers));
+//        ref.insertObject(key, obj, additionalResolvers);
+        tempTags.add(new TempObjectTag(key, obj, additionalResolvers));
         return this;
     }
 
     @Override
     public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return Collections.emptyList();
+        return ref.getObjectResolversInScope();
     }
 
     @Override
@@ -194,6 +200,7 @@ class UnownedMessageImpl implements UnownedMessage {
 
     private Message wrap(MessageImpl ref) {
         var msg = new UnownedMessageImpl(key);
+        msg.tempTags = new LinkedList<>(tempTags);
         msg.ref = ref;
         return msg;
     }

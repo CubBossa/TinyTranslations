@@ -217,16 +217,9 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
     }
 
     default <T> ReturnT insertObject(final @NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
-        Supplier<Collection<TinyObjectResolver>> s = () -> {
-            Collection<TinyObjectResolver> r = new LinkedList<>(additionalResolvers);
-            r.addAll(getObjectResolversInScope());
-            return r;
-        };
-        return insertObject(key, obj, s);
-    }
-
-    default <T> ReturnT insertObject(final @NotNull String key, T obj, Supplier<Collection<TinyObjectResolver>> additionalResolverSupplier) {
-        return formatted(ObjectTag.resolver(key, obj, additionalResolverSupplier));
+        Collection<TinyObjectResolver> r = new LinkedList<>(additionalResolvers);
+        r.addAll(getObjectResolversInScope());
+        return formatted(ObjectTag.resolver(key, obj, r));
     }
 
     Collection<TinyObjectResolver> getObjectResolversInScope();
@@ -334,8 +327,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e, () -> getObjectResolversInScope())
-                                            .insertObject("el", e, () -> getObjectResolversInScope())
+                                            .insertObject("element", e, getObjectResolversInScope())
+                                            .insertObject("el", e, getObjectResolversInScope())
                                             .insertNumber("index", index.incrementAndGet())
                                             .toResolver()))
                                     .toList());
@@ -408,8 +401,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e, () -> getObjectResolversInScope())
-                                            .insertObject("el", e, () -> getObjectResolversInScope())
+                                            .insertObject("element", e, getObjectResolversInScope())
+                                            .insertObject("el", e, getObjectResolversInScope())
                                             .insertNumber("index", startIndex.incrementAndGet())
                                             .toResolver()))
                                     .toList());

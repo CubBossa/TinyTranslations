@@ -153,6 +153,9 @@ class MessageTranslatorImpl implements MessageTranslator {
         locale = useClientLocale ? locale : defaultLocale;
         TagResolver resolver = TagResolver.empty();
         if (component instanceof Message formatted) {
+            if (formatted instanceof UnownedMessage unowned) {
+                formatted = unowned.owner(this);
+            }
             resolver = TagResolver.resolver(formatted.getResolvers());
         }
         var tr = translate(getMessageTranslation(message, locale), locale, resolver);
@@ -408,6 +411,11 @@ class MessageTranslatorImpl implements MessageTranslator {
     public MessageTranslator formatted(TagResolver... resolver) {
         this.resolvers.addAll(List.of(resolver));
         return this;
+    }
+
+    @Override
+    public <T> MessageTranslator insertObject(@NotNull String key, T obj) {
+        return MessageTranslator.super.insertObject(key, obj);
     }
 
     @Override
