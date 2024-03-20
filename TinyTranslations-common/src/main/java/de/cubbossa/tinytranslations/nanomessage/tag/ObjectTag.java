@@ -11,12 +11,14 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class ObjectTag {
 
     private static TinyObjectTagResolver RESOLVER = new TinyObjectTagResolverImpl();
 
-    public static <T> TagResolver resolver(String key, T obj, Collection<TinyObjectResolver> mappings) {
+    public static <T> TagResolver resolver(String key, T obj, Supplier<Collection<TinyObjectResolver>> mappings) {
         return TagResolver.resolver(key, (argumentQueue, c) -> {
             if (obj == null) {
                 return Tag.inserting(Component.text("null"));
@@ -26,7 +28,7 @@ public class ObjectTag {
                 path.add(argumentQueue.pop().value());
             }
             argumentQueue.reset();
-            Object resolved = RESOLVER.resolveObject(obj, path, mappings);
+            Object resolved = RESOLVER.resolveObject(obj, path, mappings.get());
             if (resolved == null) {
                 throw c.newException("Could not resolve object with path '" + key + ":" + String.join(":", path) + "'.");
             }
