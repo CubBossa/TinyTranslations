@@ -58,6 +58,7 @@ class MessageImpl implements Message {
         this.placeholderTags = new HashMap<>(other.placeholderTags);
         this.comment = other.comment;
         this.resolvers.addAll(other.resolvers);
+        this.objectResolverSupplier = other.objectResolverSupplier;
     }
 
     @Override

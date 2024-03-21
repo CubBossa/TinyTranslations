@@ -15,7 +15,7 @@ import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MessageTranslatorImplInheritanceTest extends TestBase {
+public class MessageTranslatorImplInheritanceTest extends AbstractTest {
 
     private MessageTranslator server;
 

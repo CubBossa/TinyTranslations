@@ -2,13 +2,13 @@ package de.cubbossa.tinytranslations.nanomessage;
 
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageReferenceLoopDetector;
-import de.cubbossa.tinytranslations.TestBase;
+import de.cubbossa.tinytranslations.AbstractTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
-class MessageReferenceLoopDetectorTest extends TestBase {
+class MessageReferenceLoopDetectorTest extends AbstractTest {
 
     @Test
     void detectLoops() {

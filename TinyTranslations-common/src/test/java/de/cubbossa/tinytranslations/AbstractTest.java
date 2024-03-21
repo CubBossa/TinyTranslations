@@ -1,9 +1,13 @@
 package de.cubbossa.tinytranslations;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.ansi.ColorLevel;
+import net.kyori.examination.string.MultiLineStringExaminer;
 import org.intellij.lang.annotations.RegExp;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -13,8 +17,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
-public class TestBase {
+public abstract class AbstractTest {
+
+    protected static final ANSIComponentSerializer ANSI = ANSIComponentSerializer.builder()
+            .colorLevel(ColorLevel.TRUE_COLOR)
+            .build();
 
     protected File dir;
     protected MessageTranslator translator;
@@ -24,7 +33,7 @@ public class TestBase {
     }
 
     public Component render(Component component, Locale locale) {
-        component = GlobalTranslator.renderer().render(component, locale);
+        component = GlobalTranslator.render(component, locale);
         List<Component> children = component.children();
         return component.children(
                 children.stream().map(c -> render(c, locale)).toList()
@@ -63,5 +72,21 @@ public class TestBase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected void assertRenderEquals(Component expected, Component actual) {
+        final Component expectedCompacted = expected.compact();
+        final String expectedSerialized = this.prettyPrint(expectedCompacted);
+
+        final Component actualCompacted = render(actual).compact();
+        final String pretty = this.prettyPrint(actualCompacted);
+
+        Assertions.assertEquals(expectedSerialized, pretty, () -> "Expected parsed value did not match actual:\n"
+                + "  Expected: " + ANSI.serialize(expectedCompacted) + '\n'
+                + "  Actual:   " + ANSI.serialize(actualCompacted));
+    }
+
+    protected final String prettyPrint(final Component component) {
+        return component.examine(MultiLineStringExaminer.simpleEscaping()).collect(Collectors.joining("\n"));
     }
 }

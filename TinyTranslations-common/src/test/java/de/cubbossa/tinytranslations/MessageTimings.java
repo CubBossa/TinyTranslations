@@ -5,7 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 
-public class MessageTimings extends TestBase {
+public class MessageTimings extends AbstractTest {
 
 
     @Test

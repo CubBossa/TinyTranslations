@@ -326,11 +326,11 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                         public Component apply(@NotNull Component current, int depth) {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-                                    .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e, getObjectResolversInScope())
-                                            .insertObject("el", e, getObjectResolversInScope())
+                                    .map(e -> Message.contextual(format.get())
+                                            .insertObject("element", e)
+                                            .insertObject("el", e)
                                             .insertNumber("index", index.incrementAndGet())
-                                            .toResolver()))
+                                    )
                                     .toList());
                         }
                     };
@@ -399,12 +399,13 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                         @Override
                         public Component apply(@NotNull Component current, int depth) {
                             if (depth != 0) return Component.empty();
+                            Formattable<?> outer = Formattable.this;
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-                                    .map(e -> context.deserialize(format.get(), FormattableBuilder.builder()
-                                            .insertObject("element", e, getObjectResolversInScope())
-                                            .insertObject("el", e, getObjectResolversInScope())
+                                    .map(e -> Message.contextual(format.get())
+                                            .insertObject("element", e, outer.getObjectResolversInScope())
+                                            .insertObject("el", e, outer.getObjectResolversInScope())
                                             .insertNumber("index", startIndex.incrementAndGet())
-                                            .toResolver()))
+                                    )
                                     .toList());
                         }
                     };

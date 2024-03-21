@@ -19,6 +19,14 @@ import java.util.Optional;
  */
 public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message>, Translatable, TranslatableComponent {
 
+    String TEMPORARY_MESSAGE_KEY = "__anonymous__";
+
+    static Message contextual(@Language("NanoMessage") String content) {
+        return new MessageBuilder(TEMPORARY_MESSAGE_KEY)
+                .withDefault(content)
+                .build();
+    }
+
     /**
      * Creates an {@link UnownedMessage} instance with the provided key. The message must be added to a
      * {@link MessageTranslator} to be of use.

@@ -69,14 +69,13 @@ class UnownedMessageImpl implements UnownedMessage {
 
     @Override
     public <T> Message insertObject(@NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
-//        ref.insertObject(key, obj, additionalResolvers);
         tempTags.add(new TempObjectTag(key, obj, additionalResolvers));
         return this;
     }
 
     @Override
     public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return ref.getObjectResolversInScope();
+        return Collections.emptyList();
     }
 
     @Override

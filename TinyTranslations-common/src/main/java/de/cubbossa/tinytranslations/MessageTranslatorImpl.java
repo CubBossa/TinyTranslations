@@ -3,7 +3,6 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
-import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
@@ -148,7 +147,11 @@ class MessageTranslatorImpl implements MessageTranslator {
         String key = component.key();
         Message message = getMessageInParentTree(key);
         if (message == null) {
-            return null;
+            if (component.key().endsWith(Message.TEMPORARY_MESSAGE_KEY) && component instanceof Message temp) {
+                message = temp;
+            } else {
+                return null;
+            }
         }
         locale = useClientLocale ? locale : defaultLocale;
         TagResolver resolver = TagResolver.empty();
@@ -203,7 +206,9 @@ class MessageTranslatorImpl implements MessageTranslator {
         if (!component.children().isEmpty()) {
             component = component.children(component.children().stream()
                     .map(c -> c instanceof Message tr
-                            ? GlobalTranslator.translator().translate(tr, locale)
+                            ? GlobalTranslator.renderer().render(tr instanceof UnownedMessage
+                                ? ((UnownedMessage) tr).owner(this)
+                                : tr, locale)
                             : c)
                     .filter(Objects::nonNull)
                     .toList());
@@ -430,6 +435,18 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public boolean contains(@NotNull String key) {
+        if (messageSet.containsKey(key)) {
+            return true;
+        }
+        String path = getPath();
+        if (key.length() < path.length() + 1) {
+            return false;
+        }
+        key = key.substring(path.length() + 1);
+        String namespace = key.substring(path.length());
+        if (!namespace.equalsIgnoreCase(path)) {
+            return false;
+        }
         return messageSet.containsKey(key);
     }
 
@@ -446,5 +463,10 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public void unregister(@NotNull String key) {
         messageSet.remove(key);
+    }
+
+    @Override
+    public String toString() {
+        return "MessageTranslator[path=" + getPath() + "]";
     }
 }

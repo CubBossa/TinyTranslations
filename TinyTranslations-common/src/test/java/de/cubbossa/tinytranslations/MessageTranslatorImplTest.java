@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.Translator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,7 +22,7 @@ import static net.kyori.adventure.text.Component.*;
 import static net.kyori.adventure.text.format.TextColor.color;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class MessageTranslatorImplTest extends TestBase {
+class MessageTranslatorImplTest extends AbstractTest {
 
     public static final Message SIMPLE = new MessageBuilder("simple")
             .withDefault("<red>Hello world")
@@ -83,12 +84,12 @@ class MessageTranslatorImplTest extends TestBase {
         translator.messageBuilder("a").withDefault("A").build();
         translator.messageBuilder("b").withDefault("{tr:'spectatorMenu.next_page'}").build();
 
-        assertEquals(
+        assertRenderEquals(
                 text("A").hoverEvent(translatable("spectatorMenu.next_page")),
                 translator.translate("<hover:show_text:'{msg:b}'>{msg:a}</hover>")
         );
         translator.messageBuilder("next_page").withDefault("<tr:spectatorMenu.next_page>").build();
-        assertEquals(
+        assertRenderEquals(
                 translatable("spectatorMenu.next_page").hoverEvent(translatable("spectatorMenu.next_page")),
                 translator.translate("<hover:show_text:\"{msg:next_page}\">{msg:next_page}")
         );
@@ -100,21 +101,21 @@ class MessageTranslatorImplTest extends TestBase {
         translator.addMessages(TinyTranslations.messageFieldsFromClass(this.getClass()));
 
         translator.messageBuilder("c").withDefault("c").build();
-        assertEquals(
+        assertRenderEquals(
                 text("abc"),
                 render(translator.messageBuilder("x").withDefault("ab{msg:testapp:c}").build()).compact()
         );
-        assertEquals(
+        assertRenderEquals(
                 text("abcd"),
                 render(translator.messageBuilder("x").withDefault("ab{msg:testapp:c}d").build()).compact()
         );
 
-        assertEquals(text("Hello world", NamedTextColor.RED), translator.translate(SIMPLE));
-        assertEquals(text("Hallo welt - Deutschland"), translator.translate(SIMPLE, Locale.GERMANY));
-        assertEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.GERMAN));
-        assertEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
+        assertRenderEquals(text("Hello world", NamedTextColor.RED), translator.translate(SIMPLE));
+        assertRenderEquals(text("Hallo welt - Deutschland"), translator.translate(SIMPLE, Locale.GERMANY));
+        assertRenderEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.GERMAN));
+        assertRenderEquals(text("Hallo welt - Deutsch"), translator.translate(SIMPLE, Locale.forLanguageTag("de-AT")));
 
-        assertEquals(
+        assertRenderEquals(
                 text("Embedded: ").append(text("Hello world", NamedTextColor.RED).append(text("a"))).compact(),
                 render(EMBED, Locale.ENGLISH)
         );
@@ -123,8 +124,8 @@ class MessageTranslatorImplTest extends TestBase {
     @Test
     void resolver() {
         Message m = translator.messageBuilder("a").withDefault("a <b>").build();
-        assertEquals(text("a 1"), render(m.insertNumber("b", 1)));
-        assertEquals(text("a 1"), render(m.formatted(Formatter.number("b", 1))));
+        assertRenderEquals(text("a 1"), render(m.insertNumber("b", 1)));
+        assertRenderEquals(text("a 1"), render(m.formatted(Formatter.number("b", 1))));
     }
 
     @Test
@@ -160,14 +161,14 @@ class MessageTranslatorImplTest extends TestBase {
 
         translator.addMessages(TEST_1, TEST_2);
 
-        assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
-        assertEquals(text("Hallo Welt!", NamedTextColor.RED), render(TEST_1, Locale.GERMAN));
+        assertRenderEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
+        assertRenderEquals(text("Hallo Welt!", NamedTextColor.RED), render(TEST_1, Locale.GERMAN));
 
         translator.saveLocale(Locale.ENGLISH);
         translator.loadLocale(Locale.ENGLISH);
-        assertEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
+        assertRenderEquals(text("Hello \nworld!", NamedTextColor.RED), translator.translate(TEST_1));
 
-        assertEquals(text("Luke - I am your father!", NamedTextColor.GREEN), translator.translate(TEST_2));
+        assertRenderEquals(text("Luke - I am your father!", NamedTextColor.GREEN), translator.translate(TEST_2));
     }
 
     @Test
@@ -191,9 +192,9 @@ class MessageTranslatorImplTest extends TestBase {
                 return Collections.emptyList();
             }
         });
-        assertEquals(translator.translate(abc), Component.text("Yo!"));
+        assertRenderEquals(translator.translate(abc), text("Yo!"));
         translator.loadLocales();
-        assertEquals(translator.translate(abc), Component.text("Worked!"));
+        assertRenderEquals(translator.translate(abc), text("Worked!"));
     }
 
     @Test
@@ -218,15 +219,15 @@ class MessageTranslatorImplTest extends TestBase {
                 return Collections.emptyList();
             }
         });
-        assertEquals(Component.text("Yo!"), translator.translate(abc));
+        assertRenderEquals(text("Yo!"), translator.translate(abc));
         translator.loadLocales();
-        assertEquals(Component.text("Worked!"), translator.translate(abc));
+        assertRenderEquals(text("Worked!"), translator.translate(abc));
     }
 
     @Test
     public void placeholderInTag() {
 
-        assertEquals(
+        assertRenderEquals(
                 text("<hi>"),
                 translator.translate("<{ph}>", Placeholder.parsed("ph", "hi"))
         );
@@ -242,9 +243,9 @@ class MessageTranslatorImplTest extends TestBase {
         plugin.messageBuilder("prefix").withDefault("Plugin").build();
         Message msg = plugin.messageBuilder("test").withDefault("<prefix>Message</prefix>").build();
 
-        assertEquals(
+        assertRenderEquals(
                 empty().append(text("Plugin", color(0xff00ff))).append(text(" Message")),
-                plugin.translate(msg).compact()
+                plugin.translate(msg)
         );
     }
 
@@ -255,48 +256,104 @@ class MessageTranslatorImplTest extends TestBase {
         Message a = translator.messageBuilder("a.b.c").withDefault("Header\n<list:','>{el ? <green>true</green> : <red>false</red>}</list>\nFooter").build();
 
         a = a.insertList("list", list, ListSection.paged(0, 2));
-        assertEquals(
+        assertRenderEquals(
                 text("Header\n")
                         .append(text("true", NamedTextColor.GREEN))
                         .append(text(","))
                         .append(text("false", NamedTextColor.RED))
                         .append(text("\nFooter")),
-                render(a).compact()
+                a
         );
 
         Message b = translator.messageBuilder("a.b.c").withDefault("Header\n<list:'\n'>{index}.) {el ? <green>true</green> : <red>false</red>}</list>\nFooter").build();
 
-        b = b.insertList("list", list, ListSection.paged(0, 2));
-        assertEquals(
+        var other = b.insertList("list", list, ListSection.paged(0, 2));
+        assertRenderEquals(
                 text("Header\n")
                         .append(text("1.) ").append(text("true", NamedTextColor.GREEN)))
                         .append(text("\n2.) ").append(text("false", NamedTextColor.RED)))
-                        .append(text("\nFooter")).compact(),
-                render(b).compact()
+                        .append(text("\nFooter")),
+                other
         );
+
+        other = b.insertList("list", l -> list.subList(l.getOffset(), l.getOffset() + l.getRange()), ListSection.paged(0, 2));
+        assertRenderEquals(
+                text("Header\n")
+                        .append(text("1.) ").append(text("true", NamedTextColor.GREEN)))
+                        .append(text("\n2.) ").append(text("false", NamedTextColor.RED)))
+                        .append(text("\nFooter")),
+                other
+        );
+    }
+
+    @Test
+    public void testListOnUnownedMessage() {
+        Message msg = Message.message("testListOnUnownedMessage", "Header\n<list:'\n'>{index}.) {el ? <green>true</green> : <red>false</red>}</list>\nFooter");
+        translator.addMessage(msg);
+
+        assertRenderEquals(
+                text("Header\n")
+                        .append(text("1.) ").append(text("true", NamedTextColor.GREEN)))
+                        .append(text("\n2.) ").append(text("false", NamedTextColor.RED)))
+                        .append(text("\nFooter")),
+                msg.insertList("list", List.of(true, false))
+        );
+
+        assertRenderEquals(
+                text("Header\n")
+                        .append(text("1.) ").append(text("true", NamedTextColor.GREEN)))
+                        .append(text("\n2.) ").append(text("false", NamedTextColor.RED)))
+                        .append(text("\nFooter")),
+                msg.insertList("list", s -> List.of(true, false), ListSection.paged(0, 10))
+        );
+    }
+
+    private record TestData(String xy) {
+    }
+
+    @Test
+    public void testListWithObjects() {
+        Message msg = Message.message("a", "<list>{el}</list>");
+        translator.addMessage(msg);
+        var r = TinyObjectResolver.builder(TestData.class)
+                .with("xy", TestData::xy)
+                .withFallback(TestData::xy)
+                .build();
+        translator.add(r);
+
+        Message inserted = msg.insertList("list", List.of(
+                new TestData("a"), new TestData("b")
+        ));
+
+        assertRenderEquals(
+                text("a, b"),
+                inserted
+        );
+
+        translator.remove(r);
     }
 
     @Test
     public void testMultiplePlaceholders() {
         Message a = translator.messageBuilder("a").withDefault("<a/><b/><c/>").build();
-        assertEquals(
-                Component.text("123"),
-                render(a.insertNumber("a", 1).insertNumber("b", 2).insertNumber("c", 3))
+        assertRenderEquals(
+                text("123"),
+                a.insertNumber("a", 1).insertNumber("b", 2).insertNumber("c", 3)
         );
     }
 
     @Test
     public void testPlaceholder() {
         Message a = translator.messageBuilder("a").withDefault("{value}").build();
-        assertEquals(
-                Component.text("b"),
-                render(a.insertString("value", "b"))
+        assertRenderEquals(
+                text("b"),
+                a.insertString("value", "b")
         );
 
         Message c = translator.messageBuilder("c").withDefault("<value/>").build();
-        assertEquals(
-                Component.text("d"),
-                render(c.insertString("value", "d"))
+        assertRenderEquals(
+                text("d"),
+                c.insertString("value", "d")
         );
     }
 
@@ -305,29 +362,29 @@ class MessageTranslatorImplTest extends TestBase {
         translator.add(TinyObjectResolver.builder(Player.class)
                 .with("name", Player::name)
                 .with("location", Player::location)
-                .withFallback(player -> Component.text(player.name))
+                .withFallback(player -> text(player.name))
                 .build());
         translator.add(TinyObjectResolver.builder(Location.class)
                 .with("x", Location::x)
                 .with("y", Location::y)
                 .with("z", Location::z)
-                .withFallback(l -> Component.text("<" + l.x + ";" + l.y + ";" + l.z + ">"))
+                .withFallback(l -> text("<" + l.x + ";" + l.y + ";" + l.z + ">"))
                 .build());
 
         Message msg = translator.messageBuilder("msg").withDefault("my test {player}").build();
-        Assertions.assertEquals(
-                Component.text("my test peter"),
-                render(msg.insertObject("player", new Player("peter", new Location(1, 2, 3))))
+        assertRenderEquals(
+                text("my test peter"),
+                msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
         );
         msg = translator.messageBuilder("msg").withDefault("my test {player:name}").build();
-        Assertions.assertEquals(
-                Component.text("my test peter"),
-                render(msg.insertObject("player", new Player("peter", new Location(1, 2, 3))))
+        assertRenderEquals(
+                text("my test peter"),
+                msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
         );
         msg = translator.messageBuilder("msg").withDefault("my test {player:location}").build();
-        Assertions.assertEquals(
-                Component.text("my test <1;2;3>"),
-                render(msg.insertObject("player", new Player("peter", new Location(1, 2, 3))))
+        assertRenderEquals(
+                text("my test <1;2;3>"),
+                msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
         );
     }
 
@@ -335,12 +392,12 @@ class MessageTranslatorImplTest extends TestBase {
     public void testAppResolvers() {
         translator.add(TinyObjectResolver.builder(Description.class)
                 .with("name", Description::name)
-                .withFallback(d -> Component.text(d.name))
+                .withFallback(d -> text(d.name))
                 .build());
         translator.insertObject("desc", new Description("tim"));
         Message a = translator.messageBuilder("a").withDefault("{desc:name}").build();
-        Assertions.assertEquals(
-                Component.text("tim"),
+        assertRenderEquals(
+                text("tim"),
                 translator.translate(a)
         );
     }
@@ -361,28 +418,28 @@ class MessageTranslatorImplTest extends TestBase {
         translator.saveLocale(Locale.FRENCH);
         translator.loadLocales();
 
-        Assertions.assertEquals(
-                Component.text("Hello world!"),
+        assertRenderEquals(
+                text("Hello world!"),
                 render(a, Locale.ENGLISH)
         );
-        Assertions.assertEquals(
-                Component.text("Hello world!"),
+        assertRenderEquals(
+                text("Hello world!"),
                 translator.translate(a, Locale.ITALIAN)
         );
-        Assertions.assertEquals(
-                Component.text("Hello world!"),
+        assertRenderEquals(
+                text("Hello world!"),
                 translator.translate(a, Locale.GERMAN)
         );
-        Assertions.assertEquals(
-                Component.text("Hallo Welt!"),
+        assertRenderEquals(
+                text("Hallo Welt!"),
                 translator.translate(a, Locale.GERMANY)
         );
-        Assertions.assertEquals(
-                Component.text("Bonjour le monde!"),
+        assertRenderEquals(
+                text("Bonjour le monde!"),
                 translator.translate(a, Locale.FRANCE)
         );
-        Assertions.assertEquals(
-                Component.text("Bonjour le monde!"),
+        assertRenderEquals(
+                text("Bonjour le monde!"),
                 translator.translate(a, Locale.FRENCH)
         );
     }
@@ -393,7 +450,7 @@ class MessageTranslatorImplTest extends TestBase {
 
         translator.getStyleSet().put("a", "<red>{slot}</red>");
         PlainTextComponentSerializer p = PlainTextComponentSerializer.plainText();
-        Assertions.assertEquals(
+        assertEquals(
                 p.serialize(translator.translate("<a>test</a><green>test</green>").compact()),
                 p.serialize(translator.translate("<a>test<green>test</green>").compact())
         );
@@ -411,23 +468,23 @@ class MessageTranslatorImplTest extends TestBase {
         Message msg = Message.message("msg", "{msg:prefix}text");
         plugin2.addMessage(msg);
 
-        assertEquals(
-                Component.text("[P2] text"),
-                render(msg).compact()
+        assertRenderEquals(
+                text("[P2] text"),
+                msg
         );
         assertEquals(
                 msg.getKey(),
                 TranslationKey.of("msg")
         );
-        assertEquals(
-                Component.text("[P2] text"),
-                render(Component.translatable("global.p2.msg")).compact()
+        assertRenderEquals(
+                text("[P2] text"),
+                translatable("global.p2.msg")
         );
         plugin2.getMessageSet().remove(msg.getKey());
         plugin1.addMessage(msg);
-        assertEquals(
-                Component.text("[P1] text"),
-                render(msg).compact()
+        assertRenderEquals(
+                text("[P1] text"),
+                msg
         );
     }
 

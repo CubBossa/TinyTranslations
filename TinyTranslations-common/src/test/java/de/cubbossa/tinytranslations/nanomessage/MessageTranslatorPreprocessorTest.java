@@ -1,13 +1,13 @@
 package de.cubbossa.tinytranslations.nanomessage;
 
-import de.cubbossa.tinytranslations.TestBase;
+import de.cubbossa.tinytranslations.AbstractTest;
 import de.cubbossa.tinytranslations.nanomessage.compiler.NanoMessageCompiler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class MessageTranslatorPreprocessorTest extends TestBase {
+public class MessageTranslatorPreprocessorTest extends AbstractTest {
 
 
     @Test
