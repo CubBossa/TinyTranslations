@@ -69,11 +69,11 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
     }
 
     @Override
-    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale, boolean override) {
         Map<String, Object> result = new HashMap<>();
         Collection<Message> success = new HashSet<>();
 
-        File file = localeFileIfExists(locale);
+        File file = override ? null : localeFileIfExists(locale);
         if (file != null) {
             try (FileReader fis = new FileReader(file, StandardCharsets.UTF_8)) {
                 result = YamlUtils.toDotNotation(yaml.load(fis));

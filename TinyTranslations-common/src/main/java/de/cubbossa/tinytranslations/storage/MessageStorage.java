@@ -35,4 +35,6 @@ public interface MessageStorage {
      * @return A collection of Messages that were successfully written into storage.
      */
     Collection<Message> writeMessages(Collection<Message> messages, Locale locale);
+
+    Collection<Message> overwriteMessages(Collection<Message> messages, Locale locale);
 }

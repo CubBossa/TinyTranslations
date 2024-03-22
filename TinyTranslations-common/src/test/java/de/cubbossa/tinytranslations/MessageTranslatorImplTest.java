@@ -188,6 +188,11 @@ class MessageTranslatorImplTest extends AbstractTest {
             }
 
             @Override
+            public Collection<Message> overwriteMessages(Collection<Message> messages, Locale locale) {
+                return Collections.emptyList();
+            }
+
+            @Override
             public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
                 return Collections.emptyList();
             }
@@ -212,6 +217,11 @@ class MessageTranslatorImplTest extends AbstractTest {
             @Override
             public Map<TranslationKey, String> readMessages(Locale locale) {
                 return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
+            }
+
+            @Override
+            public Collection<Message> overwriteMessages(Collection<Message> messages, Locale locale) {
+                return Collections.emptyList();
             }
 
             @Override
@@ -442,6 +452,22 @@ class MessageTranslatorImplTest extends AbstractTest {
                 text("Bonjour le monde!"),
                 translator.translate(a, Locale.FRENCH)
         );
+    }
+
+    @Test
+    void testOverwriteAndBackup(@TempDir File dir) {
+        translator.setMessageStorage(new PropertiesMessageStorage(dir));
+
+        Message a = Message.builder("a").withDefault("Old value")
+                .withComment("head").build();
+        translator.addMessage(a);
+        translator.saveLocale(translator.defaultLocale());
+        translator.loadLocale(translator.defaultLocale());
+        assertEquals(a.getComment(), translator.getMessage("a").getComment());
+
+        a.getDictionary().put(translator.defaultLocale(), "New Value");
+        translator.saveMessagesAndBackupExistingValues(Set.of(a), translator.defaultLocale());
+        assertEquals("head\nBacked up value: 'Old value'", translator.getMessage("a").getComment());
     }
 
     @Test

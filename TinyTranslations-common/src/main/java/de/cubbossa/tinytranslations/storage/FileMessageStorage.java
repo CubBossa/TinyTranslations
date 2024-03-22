@@ -32,12 +32,23 @@ public abstract class FileMessageStorage implements MessageStorage {
         this.fileSuffix = suffix;
     }
 
-
     void mkDir() {
         if (!directory.exists()) {
             directory.mkdirs();
         }
     }
+
+    @Override
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+        return writeMessages(messages, locale, false);
+    }
+
+    @Override
+    public Collection<Message> overwriteMessages(Collection<Message> messages, Locale locale) {
+        return writeMessages(messages, locale, true);
+    }
+
+    protected abstract Collection<Message> writeMessages(Collection<Message> messages, Locale locale, boolean override);
 
     @Override
     public Collection<Locale> fetchLocales() {
@@ -54,16 +65,6 @@ public abstract class FileMessageStorage implements MessageStorage {
                 .map(s -> s.substring(filePrefix.length(), s.length() - fileSuffix.length()))
                 .map(Locale::forLanguageTag)
                 .toList();
-    }
-
-    @Override
-    public Map<TranslationKey, String> readMessages(Locale locale) {
-        return null;
-    }
-
-    @Override
-    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
-        return null;
     }
 
 

@@ -133,6 +133,8 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      */
     void saveLocale(Locale locale);
 
+    void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale);
+
     /**
      * Find a registered message by key.
      *

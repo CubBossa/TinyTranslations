@@ -37,12 +37,11 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
         return result;
     }
 
-    @Override
-    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale) {
+    public Collection<Message> writeMessages(Collection<Message> messages, Locale locale, boolean override) {
         File file = localeFile(locale);
 
         Collection<Message> written = new HashSet<>();
-        Map<String, StorageEntry> entries = readFile(file);
+        Map<String, StorageEntry> entries = override ? new HashMap<>() : readFile(file);
         for (Message msg : messages) {
             if (msg.getDictionary().containsKey(locale)) {
                 if (entries.containsKey(msg.getKey().key())) {

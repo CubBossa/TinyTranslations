@@ -9,7 +9,6 @@ import de.cubbossa.tinytranslations.storage.StyleStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -50,10 +49,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Getter
     @Setter
     private boolean useClientLocale = true;
-    @Getter
-    @Setter
-    @Accessors(fluent = true)
-    private Locale defaultLocale = Locale.ENGLISH;
+    private @NotNull Locale defaultLocale = Locale.ENGLISH;
 
     private Logger logger = Logger.getLogger("TinyTranslations");
 
@@ -209,8 +205,8 @@ class MessageTranslatorImpl implements MessageTranslator {
             component = component.children(component.children().stream()
                     .map(c -> c instanceof Message tr
                             ? GlobalTranslator.renderer().render(tr instanceof UnownedMessage
-                                ? ((UnownedMessage) tr).owner(this)
-                                : tr, locale)
+                            ? ((UnownedMessage) tr).owner(this)
+                            : tr, locale)
                             : c)
                     .filter(Objects::nonNull)
                     .toList());
@@ -415,6 +411,32 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
+    public void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale) {
+        if (messageStorage != null) {
+            Map<TranslationKey, String> loadedValues = messageStorage.readMessages(locale);
+            List<Message> list = new ArrayList<>();
+            for (Message message : messages) {
+                Message stored = getMessage(message.getKey());
+                if (stored == null) {
+                    continue;
+                }
+                String oldVal = loadedValues.get(message.getKey());
+                String newVal = message.getDictionary().get(locale);
+                if (!Objects.equals(newVal, oldVal)) {
+                    String comment = "Backed up value: '" + oldVal + "'";
+                    if (stored.getComment() == null || stored.getComment().isEmpty()) {
+                        stored.setComment(comment);
+                    } else {
+                        stored.setComment(stored.getComment() + "\n" + comment);
+                    }
+                    list.add(stored);
+                }
+            }
+            messageStorage.overwriteMessages(list, locale);
+        }
+    }
+
+    @Override
     public MessageTranslator formatted(TagResolver... resolver) {
         this.resolvers.addAll(List.of(resolver));
         return this;
@@ -465,5 +487,13 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public String toString() {
         return "MessageTranslator[path=" + getPath() + "]";
+    }
+
+    public Locale defaultLocale() {
+        return defaultLocale;
+    }
+
+    public void defaultLocale(Locale defaultLocale) {
+        this.defaultLocale = defaultLocale;
     }
 }
