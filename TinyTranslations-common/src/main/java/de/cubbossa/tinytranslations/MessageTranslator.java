@@ -47,8 +47,21 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     MessageTranslator fork(@AppPattern String name);
 
 
+    /**
+     * Creates a new {@link Message}. There is no need to add a {@link Message} created via {@link MessageTranslator}
+     * to it by calling {@link #addMessage(Message)} again.
+     *
+     * @param key The message key.
+     * @return A new owned {@link Message} instance.
+     */
     Message message(@KeyPattern String key);
 
+    /**
+     * Creates a new {@link MessageBuilder} that automatically adds the created {@link Message} to this {@link MessageTranslator}
+     * when building.
+     * @param key The message key.
+     * @return A new {@link MessageBuilder} instance.
+     */
     MessageBuilder messageBuilder(@KeyPattern String key);
 
     Component translate(Message message, TagResolver... resolvers);
@@ -128,18 +141,37 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      */
     @Nullable Message getMessage(String key);
 
+    /**
+     * Find a registered message by key.
+     *
+     * @param key The message key.
+     * @return A message instance if the message existed and otherwise null.
+     */
     @Nullable Message getMessage(TranslationKey key);
 
+    /**
+     * Find a registered MessageStyle by its key.
+     * @param key The style key
+     * @return The {@link MessageStyle} instance or null if no style with the given key exists.
+     */
     @Nullable MessageStyle getStyle(String key);
 
     /**
      * Find a registered message on this Translations instance and if nothing found, search in parent tree.
-     * The method returns the message from the lowest Translations in the parent tree that contains the searched message key.
+     * The method returns the message from the lowest {@link MessageTranslator} in the parent tree that contains the searched message key.
      *
      * @param key The message key without namespace.
      * @return The found Message instance or null if none found.
      */
     @Nullable Message getMessageInParentTree(String key);
+
+    /**
+     * Find a {@link MessageStyle} on this Translations instance and if nothing found, search in parent tree.
+     * The method returns the style of the lowest {@link MessageTranslator} in the parent tree that contains a style with the given key.
+     *
+     * @param key The style key.
+     * @return The found style or null if none found.
+     */
 
     @Nullable MessageStyle getStyleInParentTree(String key);
 
@@ -203,9 +235,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     void setUseClientLocale(boolean clientLocale);
 
-    Locale getDefaultLocale();
-
-    void setDefaultLocale(Locale locale);
+    Locale defaultLocale();
 
 
     // Tiny object resolving

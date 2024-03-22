@@ -21,6 +21,12 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
 
     String TEMPORARY_MESSAGE_KEY = "__anonymous__";
 
+    /**
+     * Creates an {@link UnownedMessage} that is being recognized as contextual and will only be rendered by the {@link MessageTranslator}
+     * that renders the {@link Message} which contains this message. A contextual {@link Message} will not be rendered on its own.
+     * @param content The content to render for default
+     * @return The created {@link UnownedMessage} instance.
+     */
     static Message contextual(@Language("NanoMessage") String content) {
         return new MessageBuilder(TEMPORARY_MESSAGE_KEY)
                 .withDefault(content)

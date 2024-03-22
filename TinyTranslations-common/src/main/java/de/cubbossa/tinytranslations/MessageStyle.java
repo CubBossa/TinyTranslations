@@ -25,6 +25,14 @@ import java.io.Serializable;
  */
 public interface MessageStyle extends Key, Serializable, TagResolver {
 
+    /**
+     * Creates a new MessageStyle via key and its string representation.
+     * Example usage:
+     * <pre>messageStyle("prefixed", "&#60primary>&#60tr:my.prefix.message/>&#60/primary> &#60slot/>")</pre>
+     * @param key The key that will serve as tag name.
+     * @param representation The NanoMessage formatted representation that might contain "&#60slot/>".
+     * @return A new {@link MessageStyle} instance.
+     */
     static MessageStyle messageStyle(String key, @Language("NanoMessage") String representation) {
         return new MessageStyleImpl(key, representation);
     }

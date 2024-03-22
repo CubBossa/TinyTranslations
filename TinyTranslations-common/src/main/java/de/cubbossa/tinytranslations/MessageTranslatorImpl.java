@@ -9,6 +9,7 @@ import de.cubbossa.tinytranslations.storage.StyleStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -51,6 +52,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     private boolean useClientLocale = true;
     @Getter
     @Setter
+    @Accessors(fluent = true)
     private Locale defaultLocale = Locale.ENGLISH;
 
     private Logger logger = Logger.getLogger("TinyTranslations");
@@ -129,7 +131,7 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public Component translate(Message message, TagResolver... resolvers) {
-        return translate(message.formatted(resolvers), getDefaultLocale());
+        return translate(message.formatted(resolvers), defaultLocale());
     }
 
     @Override
@@ -139,7 +141,7 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public Component translate(String raw, TagResolver... resolvers) {
-        return translate(raw, getDefaultLocale(), resolvers);
+        return translate(raw, defaultLocale(), resolvers);
     }
 
     @Override
@@ -448,11 +450,6 @@ class MessageTranslatorImpl implements MessageTranslator {
             return false;
         }
         return messageSet.containsKey(key);
-    }
-
-    @Override
-    public void defaultLocale(@NotNull Locale locale) {
-        this.defaultLocale = locale;
     }
 
     @Override

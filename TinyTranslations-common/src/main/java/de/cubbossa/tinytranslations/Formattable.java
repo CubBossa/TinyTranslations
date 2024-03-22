@@ -2,8 +2,6 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
-import de.cubbossa.tinytranslations.util.FormattableBuilder;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -190,7 +188,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
 
     /**
      * Short form of {@link TagResolver#resolver(String, Tag)}
-     * 
+     *
      * @param key The tag key
      * @param tag A tag implementation to insert
      * @return this object or a new object if the implementation is pure
@@ -203,9 +201,12 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * Inserts any object as {@link TagResolver}.
      * Generally, objects will be inserted via their according methods if present (insertNumber, ...)
      * or as <pre>Component.text(object.toString())</pre>
-     *
+     * <br><br>
      * To define a specific way for turning objects into components, you want to use
-     * {@link TinyObjectTagResolver}
+     * {@link TinyObjectResolver}.<br>
+     * In the general TinyTranslations translation process, a series of default {@link TinyObjectResolver}s
+     * is being applied. Objects contained in {@link Collection}s are rendered via {@link #insertObject(String, Object)} again.
+     * <br><br>
      *
      * @param key The tag key
      * @param obj Any object to insert
@@ -216,12 +217,33 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
         return insertObject(key, obj, Collections.emptyList());
     }
 
+    /**
+     * Inserts any object as {@link TagResolver}.
+     * Generally, objects will be inserted via their according methods if present (insertNumber, ...)
+     * or as <pre>Component.text(object.toString())</pre>
+     * <br><br>
+     * To define a specific way for turning objects into components, you want to use
+     * {@link TinyObjectResolver}.<br>
+     * In the general TinyTranslations translation process, a series of default {@link TinyObjectResolver}s
+     * is being applied. Objects contained in {@link Collection}s are rendered via {@link #insertObject(String, Object)} again.
+     * <br><br>
+     *
+     * @param key                 The tag key
+     * @param obj                 Any object to insert
+     * @param additionalResolvers a collection of additional {@link TinyObjectResolver} to apply in the parsing process.
+     * @param <T>                 The object type
+     * @return this object or a new object if the implementation is pure
+     */
     default <T> ReturnT insertObject(final @NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
         Collection<TinyObjectResolver> r = new LinkedList<>(additionalResolvers);
         r.addAll(getObjectResolversInScope());
         return formatted(ObjectTag.resolver(key, obj, r));
     }
 
+    /**
+     * @return All {@link TinyObjectResolver}s of the current context. If this interface is being implemented by a {@link MessageTranslator},
+     * this might be all resolvers of this translator instance and its ancestors.
+     */
     Collection<TinyObjectResolver> getObjectResolversInScope();
 
     @Deprecated(forRemoval = true)
@@ -236,7 +258,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
      * within slot.
      * <br><br>
-     * Objects are resolved via {@link TinyObjectTagResolver}s,
+     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
      * see {@link #insertObject(String, Object)}
      * <br><br>
      * Example:
@@ -252,17 +274,6 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements) {
-        return insertList(key, elements, ListSection.paged(0, elements.size()));
-    }
-
-    /**
-     * @param key      The tag key
-     * @param elements
-     * @param mapping
-     * @param <E>
-     * @return this object or a new object if the implementation is pure
-     */
-    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, Consumer<TinyObjectResolver.Builder<E>> mapping) {
         return insertList(key, elements, ListSection.paged(0, elements.size()));
     }
 
@@ -291,10 +302,25 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
     }
 
     /**
-     * @param key      The tag key
-     * @param elements
-     * @param section
-     * @param <E>
+     * Inserts a list of objects as tag.
+     * <br><br>
+     * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
+     * within slot.
+     * <br><br>
+     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * see {@link #insertObject(String, Object)}
+     * <br><br>
+     * Example:
+     * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
+     * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
+     * Will render all players in new lines with a "- " prefix.
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * for the org.bukkit.Player class.
+     *
+     * @param key      The tag key for the list
+     * @param elements A list of objects to render as list
+     * @param section  Allows to only render a segment of the provided elements, most likely used for pagination.
+     * @param <E>      The generic type of the elements
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section) {
@@ -367,10 +393,24 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
     }
 
     /**
-     * @param key             The tag key
-     * @param elementSupplier
-     * @param section
-     * @param <E>
+     * Inserts a list of objects as tag.
+     * <br><br>
+     * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
+     * within slot.
+     * <br><br>
+     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * see {@link #insertObject(String, Object)}
+     * <br><br>
+     * Example:
+     * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
+     * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
+     * Will render all players in new lines with a "- " prefix.
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * for the org.bukkit.Player class.
+     *
+     * @param key             The tag key for the list
+     * @param elementSupplier A supplier that creates a collection for a certain {@link ListSection}
+     * @param <E>             The generic type of the elements
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section) {
