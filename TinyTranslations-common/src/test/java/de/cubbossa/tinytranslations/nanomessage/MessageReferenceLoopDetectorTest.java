@@ -34,7 +34,7 @@ class MessageReferenceLoopDetectorTest extends AbstractTest {
         translator.loadLocale(Locale.ENGLISH);
         Assertions.assertNotEquals(
                 "{msg:a}",
-                translator.getMessage("a").getDictionary().get(Locale.ENGLISH)
+                translator.getMessage("a").dictionary().get(Locale.ENGLISH)
         );
     }
 }

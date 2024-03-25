@@ -5,6 +5,7 @@ import de.cubbossa.tinytranslations.TinyTranslations;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
+import java.util.Map;
 
 public class MessageUtil {
 
@@ -12,18 +13,19 @@ public class MessageUtil {
         if (locale == null) {
             locale = TinyTranslations.FALLBACK_DEFAULT_LOCALE;
         }
-        String raw = message.getDictionary().get(locale);
+        Map<Locale, String> dictionary = message.dictionary();
+        String raw = dictionary.get(locale);
         if (raw == null && !"".equals(locale.getVariant())) {
-            raw = message.getDictionary().get(new Locale(locale.getLanguage(), locale.getCountry()));
+            raw = dictionary.get(new Locale(locale.getLanguage(), locale.getCountry()));
         }
         if (raw == null && !"".equals(locale.getCountry())) {
-            raw = message.getDictionary().get(new Locale(locale.getLanguage()));
+            raw = dictionary.get(new Locale(locale.getLanguage()));
         }
         if (raw == null) {
-            raw = message.getDictionary().get(TinyTranslations.FALLBACK_DEFAULT_LOCALE);
+            raw = dictionary.get(TinyTranslations.FALLBACK_DEFAULT_LOCALE);
         }
         if (raw == null) {
-            return message.getDictionary().get(TinyTranslations.FALLBACK_DEFAULT_LOCALE);
+            return dictionary.get(TinyTranslations.FALLBACK_DEFAULT_LOCALE);
         }
         return raw;
     }

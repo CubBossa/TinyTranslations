@@ -12,13 +12,15 @@ public class MessageBuilder {
     private final String key;
     private final Map<Locale, String> translations;
     private final List<String> comments;
-    private final Map<String, Placeholder> placeholderMap;
+    private final Collection<Message.PlaceholderDescription> placeholderDescriptions;
+    private final Collection<TagResolver> defaultResolvers;
 
     public MessageBuilder(@KeyPattern String key) {
         this.key = key;
         this.comments = new ArrayList<>();
         this.translations = new HashMap<>();
-        this.placeholderMap = new HashMap<>();
+        this.placeholderDescriptions = new LinkedList<>();
+        this.defaultResolvers = new LinkedList<>();
     }
 
     public MessageBuilder withComment(String line) {
@@ -47,7 +49,7 @@ public class MessageBuilder {
 
     public MessageBuilder withPlaceholders(String... placeholders) {
         for (String placeholder : placeholders) {
-            this.placeholderMap.put(placeholder, new Placeholder(placeholder, Optional.empty(), Optional.empty()));
+            this.withPlaceholder(placeholder, null);
         }
         return this;
     }
@@ -57,27 +59,20 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withPlaceholder(String tag, String description) {
-        return withPlaceholder(tag, description, null);
-    }
-
-    public MessageBuilder withPlaceholder(String tag, String description, TagResolver defaultResolver) {
-        this.placeholderMap.put(tag, new Placeholder(tag, Optional.ofNullable(description), Optional.ofNullable(defaultResolver)));
+        this.placeholderDescriptions.add(new Message.PlaceholderDescription(new String[]{tag}, description, Object.class));
         return this;
     }
 
-    public Message build() {
-        Message message = new UnownedMessageImpl(key);
-        message.setComment(comments.isEmpty() ? null : String.join("\n", comments));
-        message.getDictionary().putAll(translations);
-        message.setPlaceholderTags(placeholderMap.values().stream()
-                .collect(Collectors.toMap(Placeholder::tag, Placeholder::desc)));
-        message = message.formatted(placeholderMap.values().stream()
-                .map(Placeholder::resolver)
-                .filter(Optional::isPresent).map(Optional::get)
-                .toArray(TagResolver[]::new));
-        return message;
+    public MessageBuilder withPlaceholder(String tag, String description, TagResolver defaultResolver) {
+        defaultResolvers.add(defaultResolver);
+        return withPlaceholder(tag, description);
     }
 
-    record Placeholder(String tag, Optional<String> desc, Optional<TagResolver> resolver) {
+    public Message build() {
+      return new UnownedMessageImpl(key)
+                .comment(comments.isEmpty() ? null : String.join("\n", comments))
+                .dictionary(translations)
+                .placeholderDescriptions(placeholderDescriptions)
+                .formatted(defaultResolvers.toArray(TagResolver[]::new));
     }
 }

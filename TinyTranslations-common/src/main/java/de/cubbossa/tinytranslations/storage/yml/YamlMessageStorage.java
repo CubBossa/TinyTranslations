@@ -86,7 +86,7 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
             if (result.containsKey(message.getKey().key())) {
                 continue;
             }
-            result.put(message.getKey().key(), message.getDictionary().get(locale));
+            result.put(message.getKey().key(), message.dictionary().get(locale));
             success.add(message);
         }
         file = localeFile(locale);

@@ -99,13 +99,13 @@ class UnownedMessageImpl implements UnownedMessage {
     }
 
     @Override
-    public Map<String, Optional<String>> getPlaceholderTags() {
-        return ref.getPlaceholderTags();
+    public Map<String, Optional<String>> getPlaceholderDescriptions() {
+        return ref.getPlaceholderDescriptions();
     }
 
     @Override
-    public void setPlaceholderTags(Map<String, Optional<String>> placeholderTags) {
-        ref.setPlaceholderTags(placeholderTags);
+    public void setPlaceholderDescriptions(Map<String, Optional<String>> placeholderDescriptions) {
+        ref.setPlaceholderDescriptions(placeholderDescriptions);
     }
 
     @Override
@@ -116,6 +116,36 @@ class UnownedMessageImpl implements UnownedMessage {
     @Override
     public void setComment(String comment) {
         ref.setComment(comment);
+    }
+
+    @Override
+    public @Nullable String comment() {
+        return ref.comment();
+    }
+
+    @Override
+    public Message comment(@Nullable String comment) {
+        return wrap(ref.comment(comment));
+    }
+
+    @Override
+    public Map<Locale, String> dictionary() {
+        return ref.dictionary();
+    }
+
+    @Override
+    public Message dictionary(Map<Locale, String> dictionary) {
+        return wrap(ref.dictionary(dictionary));
+    }
+
+    @Override
+    public Collection<PlaceholderDescription> placeholderDescriptions() {
+        return ref.placeholderDescriptions();
+    }
+
+    @Override
+    public Message placeholderDescriptions(Collection<PlaceholderDescription> descriptions) {
+        return wrap(ref.placeholderDescriptions(descriptions));
     }
 
     @Override

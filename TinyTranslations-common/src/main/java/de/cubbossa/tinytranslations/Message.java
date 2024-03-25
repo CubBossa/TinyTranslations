@@ -5,11 +5,11 @@ import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.Translatable;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The representation of one translation in a translation file.
@@ -92,23 +92,31 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
      * @return The translation dictionary for this message, mapping locale to translation in NanoMessage format.
      * A reference is being returned, changes affect this message directly.
      */
+    @Deprecated(forRemoval = true, since = "4.5.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     Map<Locale, String> getDictionary();
 
     /**
      * @return The map of placeholder keys and optionally their description. A reference is being returned,
      * changes affect this message directly.
      */
-    Map<String, Optional<String>> getPlaceholderTags();
+    @Deprecated(forRemoval = true, since = "4.5.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
+    Map<String, Optional<String>> getPlaceholderDescriptions();
 
     /**
      * Replaces the existing map of placeholder keys and their optional description with the given value.
-     * @param placeholderTags The new map of placeholders and their description.
+     * @param placeholderDescriptions The new map of placeholders and their description.
      */
-    void setPlaceholderTags(Map<String, Optional<String>> placeholderTags);
+    @Deprecated(forRemoval = true, since = "4.5.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
+    void setPlaceholderDescriptions(Map<String, Optional<String>> placeholderDescriptions);
 
     /**
      * @return A comment string for this message or null if no comment set.
      */
+    @Deprecated(forRemoval = true, since = "4.5.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     @Nullable String getComment();
 
     /**
@@ -116,5 +124,40 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
      *
      * @param comment The comment string or null to remove any existing comment.
      */
+    @Deprecated(forRemoval = true, since = "4.5.0")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     void setComment(@Nullable String comment);
+
+    /**
+     * @return A comment string for this message or null if no comment set.
+     */
+    @Nullable String comment();
+
+    /**
+     * Duplicates this message and sets the comment for the clone. Use '\n' to create multiline comments.
+     *
+     * @param comment The comment string or null to remove any existing comment.
+     * @return A clone of this message with the new comment set.
+     */
+    @Contract(pure = true)
+    Message comment(@Nullable String comment);
+
+    Map<Locale, String> dictionary();
+
+    @Contract(pure = true)
+    Message dictionary(Map<Locale, String> dictionary);
+
+    @Contract(pure = true)
+    default Message dictionaryEntry(Locale locale, String translation) {
+        var map = new HashMap<>(dictionary());
+        map.put(locale, translation);
+        return dictionary(map);
+    }
+
+    Collection<PlaceholderDescription> placeholderDescriptions();
+
+    Message placeholderDescriptions(Collection<PlaceholderDescription> descriptions);
+
+    record PlaceholderDescription(String[] names, @Nullable String description, Class<?> type) {
+    }
 }

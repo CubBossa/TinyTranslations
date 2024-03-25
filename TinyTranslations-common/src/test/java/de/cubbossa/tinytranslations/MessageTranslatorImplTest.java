@@ -463,11 +463,11 @@ class MessageTranslatorImplTest extends AbstractTest {
         translator.addMessage(a);
         translator.saveLocale(translator.defaultLocale());
         translator.loadLocale(translator.defaultLocale());
-        assertEquals(a.getComment(), translator.getMessage("a").getComment());
+        assertEquals(a.comment(), translator.getMessage("a").comment());
 
-        a.getDictionary().put(translator.defaultLocale(), "New Value");
+        a = a.dictionaryEntry(translator.defaultLocale(), "New Value");
         translator.saveMessagesAndBackupExistingValues(Set.of(a), translator.defaultLocale());
-        assertEquals("head\nBacked up value: 'Old value'", translator.getMessage("a").getComment());
+        assertEquals("head\nBacked up value: 'Old value'", translator.getMessage("a").comment());
     }
 
     @Test

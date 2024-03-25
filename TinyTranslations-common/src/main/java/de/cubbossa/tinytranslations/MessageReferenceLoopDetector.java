@@ -29,7 +29,7 @@ public class MessageReferenceLoopDetector {
 
     public Collection<MessageReferenceLoopException> detectLoops(Message message) {
         Collection<MessageReferenceLoopException> exceptions = new LinkedList<>();
-        message.getDictionary().forEach((locale, s) -> {
+        message.dictionary().forEach((locale, s) -> {
             var e = detectLoops(message, locale);
             if (e != null) {
                 exceptions.add(e);
@@ -52,7 +52,7 @@ public class MessageReferenceLoopDetector {
 
     private Node buildTree(Message origin, Stack<String> stack, Message msg, Locale locale) {
         stack.push("(msg:" + locale.toLanguageTag() + ") " + msg.key());
-        String s = msg.getDictionary().get(locale);
+        String s = msg.dictionary().get(locale);
         if (s == null) {
             return new Node(null, new HashSet<>());
         }

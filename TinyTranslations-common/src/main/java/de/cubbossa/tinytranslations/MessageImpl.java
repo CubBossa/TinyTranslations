@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,7 +33,7 @@ class MessageImpl implements Message {
     private Map<Locale, String> dictionary;
     private String fallback;
 
-    private Map<String, Optional<String>> placeholderTags;
+    private Collection<PlaceholderDescription> placeholderDescriptions;
     private String comment;
 
     public MessageImpl(TranslationKey key) {
@@ -46,7 +45,7 @@ class MessageImpl implements Message {
         this.dictionary = new ConcurrentHashMap<>();
         this.dictionary.put(TinyTranslations.FALLBACK_DEFAULT_LOCALE, fallback);
 
-        this.placeholderTags = new HashMap<>();
+        this.placeholderDescriptions = new LinkedList<>();
     }
 
     public MessageImpl(TranslationKey key, MessageImpl other) {
@@ -55,7 +54,7 @@ class MessageImpl implements Message {
         this.children = other.children().stream().map(c -> c.children(c.children())).toList();
         this.dictionary = new HashMap<>(other.dictionary);
         this.fallback = other.fallback;
-        this.placeholderTags = new HashMap<>(other.placeholderTags);
+        this.placeholderDescriptions = new LinkedList<>(other.placeholderDescriptions);
         this.comment = other.comment;
         this.resolvers.addAll(other.resolvers);
         this.objectResolverSupplier = other.objectResolverSupplier;
@@ -195,5 +194,58 @@ class MessageImpl implements Message {
         var clone = new MessageImpl(key, this);
         clone.style = style;
         return clone;
+    }
+
+    public Map<String, Optional<String>> getPlaceholderDescriptions() {
+        Map<String, Optional<String>> var = new HashMap<>();
+        this.placeholderDescriptions.forEach(placeholderDescription -> {
+            var.put(placeholderDescription.names()[0], Optional.ofNullable(placeholderDescription.description()));
+        });
+        return var;
+    }
+
+    @Override
+    public void setPlaceholderDescriptions(Map<String, Optional<String>> placeholderDescriptions) {
+        placeholderDescriptions.forEach((s, s2) -> {
+            this.placeholderDescriptions.add(new PlaceholderDescription(new String[]{s}, s2.orElse(null), Object.class));
+        });
+    }
+
+    @Override
+    public Message comment(@Nullable String comment) {
+        var clone = new MessageImpl(key, this);
+        clone.comment = comment;
+        return clone;
+    }
+
+    @Override
+    public @Nullable String comment() {
+        return comment;
+    }
+
+    @Override
+    public Message dictionary(Map<Locale, String> dictionary) {
+        var clone = new MessageImpl(key, this);
+        clone.dictionary.clear();
+        clone.dictionary.putAll(dictionary);
+        return clone;
+    }
+
+    @Override
+    public Map<Locale, String> dictionary() {
+        return Collections.unmodifiableMap(dictionary);
+    }
+
+    @Override
+    public Message placeholderDescriptions(Collection<PlaceholderDescription> descriptions) {
+        var clone = new MessageImpl(key, this);
+        clone.placeholderDescriptions.clear();
+        clone.placeholderDescriptions.addAll(descriptions);
+        return clone;
+    }
+
+    @Override
+    public Collection<PlaceholderDescription> placeholderDescriptions() {
+        return Collections.unmodifiableCollection(placeholderDescriptions);
     }
 }

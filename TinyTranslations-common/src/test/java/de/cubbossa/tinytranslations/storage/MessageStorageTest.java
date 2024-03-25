@@ -70,7 +70,7 @@ public abstract class MessageStorageTest {
         Assertions.assertEquals(1, storage.readMessages(Locale.ENGLISH).size());
         storage.writeMessages(Set.of(b), Locale.ENGLISH);
         Assertions.assertEquals(2, storage.readMessages(Locale.ENGLISH).size());
-        a.getDictionary().put(Locale.ENGLISH, "AA");
+        a = a.dictionaryEntry(Locale.ENGLISH, "AA");
         Assertions.assertFalse(storage.writeMessages(Set.of(a, c), Locale.ENGLISH).contains(a));
         var read = storage.readMessages(Locale.ENGLISH);
         Assertions.assertEquals("A", read.containsKey(a.getKey())

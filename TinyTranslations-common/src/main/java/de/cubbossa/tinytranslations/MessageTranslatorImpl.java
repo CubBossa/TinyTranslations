@@ -2,6 +2,7 @@ package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
+import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
@@ -14,14 +15,17 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.GlobalTranslator;
+import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
 
@@ -289,7 +293,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public void addMessage(Message message) {
+    public void addMessage(@NotNull Message message) {
         if (message instanceof UnownedMessage unowned) {
             message = unowned.owner(this);
             if (message instanceof MessageImpl impl) {
@@ -304,6 +308,9 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public void addMessages(Message... messages) {
         for (Message message : messages) {
+            if (message == null) {
+                continue;
+            }
             addMessage(message);
         }
     }
@@ -385,7 +392,8 @@ class MessageTranslatorImpl implements MessageTranslator {
             Map<String, String> keys = new HashMap<>();
             messageStorage.readMessages(locale).forEach((translationKey, s) -> {
                 if (messageSet.containsKey(translationKey)) {
-                    messageSet.get(translationKey).getDictionary().put(locale, s);
+                    Message msg = messageSet.get(translationKey);
+                    messageSet.put(msg.getKey(), msg.dictionaryEntry(locale, s));
                 } else {
                     keys.put(translationKey.key(), s);
                 }
@@ -393,13 +401,19 @@ class MessageTranslatorImpl implements MessageTranslator {
             keys.forEach((k, v) -> messageBuilder(k).withTranslation(locale, v).build());
         }
         MessageReferenceLoopDetector loopDetector = new MessageReferenceLoopDetector();
-        messageSet.forEach((s, message) -> {
+        Collection<Message> loops = new LinkedList<>();
+        messageSet.values().forEach((message) -> {
             var loop = loopDetector.detectLoops(message, locale);
             if (loop == null) {
                 return;
             }
-            message.getDictionary().remove(locale);
+            Map<Locale, String> dict = new HashMap<>(message.dictionary());
+            dict.remove(locale);
+            loops.add(message.dictionary(dict));
             logger.severe(loop.getMessage());
+        });
+        loops.forEach(msg -> {
+            messageSet.put(msg.getKey(), msg);
         });
     }
 
@@ -421,13 +435,13 @@ class MessageTranslatorImpl implements MessageTranslator {
                     continue;
                 }
                 String oldVal = loadedValues.get(message.getKey());
-                String newVal = message.getDictionary().get(locale);
+                String newVal = message.dictionary().get(locale);
                 if (!Objects.equals(newVal, oldVal)) {
                     String comment = "Backed up value: '" + oldVal + "'";
-                    if (stored.getComment() == null || stored.getComment().isEmpty()) {
-                        stored.setComment(comment);
+                    if (stored.comment() == null || stored.comment().isEmpty()) {
+                        stored = stored.comment(comment);
                     } else {
-                        stored.setComment(stored.getComment() + "\n" + comment);
+                        stored = stored.comment(stored.comment() + "\n" + comment);
                     }
                     list.add(stored);
                 }
@@ -475,13 +489,14 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public void register(@NotNull String key, @NotNull Locale locale, @NotNull MessageFormat format) {
-        messageSet.getOrDefault(key, message(key)).getDictionary().put(locale, format.toPattern());
+    public void register(@KeyPattern @NotNull String key, @NotNull Locale locale, @NotNull MessageFormat format) {
+        var dict = Map.of(locale, format.toPattern());
+        messageSet.getOrDefault(TranslationKey.of(key), message(key).dictionary(dict));
     }
 
     @Override
-    public void unregister(@NotNull String key) {
-        messageSet.remove(key);
+    public void unregister(@KeyPattern @NotNull String key) {
+        messageSet.remove(TranslationKey.of(key));
     }
 
     @Override

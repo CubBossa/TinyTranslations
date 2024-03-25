@@ -43,12 +43,12 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
         Collection<Message> written = new HashSet<>();
         Map<String, StorageEntry> entries = override ? new HashMap<>() : readFile(file);
         for (Message msg : messages) {
-            if (msg.getDictionary().containsKey(locale)) {
+            if (msg.dictionary().containsKey(locale)) {
                 if (entries.containsKey(msg.getKey().key())) {
                     continue;
                 }
-                List<String> comments = msg.getComment() == null ? Collections.emptyList() : List.of(msg.getComment().split("\n"));
-                entries.put(msg.key(), new StorageEntry(msg.getKey().key(), msg.getDictionary().get(locale), comments));
+                List<String> comments = msg.comment() == null ? Collections.emptyList() : List.of(msg.comment().split("\n"));
+                entries.put(msg.key(), new StorageEntry(msg.getKey().key(), msg.dictionary().get(locale), comments));
                 written.add(msg);
             }
         }
