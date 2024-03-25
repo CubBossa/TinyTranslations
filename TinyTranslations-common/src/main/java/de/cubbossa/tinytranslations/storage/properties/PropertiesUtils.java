@@ -5,6 +5,7 @@ import de.cubbossa.tinytranslations.storage.StorageEntry;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -81,7 +82,8 @@ public class PropertiesUtils {
                 first = first.startsWith("\"") && first.endsWith("\"") ? first.substring(1, first.length() - 1) : first;
                 merged = first + merged;
 
-                entries.add(new StorageEntry(key, merged, new ArrayList<>(comments)));
+                String comment = comments.isEmpty() ? null : String.join("\n", comments);
+                entries.add(new StorageEntry(key, merged, comment));
 
                 key = null;
                 values.clear();
@@ -94,8 +96,10 @@ public class PropertiesUtils {
     public static void write(Writer writer, List<StorageEntry> entries) throws IOException {
         try (BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
             for (StorageEntry entry : entries) {
-                for (String comment : entry.comments()) {
-                    bufferedWriter.write("#".repeat(comment.isEmpty() ? 0 : 1) + comment + "\n");
+                if (entry.comment() != null) {
+                    for (String comment : entry.comment().split("(?<!\\\\)\n")) {
+                        bufferedWriter.write("#".repeat(comment.isEmpty() ? 0 : 1) + comment + "\n");
+                    }
                 }
                 List<String> values = List.of(entry.value().split("\n"));
                 String line = entry.key() + SEPARATOR_FORMAT + values.get(0);

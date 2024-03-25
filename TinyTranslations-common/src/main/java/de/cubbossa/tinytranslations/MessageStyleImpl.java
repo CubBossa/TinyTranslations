@@ -1,5 +1,6 @@
 package de.cubbossa.tinytranslations;
 
+import de.cubbossa.tinytranslations.storage.Commented;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
@@ -17,18 +18,23 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class MessageStyleImpl implements MessageStyle {
+class MessageStyleImpl implements MessageStyle, Commented<MessageStyleImpl> {
 
     private final String key;
     private final String representation;
     private final TagResolver resolver;
+    private final String comment;
 
     public MessageStyleImpl(String key, String representation) {
+        this(key, representation, null);
+    }
+    public MessageStyleImpl(String key, String representation, String comment) {
         this.key = key;
         if (!representation.contains("{slot}")) {
             representation = representation + "{slot}";
         }
         this.representation = representation;
+        this.comment = comment;
 
         resolver = TagResolver.resolver(key, (argumentQueue, ctx) -> (Modifying) (c, depth) -> {
             if (depth > 0) return Component.empty();
@@ -98,5 +104,15 @@ class MessageStyleImpl implements MessageStyle {
     @Override
     public boolean has(@NotNull String name) {
         return key.equalsIgnoreCase(name);
+    }
+
+    @Override
+    public @Nullable String comment() {
+        return comment;
+    }
+
+    @Override
+    public MessageStyleImpl comment(@Nullable String comment) {
+        return new MessageStyleImpl(key, representation, comment);
     }
 }

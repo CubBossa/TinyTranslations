@@ -23,7 +23,7 @@ public interface MessageStorage {
      * @return a map of all values that were present in this storage. The map key is a {@link Message} instance that
      * is not yet part of any translations instance and must be assigned to be translatable.
      */
-    Map<TranslationKey, String> readMessages(Locale locale);
+    Map<TranslationKey, StorageEntry> readMessages(Locale locale);
 
     /**
      * Writes a collection of {@link Message} instances into the storage. If the storage already contains

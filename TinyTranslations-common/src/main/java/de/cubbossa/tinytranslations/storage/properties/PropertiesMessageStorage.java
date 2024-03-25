@@ -25,15 +25,15 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
     }
 
     @Override
-    public Map<TranslationKey, String> readMessages(Locale locale) {
+    public Map<TranslationKey, StorageEntry> readMessages(Locale locale) {
         File file = localeFileIfExists(locale);
         if (file == null) {
             return new HashMap<>();
         }
 
         Map<String, StorageEntry> entries = readFile(file);
-        Map<TranslationKey, String> result = new HashMap<>();
-        entries.forEach((key, value) -> result.put(TranslationKey.of(key), value.value()));
+        Map<TranslationKey, StorageEntry> result = new HashMap<>();
+        entries.forEach((key, value) -> result.put(TranslationKey.of(key), value));
         return result;
     }
 
@@ -47,8 +47,7 @@ public class PropertiesMessageStorage extends FileMessageStorage implements Mess
                 if (entries.containsKey(msg.getKey().key())) {
                     continue;
                 }
-                List<String> comments = msg.comment() == null ? Collections.emptyList() : List.of(msg.comment().split("\n"));
-                entries.put(msg.key(), new StorageEntry(msg.getKey().key(), msg.dictionary().get(locale), comments));
+                entries.put(msg.key(), new StorageEntry(msg.getKey().key(), msg.dictionary().get(locale), msg.comment()));
                 written.add(msg);
             }
         }

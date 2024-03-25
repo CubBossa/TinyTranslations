@@ -53,8 +53,8 @@ public abstract class MessageStorageTest {
         storage.writeMessages(Collections.singleton(a), Locale.ENGLISH);
         var read = storage.readMessages(Locale.ENGLISH);
         Assertions.assertEquals("A", read.containsKey(a.getKey())
-                ? read.get(a.getKey())
-                : read.get(a.getKey().key()));
+                ? read.get(a.getKey()).value()
+                : read.get(a.getKey().key()).value());
     }
 
     @Test
@@ -74,8 +74,8 @@ public abstract class MessageStorageTest {
         Assertions.assertFalse(storage.writeMessages(Set.of(a, c), Locale.ENGLISH).contains(a));
         var read = storage.readMessages(Locale.ENGLISH);
         Assertions.assertEquals("A", read.containsKey(a.getKey())
-                ? read.get(a.getKey())
-                : read.get(a.getKey().key()));
+                ? read.get(a.getKey()).value()
+                : read.get(a.getKey().key()).value());
         Assertions.assertEquals(3, storage.readMessages(Locale.ENGLISH).size());
     }
 

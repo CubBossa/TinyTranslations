@@ -1,13 +1,12 @@
 package de.cubbossa.tinytranslations.storage.properties;
 
 import de.cubbossa.tinytranslations.MessageStyle;
-import de.cubbossa.tinytranslations.storage.FileEntry;
+import de.cubbossa.tinytranslations.storage.Commented;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +50,7 @@ public class PropertiesStyleStorage implements StyleStorage {
             }
         }
 
-        toWrite.forEach((s, style) -> lines.add(new StorageEntry(s, style.toString(), style instanceof FileEntry e ? e.getComments() : Collections.emptyList())));
+        toWrite.forEach((s, style) -> lines.add(new StorageEntry(s, style.toString(), style instanceof Commented<?> c ? c.comment() : null)));
         writeStyles(lines);
     }
 

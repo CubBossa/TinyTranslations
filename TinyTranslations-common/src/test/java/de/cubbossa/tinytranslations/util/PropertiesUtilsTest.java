@@ -22,7 +22,7 @@ public class PropertiesUtilsTest {
 
         Assertions.assertEquals(1, entries.size());
         Assertions.assertEquals(
-                new StorageEntry("test", "a", Collections.emptyList()),
+                new StorageEntry("test", "a", null),
                 entries.get(0)
         );
     }
@@ -41,7 +41,7 @@ public class PropertiesUtilsTest {
 
         Assertions.assertEquals(1, entries.size());
         Assertions.assertEquals(
-                new StorageEntry("test", "a", List.of("", " comment 1", "", "comment2 : b")),
+                new StorageEntry("test", "a", "\n comment 1\n\ncomment2 : b"),
                 entries.get(0)
         );
     }
@@ -57,7 +57,7 @@ public class PropertiesUtilsTest {
 
         Assertions.assertEquals(1, entries.size());
         Assertions.assertEquals(
-                new StorageEntry("test", "a\nb\nc", Collections.emptyList()),
+                new StorageEntry("test", "a\nb\nc", null),
                 entries.get(0)
         );
     }
@@ -74,7 +74,7 @@ public class PropertiesUtilsTest {
 
         Assertions.assertEquals(1, entries.size());
         Assertions.assertEquals(
-                new StorageEntry("test", "a\n#b\nc", List.of("b")),
+                new StorageEntry("test", "a\n#b\nc", "b"),
                 entries.get(0)
         );
     }
@@ -84,7 +84,7 @@ public class PropertiesUtilsTest {
     void writeValue() {
         StringWriter writer = new StringWriter();
 
-        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", Collections.emptyList())));
+        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", null)));
         Assertions.assertEquals(
                 """
                         test = a
@@ -98,9 +98,7 @@ public class PropertiesUtilsTest {
     void writeComments() {
         StringWriter writer = new StringWriter();
 
-        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", List.of(
-                "", " test comment", "", "", "!####"
-        ))));
+        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a", "\n test comment\n\n\n!####")));
         Assertions.assertEquals(
                 """
                         						
@@ -119,7 +117,7 @@ public class PropertiesUtilsTest {
     void writeMultiline() {
         StringWriter writer = new StringWriter();
 
-        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a\nb\nc", Collections.emptyList())));
+        PropertiesUtils.write(writer, List.of(new StorageEntry("test", "a\nb\nc", null)));
         Assertions.assertEquals(
                 """
                         test = a\\
@@ -136,8 +134,8 @@ public class PropertiesUtilsTest {
         StringWriter writer = new StringWriter();
 
         PropertiesUtils.write(writer, List.of(
-                new StorageEntry("test1", "a\nb\nc", Collections.emptyList()),
-                new StorageEntry("test2", "def", List.of("other"))
+                new StorageEntry("test1", "a\nb\nc", null),
+                new StorageEntry("test2", "def", "other")
         ));
         Assertions.assertEquals(
                 """

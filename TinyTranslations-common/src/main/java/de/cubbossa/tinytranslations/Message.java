@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
+import de.cubbossa.tinytranslations.storage.Commented;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.Translatable;
@@ -17,7 +18,7 @@ import java.util.*;
  * They implement the {@link Translatable} interface and are therefore also
  * translatable via MiniMessage tag <pre><translate:[message-namespaced-key]/></pre>
  */
-public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message>, Translatable, TranslatableComponent {
+public interface Message extends ComponentLike, Cloneable, Comparable<Message>, Formattable<Message>, Commented<Message>, Translatable, TranslatableComponent {
 
     String TEMPORARY_MESSAGE_KEY = "__anonymous__";
 
@@ -127,20 +128,6 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
     @Deprecated(forRemoval = true, since = "4.5.0")
     @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     void setComment(@Nullable String comment);
-
-    /**
-     * @return A comment string for this message or null if no comment set.
-     */
-    @Nullable String comment();
-
-    /**
-     * Duplicates this message and sets the comment for the clone. Use '\n' to create multiline comments.
-     *
-     * @param comment The comment string or null to remove any existing comment.
-     * @return A clone of this message with the new comment set.
-     */
-    @Contract(pure = true)
-    Message comment(@Nullable String comment);
 
     Map<Locale, String> dictionary();
 

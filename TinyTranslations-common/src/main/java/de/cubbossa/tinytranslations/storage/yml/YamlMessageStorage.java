@@ -4,6 +4,7 @@ import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.TranslationKey;
 import de.cubbossa.tinytranslations.storage.FileMessageStorage;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -44,8 +45,8 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
     }
 
     @Override
-    public Map<TranslationKey, String> readMessages(Locale locale) {
-        Map<TranslationKey, String> result = new HashMap<>();
+    public Map<TranslationKey, StorageEntry> readMessages(Locale locale) {
+        Map<TranslationKey, StorageEntry> result = new HashMap<>();
         File file = localeFileIfExists(locale);
         if (file == null) {
             return new HashMap<>();
@@ -57,13 +58,15 @@ public class YamlMessageStorage extends FileMessageStorage implements MessageSto
             throw new RuntimeException(t);
         }
         map.forEach((s, o) -> {
+            String v = null;
             if (o instanceof String val) {
-                result.put(TranslationKey.of(s), val);
+                v = val;
             } else if (o instanceof List<?> list) {
-                result.put(TranslationKey.of(s), list.stream().map(Object::toString).collect(Collectors.joining("\n")));
+                v = list.stream().map(Object::toString).collect(Collectors.joining("\n"));
             } else if (o != null) {
-                result.put(TranslationKey.of(s), o.toString());
+                v = o.toString();
             }
+            result.put(TranslationKey.of(s), new StorageEntry(s, v, null));
         });
         return result;
     }

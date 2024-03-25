@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
@@ -183,8 +184,8 @@ class MessageTranslatorImplTest extends AbstractTest {
             }
 
             @Override
-            public Map<TranslationKey, String> readMessages(Locale locale) {
-                return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
+            public Map<TranslationKey, StorageEntry> readMessages(Locale locale) {
+                return Map.of(TranslationKey.of(translator.getPath(), "a"),  new StorageEntry("a", "Worked!", null));
             }
 
             @Override
@@ -215,8 +216,8 @@ class MessageTranslatorImplTest extends AbstractTest {
             }
 
             @Override
-            public Map<TranslationKey, String> readMessages(Locale locale) {
-                return Map.of(TranslationKey.of(translator.getPath(), "a"), "Worked!");
+            public Map<TranslationKey, StorageEntry> readMessages(Locale locale) {
+                return Map.of(TranslationKey.of(translator.getPath(), "a"), new StorageEntry("a", "Worked!", null));
             }
 
             @Override
@@ -323,7 +324,7 @@ class MessageTranslatorImplTest extends AbstractTest {
 
     @Test
     public void testListWithObjects() {
-        Message msg = Message.message("a", "<list>{el}</list>");
+        Message msg = Message.message("aööö", "<list>{el}</list>");
         translator.addMessage(msg);
         var r = TinyObjectResolver.builder(TestData.class)
                 .with("xy", TestData::xy)

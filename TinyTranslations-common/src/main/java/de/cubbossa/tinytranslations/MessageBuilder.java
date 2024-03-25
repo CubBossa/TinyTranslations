@@ -3,9 +3,9 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MessageBuilder {
 
@@ -55,7 +55,7 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withPlaceholder(String tag) {
-        return withPlaceholder(tag, null, null);
+        return withPlaceholder(tag, null);
     }
 
     public MessageBuilder withPlaceholder(String tag, String description) {
@@ -63,13 +63,13 @@ public class MessageBuilder {
         return this;
     }
 
-    public MessageBuilder withPlaceholder(String tag, String description, TagResolver defaultResolver) {
+    public MessageBuilder withPlaceholder(String tag, String description, @NotNull TagResolver defaultResolver) {
         defaultResolvers.add(defaultResolver);
         return withPlaceholder(tag, description);
     }
 
     public Message build() {
-      return new UnownedMessageImpl(key)
+        return new UnownedMessageImpl(key)
                 .comment(comments.isEmpty() ? null : String.join("\n", comments))
                 .dictionary(translations)
                 .placeholderDescriptions(placeholderDescriptions)

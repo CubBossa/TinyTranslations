@@ -94,15 +94,10 @@ class MessageImpl implements Message {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         MessageImpl message = (MessageImpl) o;
-        return key.equals(message.key);
+        return Objects.equals(key, message.key) && Objects.equals(arguments, message.arguments) && Objects.equals(style, message.style) && Objects.equals(children, message.children) && Objects.equals(dictionary, message.dictionary) && Objects.equals(fallback, message.fallback) && Objects.equals(placeholderDescriptions, message.placeholderDescriptions) && Objects.equals(comment, message.comment);
     }
 
     @Override

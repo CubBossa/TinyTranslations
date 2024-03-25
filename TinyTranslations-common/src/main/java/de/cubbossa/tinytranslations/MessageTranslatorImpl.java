@@ -6,6 +6,7 @@ import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
+import de.cubbossa.tinytranslations.storage.StorageEntry;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import lombok.Getter;
@@ -389,16 +390,19 @@ class MessageTranslatorImpl implements MessageTranslator {
             parent.loadLocale(locale);
         }
         if (messageStorage != null) {
-            Map<String, String> keys = new HashMap<>();
+            Map<String, StorageEntry> keys = new HashMap<>();
             messageStorage.readMessages(locale).forEach((translationKey, s) -> {
                 if (messageSet.containsKey(translationKey)) {
                     Message msg = messageSet.get(translationKey);
-                    messageSet.put(msg.getKey(), msg.dictionaryEntry(locale, s));
+                    messageSet.put(msg.getKey(), msg.dictionaryEntry(locale, s.value()).comment(s.comment()));
                 } else {
                     keys.put(translationKey.key(), s);
                 }
             });
-            keys.forEach((k, v) -> messageBuilder(k).withTranslation(locale, v).build());
+            keys.forEach((k, v) -> messageBuilder(k)
+                    .withTranslation(locale, v.value())
+                    .withComment(v.comment())
+                    .build());
         }
         MessageReferenceLoopDetector loopDetector = new MessageReferenceLoopDetector();
         Collection<Message> loops = new LinkedList<>();
@@ -427,14 +431,14 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale) {
         if (messageStorage != null) {
-            Map<TranslationKey, String> loadedValues = messageStorage.readMessages(locale);
+            Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
             List<Message> list = new ArrayList<>();
             for (Message message : messages) {
                 Message stored = getMessage(message.getKey());
                 if (stored == null) {
                     continue;
                 }
-                String oldVal = loadedValues.get(message.getKey());
+                String oldVal = loadedValues.get(message.getKey()).value();
                 String newVal = message.dictionary().get(locale);
                 if (!Objects.equals(newVal, oldVal)) {
                     String comment = "Backed up value: '" + oldVal + "'";
@@ -447,6 +451,7 @@ class MessageTranslatorImpl implements MessageTranslator {
                 }
             }
             messageStorage.overwriteMessages(list, locale);
+            loadLocales();
         }
     }
 
