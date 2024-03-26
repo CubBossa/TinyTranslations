@@ -472,6 +472,26 @@ class MessageTranslatorImplTest extends AbstractTest {
     }
 
     @Test
+    void testOverrideIfEquals(@TempDir File dir) {
+        translator.setMessageStorage(new PropertiesMessageStorage(dir));
+        Message a = translator.messageBuilder("a").withDefault("spelo").build();
+        Message b = translator.messageBuilder("b").withDefault("no spello").build();
+
+        translator.saveLocale(translator.defaultLocale());
+        a = a.dictionaryEntry(translator.defaultLocale(), "no spello");
+        b = b.dictionaryEntry(translator.defaultLocale(), "spelo");
+
+        translator.saveMessagesIfOldValueEquals(Map.of(
+                a, "spelo",
+                b, "spelo"
+        ), translator.defaultLocale());
+        translator.loadLocales();
+
+        assertEquals("no spello", translator.getMessage("a").dictionary().get(translator.defaultLocale()));
+        assertEquals("no spello", translator.getMessage("b").dictionary().get(translator.defaultLocale()));
+    }
+
+    @Test
     void testDuplicateTextInsertion() {
         // Based on bug reported from a user of the framework
 

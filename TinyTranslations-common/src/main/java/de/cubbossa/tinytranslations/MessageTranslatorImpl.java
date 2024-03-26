@@ -430,29 +430,54 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale) {
-        if (messageStorage != null) {
-            Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
-            List<Message> list = new ArrayList<>();
-            for (Message message : messages) {
-                Message stored = getMessage(message.getKey());
-                if (stored == null) {
-                    continue;
-                }
-                String oldVal = loadedValues.get(message.getKey()).value();
-                String newVal = message.dictionary().get(locale);
-                if (!Objects.equals(newVal, oldVal)) {
-                    String comment = "Backed up value: '" + oldVal + "'";
-                    if (stored.comment() == null || stored.comment().isEmpty()) {
-                        stored = stored.comment(comment);
-                    } else {
-                        stored = stored.comment(stored.comment() + "\n" + comment);
-                    }
-                    list.add(stored);
-                }
-            }
-            messageStorage.overwriteMessages(list, locale);
-            loadLocales();
+      if (messageStorage == null) {
+        return;
+      }
+      Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
+      List<Message> list = new ArrayList<>();
+      for (Message message : messages) {
+          Message stored = getMessage(message.getKey());
+          if (stored == null) {
+              continue;
+          }
+          String oldVal = loadedValues.get(message.getKey()).value();
+          String newVal = message.dictionary().get(locale);
+          if (!Objects.equals(newVal, oldVal)) {
+              String comment = "Backed up value: '" + oldVal + "'";
+              if (stored.comment() == null || stored.comment().isEmpty()) {
+                  stored = stored.comment(comment);
+              } else {
+                  stored = stored.comment(stored.comment() + "\n" + comment);
+              }
+              list.add(stored);
+          }
+      }
+      messageStorage.overwriteMessages(list, locale);
+      loadLocales();
+    }
+
+    @Override
+    public void saveMessagesIfOldValueEquals(Map<Message, String> messages, Locale locale) {
+        if (messageStorage == null) {
+            return;
         }
+        Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
+        List<Message> toOverride = new LinkedList<>();
+        for (Map.Entry<Message, String> e : messages.entrySet()) {
+            StorageEntry present = loadedValues.get(e.getKey().getKey());
+            if (present == null) {
+                continue;
+            }
+            String presentStr = present.value();
+            if (presentStr == null) {
+                continue;
+            }
+            if (!presentStr.equals(e.getValue())) {
+                continue;
+            }
+            toOverride.add(e.getKey());
+        }
+        messageStorage.overwriteMessages(toOverride, locale);
     }
 
     @Override

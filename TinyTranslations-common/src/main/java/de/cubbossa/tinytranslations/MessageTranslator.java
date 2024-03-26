@@ -133,7 +133,25 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      */
     void saveLocale(Locale locale);
 
+    /**
+     * Backs up the existing values in translation files in the according message comments
+     * and writes a new value. Don't call this regularly in a startup routine and only when your plugin
+     * migrates between versions. A migration tool like Flyway might be useful.
+     *
+     * @param messages A list of messages whose dictionary has changed for the specified locale.
+     * @param locale The locale to execute this operation for.
+     */
     void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale);
+
+    /**
+     * Changes a message only if its value still equals a certain value, most likely the value that
+     * was generated earlier. With this method, you can fix spelling mistakes in messages when migrating, but
+     * only if the administrators haven't changed anything on this translation already.
+     * @param messages A map of messages and their check values. If the check values are equals to the stored values,
+     *                 the message will be overwritten without backup.
+     * @param locale The locale to execute this operation for.
+     */
+    void saveMessagesIfOldValueEquals(Map<Message, String> messages, Locale locale);
 
     /**
      * Find a registered message by key.
