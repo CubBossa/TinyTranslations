@@ -49,17 +49,28 @@ public class MessageBuilder {
 
     public MessageBuilder withPlaceholders(String... placeholders) {
         for (String placeholder : placeholders) {
-            this.withPlaceholder(placeholder, null);
+            this.withPlaceholder(placeholder, (String) null);
         }
         return this;
     }
 
     public MessageBuilder withPlaceholder(String tag) {
-        return withPlaceholder(tag, null);
+        return withPlaceholder(tag, (String) null);
     }
 
     public MessageBuilder withPlaceholder(String tag, String description) {
         this.placeholderDescriptions.add(new Message.PlaceholderDescription(new String[]{tag}, description, Object.class));
+        return this;
+    }
+
+    public MessageBuilder withPlaceholder(String tag, Class<?> type) {
+        return withPlaceholder(tag, null, type);
+    }
+
+    public MessageBuilder withPlaceholder(String tag, String description, Class<?> type) {
+        this.placeholderDescriptions.add(new Message.PlaceholderDescription(
+                new String[]{tag}, description, type
+        ));
         return this;
     }
 

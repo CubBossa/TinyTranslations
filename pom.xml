@@ -15,6 +15,7 @@
         <module>TinyTranslations-bukkit-common</module>
         <module>TinyTranslations-paper</module>
         <module>TinyTranslations-bukkit</module>
+        <module>TinyTranslations-bukkit-example</module>
     </modules>
 
     <distributionManagement>

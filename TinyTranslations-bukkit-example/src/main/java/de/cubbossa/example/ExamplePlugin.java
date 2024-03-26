@@ -3,6 +3,8 @@ package de.cubbossa.example;
 import de.cubbossa.tinytranslations.BukkitTinyTranslations;
 import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.TinyTranslations;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
+import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
 import de.cubbossa.tinytranslations.storage.yml.YamlMessageStorage;
 import de.cubbossa.tinytranslations.storage.yml.YamlStyleStorage;
 import de.cubbossa.tinytranslations.util.ListSection;
@@ -24,12 +26,12 @@ public class ExamplePlugin extends JavaPlugin {
     public void onLoad() {
         translator = BukkitTinyTranslations.application(this);
         // Set storages of your choice. Can for example also be .properties files or sql databases.
-        translator.setStyleStorage(new YamlStyleStorage(new File(getDataFolder(), "/lang/styles.yml")));
-        translator.setMessageStorage(new YamlMessageStorage(new File(getDataFolder(), "/lang/")));
+        translator.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
+        translator.setMessageStorage(new PropertiesMessageStorage(new File(getDataFolder(), "/lang/"), "messages_", ""));
 
         // Since we created static fields for all messages in Messages.class, we need to add them like so
         translator.addMessages(TinyTranslations.messageFieldsFromClass(Messages.class));
-        // instead, we could also create local fields. Would actually be nicer.
+        // instead, we could also create local fields.
 
         reloadLocales();
     }
@@ -49,19 +51,19 @@ public class ExamplePlugin extends JavaPlugin {
         Locale fallbackLocale = Locale.ENGLISH; // read from config or ignore step
 
         translator.setUseClientLocale(useClientLocale);
-        translator.setDefaultLocale(fallbackLocale);
+        translator.defaultLocale(fallbackLocale);
 
         // save all locales that you want to exist in your lang directory.
         // this will not override user changes to the file, only add missing translations in the file and create file
         // if not existing yet.
-        // You will use this if you haven't created an en.yml by hand but rely on "withDefault" calls.
+        // You will use this if you haven't created an en.properties by hand but rely on "withDefault" calls.
         translator.saveLocale(Locale.ENGLISH);
 
-        // Run this for all files in yourr resources/lang/ directory that you created by hand and want to save.
+        // Run this for all files in your resources/lang/ directory that you created by hand and want to save.
         // Also run it for ENGLISH if you didn't use "withDefault" calls while creating Messages
         for (Locale locale : List.of(Locale.GERMAN)) {
-            if (!new File(getDataFolder(), "/lang/" + locale.toLanguageTag() + ".yml").exists()) {
-                saveResource("lang/" + locale.toLanguageTag() + ".yml", false);
+            if (!new File(getDataFolder(), "/lang/messages_" + locale.toLanguageTag() + ".properties").exists()) {
+                saveResource("lang/messages_" + locale.toLanguageTag() + ".properties", false);
             }
         }
 

@@ -1,8 +1,11 @@
 package de.cubbossa.example;
 
+import de.cubbossa.tinytranslations.Formattable;
 import de.cubbossa.tinytranslations.GlobalMessages;
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageBuilder;
+
+import java.util.List;
 
 public class Messages {
 
@@ -18,12 +21,13 @@ public class Messages {
             ---- Players Online: {count}<repeat:30>-</repeat>
             <players:'\n'><text_d>{index}.) </text_d><text>{player:name}</text></players>
             ---- <click:run_command:"/players {prev_page}">{msg:symbols.arrow_left}</click> {page}/{pages} <click:run_command:"/players {next_page}">{msg:symbols.arrow_right}</click> <repeat:30></repeat>""")
-            .withPlaceholders("page", "pages", "players", "next_page", "prev_page", "...")
+            .withPlaceholders(Formattable.LIST_PLACEHOLDERS)
+            .withPlaceholder("players", "list of online players", List.class)
             .withComment("Lists all online players in a paginated list.")
             .build();
     public static final Message INTEGER_REQUIRED = new MessageBuilder("error.integer_required")
             .withDefault("<prefix_negative>Number value expected, found '{input}'</prefix_negative>")
-            .withPlaceholder("input")
+            .withPlaceholder("input", Number.class)
             .build();
     public static final Message CMD_PLAYERS_SYNTAX = new MessageBuilder("cmd.playerlist.syntax")
             .withDefault("<prefix_negative>Wrong command usage. Use <cmd_syntax>/players <arg_opt>page</arg_opt></cmd_syntax></prefix_negative>")
