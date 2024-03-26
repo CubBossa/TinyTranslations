@@ -504,6 +504,28 @@ class MessageTranslatorImplTest extends AbstractTest {
     }
 
     @Test
+    void testCommentTags(@TempDir File dir) {
+        translator.setMessageStorage(new PropertiesMessageStorage(dir, "messages_", ""));
+
+        Message message = translator.messageBuilder("a")
+                .withComment("A comment")
+                .withPlaceholder("player", "a player", Player.class)
+                .withPlaceholder("players", "the online player list", List.class)
+                .withPlaceholder("surprise")
+                .withPlaceholder("d", "with description")
+                .build();
+        assertEquals(
+                """
+                        A comment
+                        <player> (Player): a player
+                        <players> (List): the online player list
+                        <surprise>
+                        <d>: with description""",
+                message.comment()
+        );
+    }
+
+    @Test
     void multipleChildren(@TempDir File d) {
 
         MessageTranslator server = TinyTranslations.globalTranslator(d);

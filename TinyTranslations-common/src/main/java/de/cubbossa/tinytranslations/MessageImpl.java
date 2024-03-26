@@ -215,6 +215,30 @@ class MessageImpl implements Message {
 
     @Override
     public @Nullable String comment() {
+        if (this.comment == null) {
+            if (this.placeholderDescriptions.isEmpty()) {
+                return null;
+            }
+            this.comment = "";
+        }
+        String[] splits = comment.split("(?<!\\\\)\n");
+        for (PlaceholderDescription d : placeholderDescriptions) {
+            boolean match = false;
+            for (String split : splits) {
+              if (split.startsWith("<" + Arrays.toString(d.names()))) {
+                match = true;
+                break;
+              }
+            }
+            if (match) {
+                continue;
+            }
+            String[] names = d.names();
+            String key = names.length == 1 ? names[0] : Arrays.toString(names);
+            String type = d.type() == null ? "" : " (" + d.type().getSimpleName() + ")";
+            String desc = d.description() == null || d.description().isEmpty() ? "" : (": " + d.description());
+            comment += "\n<" + key + ">" + type + desc;
+        }
         return comment;
     }
 

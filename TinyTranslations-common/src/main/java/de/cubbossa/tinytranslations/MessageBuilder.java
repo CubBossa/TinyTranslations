@@ -59,7 +59,7 @@ public class MessageBuilder {
     }
 
     public MessageBuilder withPlaceholder(String tag, String description) {
-        this.placeholderDescriptions.add(new Message.PlaceholderDescription(new String[]{tag}, description, Object.class));
+        this.placeholderDescriptions.add(new Message.PlaceholderDescription(new String[]{tag}, description, null));
         return this;
     }
 
