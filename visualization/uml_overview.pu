@@ -1,0 +1,34 @@
+@startuml
+
+package Adventure <<rectangle>> {
+class GlobalTranslator implements Translator
+interface Translator {
++ translate(TranslatableComponent, Locale)
+}
+interface Component
+interface TranslatableComponent extends Component
+}
+package TinyTranslations <<rectangle>> {
+interface MessageTranslator extends Adventure.Translator {
++ defaultLocale()
+}
+interface Message extends Adventure.TranslatableComponent {
++ dictionary()
++ placeholderDescriptions()
++ comment()
+}
+package Persistent <<rectangle>> {
+interface MessageStorage
+interface StyleStorage
+}
+}
+
+MessageTranslator "0..*" o-- MessageTranslator: inheriting children
+
+GlobalTranslator "0..*" o-- Translator
+MessageTranslator "0..*" o-- Message
+
+MessageTranslator "0..1" o-- MessageStorage
+MessageTranslator "0..1" o-- StyleStorage
+
+@enduml

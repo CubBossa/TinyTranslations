@@ -22,6 +22,10 @@ Join the [Discord Server](https://discord.com/invite/wDecCCRXFv) for support
     - [YAML](https://github.com/CubBossa/Translations/wiki/Yaml-Storage)
     - [Properties](https://github.com/CubBossa/Translations/wiki/Properties-Storage)
 
+## UML Overview
+
+![UML Overview](visualization/uml_overview.svg)
+
 ## Maven
 
 Install the following repository and dependency in your pom.xml or your build.gradle.
