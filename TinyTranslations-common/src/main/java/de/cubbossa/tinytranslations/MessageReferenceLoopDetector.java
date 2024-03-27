@@ -16,12 +16,9 @@ public class MessageReferenceLoopDetector {
     }
 
     private MessageTranslator findOwner(Message message) {
-        for (Translator source : GlobalTranslator.translator().sources()) {
-            if (!(source instanceof MessageTranslator messageTranslator)) {
-                continue;
-            }
-            if (messageTranslator.getMessage(message.getKey()) != null) {
-                return messageTranslator;
+        for (MessageTranslator source : AdventureTranslatorAdapter.instance().getTranslators()) {
+            if (source.getMessage(message.getKey()) != null) {
+                return source;
             }
         }
         return null;

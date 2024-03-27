@@ -146,5 +146,20 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
     Message placeholderDescriptions(Collection<PlaceholderDescription> descriptions);
 
     record PlaceholderDescription(String[] names, @Nullable String description, Class<?> type) {
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PlaceholderDescription that = (PlaceholderDescription) o;
+            return Arrays.equals(names, that.names) && Objects.equals(description, that.description) && Objects.equals(type, that.type);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(description, type);
+            result = 31 * result + Arrays.hashCode(names);
+            return result;
+        }
     }
 }

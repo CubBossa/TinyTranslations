@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.util.TriState;
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,8 +72,8 @@ class MessageTranslatorImpl implements MessageTranslator {
         this.styleSet = new StyleSet();
         this.logger = Logger.getLogger("TinyTranslations:" + getPath());
 
-        // remove in close
-        GlobalTranslator.translator().addSource(this);
+        // unregister in close
+        AdventureTranslatorAdapter.instance().register(this);
     }
 
     @Override
@@ -85,7 +86,7 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public void close() {
-        GlobalTranslator.translator().removeSource(this);
+        AdventureTranslatorAdapter.instance().unregister(this);
 
         new HashMap<>(children).forEach((s, translations) -> translations.close());
         if (parent != null) {
@@ -222,6 +223,11 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public @Nullable MessageFormat translate(@NotNull String key, @NotNull Locale locale) {
         return null;
+    }
+
+    @Override
+    public @NotNull TriState hasAnyTranslations() {
+        return TriState.byBoolean(!messageSet.isEmpty());
     }
 
     @Override
