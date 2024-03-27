@@ -1,6 +1,7 @@
 package de.cubbossa.example;
 
 import de.cubbossa.tinytranslations.BukkitTinyTranslations;
+import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
@@ -29,9 +30,7 @@ public class ExamplePlugin extends JavaPlugin {
         translator.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
         translator.setMessageStorage(new PropertiesMessageStorage(new File(getDataFolder(), "/lang/"), "messages_", ""));
 
-        // Since we created static fields for all messages in Messages.class, we need to add them like so
-        translator.addMessages(TinyTranslations.messageFieldsFromClass(Messages.class));
-        // instead, we could also create local fields.
+        Messages.init(translator);
 
         reloadLocales();
     }
