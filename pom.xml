@@ -18,6 +18,7 @@
         <module>TinyTranslations-bukkit-example</module>
         <module>TinyTranslations-bungeecord-common</module>
         <module>TinyTranslations-waterfall</module>
+        <module>TinyTranslations-bungeecord</module>
     </modules>
 
     <distributionManagement>
