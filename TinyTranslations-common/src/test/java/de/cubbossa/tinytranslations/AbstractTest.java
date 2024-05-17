@@ -50,6 +50,18 @@ public abstract class AbstractTest {
     @AfterEach
     void afterEach() {
         translator.close();
+        deleteFile(dir);
+        dir = null;
+        translator = null;
+    }
+
+    void deleteFile(File file) {
+        if (file.isDirectory() && file.listFiles().length > 0) {
+            for (File listFile : file.listFiles()) {
+                deleteFile(listFile);
+            }
+        }
+        file.delete();
     }
 
 

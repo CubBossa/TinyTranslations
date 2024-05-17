@@ -4,6 +4,7 @@ import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.TinyTranslations;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 

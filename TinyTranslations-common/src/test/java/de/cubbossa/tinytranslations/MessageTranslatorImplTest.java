@@ -6,12 +6,12 @@ import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
-import net.kyori.adventure.text.Component;
+import de.cubbossa.tinytranslations.util.MessageUtil;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.translation.Translator;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -324,7 +324,7 @@ class MessageTranslatorImplTest extends AbstractTest {
 
     @Test
     public void testListWithObjects() {
-        Message msg = Message.message("aööö", "<list>{el}</list>");
+        Message msg = Message.message("list", "<list>{el}</list>");
         translator.addMessage(msg);
         var r = TinyObjectResolver.builder(TestData.class)
                 .with("xy", TestData::xy)
@@ -342,6 +342,68 @@ class MessageTranslatorImplTest extends AbstractTest {
         );
 
         translator.remove(r);
+    }
+
+//    @Test
+//    public void testObjectResolvingWithTrailingArguments() {
+//        Message message = translator.messageBuilder("test")
+//                .withDefault("<test:#.##/>")
+//                .build();
+//        assertRenderEquals(
+//                text("12.34"),
+//                message.insertObject("test", 12.345)
+//        );
+//    }
+
+    @Test
+    public void getMessageTranslation() {
+        Message m = Message.builder("test")
+                .withTranslation(Locale.ENGLISH, "English")
+                .withTranslation(Locale.GERMAN, "Deutsch")
+                .withTranslation(Locale.GERMANY, "Deutschland")
+                .withTranslation(new Locale("de", "DE", "bavarian"), "Bayrisch")
+                .withTranslation(Locale.FRENCH, "Francais")
+                .build();
+
+        assertEquals("English", MessageUtil.getMessageTranslation(m, Locale.ENGLISH));
+        assertEquals("Deutsch", MessageUtil.getMessageTranslation(m, Locale.GERMAN));
+        assertEquals("Deutschland", MessageUtil.getMessageTranslation(m, Locale.GERMANY));
+        assertEquals("Bayrisch", MessageUtil.getMessageTranslation(m, new Locale("de", "DE", "bavarian")));
+        assertEquals("Francais", MessageUtil.getMessageTranslation(m, Locale.FRENCH));
+        assertEquals("Francais", MessageUtil.getMessageTranslation(m, Locale.FRANCE));
+    }
+
+    @Test
+    public void deepTranslations() {
+        Message a = translator.messageBuilder("a")
+                .withTranslation(Locale.ENGLISH, "English translation<tr:b>")
+                .withTranslation(Locale.GERMAN, "Deutsche Übersetzung<tr:b>")
+                .build();
+        Message b = translator.messageBuilder("b")
+                .withTranslation(Locale.ENGLISH, "<c>with</c>")
+                .withTranslation(Locale.GERMAN, "<c>mit</c>")
+                .build();
+        translator.getStyleSet().put("c", " {slot} <tr:d>");
+        Message c = translator.messageBuilder("d")
+                .withTranslation(Locale.ENGLISH, "style")
+                .withTranslation(Locale.GERMAN, "Style")
+                .build();
+        assertEquals(
+                text("English translation with style"),
+                translator.translate(a, Locale.ENGLISH).compact()
+        );
+        assertEquals(
+                text("Deutsche Übersetzung mit Style"),
+                translator.translate(a, Locale.GERMAN).compact()
+        );
+        assertEquals(
+                text("English translation with style"),
+                GlobalTranslator.renderer().render(a, Locale.ENGLISH).compact()
+        );
+        assertEquals(
+                text("Deutsche Übersetzung mit Style"),
+                GlobalTranslator.renderer().render(a, Locale.GERMAN).compact()
+        );
     }
 
     @Test

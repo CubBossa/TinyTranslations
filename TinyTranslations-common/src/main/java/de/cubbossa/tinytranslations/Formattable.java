@@ -324,6 +324,34 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section) {
+        return insertList(key, elements, section, Collections.emptyList(), Collections.emptyList());
+    }
+
+    /**
+     * Inserts a list of objects as tag.
+     * <br><br>
+     * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
+     * within slot.
+     * <br><br>
+     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * see {@link #insertObject(String, Object)}
+     * <br><br>
+     * Example:
+     * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
+     * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
+     * Will render all players in new lines with a "- " prefix.
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * for the org.bukkit.Player class.
+     *
+     * @param key      The tag key for the list
+     * @param elements A list of objects to render as list
+     * @param section  Allows to only render a segment of the provided elements, most likely used for pagination.
+     * @param tagResolvers    All tag resolvers to apply to the format string between opening and closing tag of this list.
+     * @param objectResolvers additional resolvers for the scope of one list element format.
+     * @param <E>      The generic type of the elements
+     * @return this object or a new object if the implementation is pure
+     */
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section, Collection<TagResolver> tagResolvers, Collection<TinyObjectResolver> objectResolvers) {
         return formatted(
                 Formatter.choice("has-pages", section.getMaxPages(elements.size())),
                 Formatter.number("page", section.getPage() + 1),
@@ -353,9 +381,10 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> Message.contextual(format.get())
-                                            .insertObject("element", e)
-                                            .insertObject("el", e)
+                                            .insertObject("element", e, objectResolvers)
+                                            .insertObject("el", e, objectResolvers)
                                             .insertNumber("index", index.incrementAndGet())
+                                            .formatted(tagResolvers.toArray(TagResolver[]::new))
                                     )
                                     .toList());
                         }
@@ -411,9 +440,39 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @param key             The tag key for the list
      * @param elementSupplier A supplier that creates a collection for a certain {@link ListSection}
      * @param <E>             The generic type of the elements
+     * @param section         A section specification for the list
      * @return this object or a new object if the implementation is pure
      */
     default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section) {
+        return insertList(key, elementSupplier, section, Collections.emptyList(), Collections.emptyList());
+    }
+
+
+        /**
+         * Inserts a list of objects as tag.
+         * <br><br>
+         * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
+         * within slot.
+         * <br><br>
+         * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+         * see {@link #insertObject(String, Object)}
+         * <br><br>
+         * Example:
+         * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
+         * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
+         * Will render all players in new lines with a "- " prefix.
+         * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+         * for the org.bukkit.Player class.
+         *
+         * @param key             The tag key for the list
+         * @param elementSupplier A supplier that creates a collection for a certain {@link ListSection}
+         * @param <E>             The generic type of the elements
+         * @param tagResolvers    All tag resolvers to apply to the format string between opening and closing tag of this list.
+         * @param section         A section specification for the list
+         * @param objectResolvers All object resolvers to include in the resolving process of object tags.
+         * @return this object or a new object if the implementation is pure
+         */
+    default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section, Collection<TinyObjectResolver> objectResolvers, Collection<TagResolver> tagResolvers) {
         return formatted(
                 Formatter.number("page", section.getPage() + 1),
                 Formatter.number("next-page", section.getPage() + 2),
@@ -439,12 +498,12 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                         @Override
                         public Component apply(@NotNull Component current, int depth) {
                             if (depth != 0) return Component.empty();
-                            Formattable<?> outer = Formattable.this;
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> Message.contextual(format.get())
-                                            .insertObject("element", e, outer.getObjectResolversInScope())
-                                            .insertObject("el", e, outer.getObjectResolversInScope())
+                                            .insertObject("element", e, objectResolvers)
+                                            .insertObject("el", e, objectResolvers)
                                             .insertNumber("index", startIndex.incrementAndGet())
+                                            .formatted(tagResolvers.toArray(TagResolver[]::new))
                                     )
                                     .toList());
                         }

@@ -157,7 +157,7 @@ class MessageTranslatorImpl implements MessageTranslator {
                 return null;
             }
         }
-        locale = useClientLocale ? locale : defaultLocale;
+        final Locale l = useClientLocale ? locale : defaultLocale;
         TagResolver resolver = TagResolver.empty();
         if (component instanceof Message formatted) {
             if (formatted instanceof UnownedMessage unowned) {
@@ -165,20 +165,38 @@ class MessageTranslatorImpl implements MessageTranslator {
             }
             resolver = TagResolver.resolver(formatted.getResolvers());
         }
-        var tr = translate(getMessageTranslation(message, locale), locale, resolver);
-        if (tr == null) {
+
+        // Translate given translation string with provided resolvers
+        var translation = translate(getMessageTranslation(message, l), l, resolver);
+
+        // Cleanup result and return
+        if (translation == null) {
             return null;
         }
-        for (Component child : component.children()) {
-            tr = tr.append(child);
+        // render all translated children again, because they again might be translatable
+        if (!translation.children().isEmpty()) {
+            translation = translation.children(translation.children().stream()
+                    .map(c -> c instanceof TranslatableComponent tr
+                            ? GlobalTranslator.renderer().render(tr instanceof UnownedMessage
+                            ? ((UnownedMessage) tr).owner(this)
+                            : tr, l)
+                            : c)
+                    .filter(Objects::nonNull)
+                    .toList());
         }
+        // add all remaining children on the actual message component
+        for (Component child : component.children()) {
+            translation = translation.append(child);
+        }
+        // render hover event - it might also be translatable
         if (component.hoverEvent() != null) {
-            if (component.hoverEvent().value() instanceof TranslatableComponent tc) {
-                component = component.hoverEvent(GlobalTranslator.translator().translate(tc, locale));
+            if (component.hoverEvent().value() instanceof Component c) {
+                component = component.hoverEvent(GlobalTranslator.renderer().render(c, locale));
             }
         }
-        tr = Component.empty().style(component.style()).append(tr).compact();
-        return tr;
+        // Make sure that every style is being transferred
+        translation = Component.empty().style(component.style()).append(translation).compact();
+        return translation;
     }
 
     @Override
@@ -202,20 +220,6 @@ class MessageTranslatorImpl implements MessageTranslator {
         }
         if (component instanceof Message msg) {
             component = translate(msg, locale);
-        }
-        if (component == null) {
-            return null;
-        }
-        // translate children
-        if (!component.children().isEmpty()) {
-            component = component.children(component.children().stream()
-                    .map(c -> c instanceof Message tr
-                            ? GlobalTranslator.renderer().render(tr instanceof UnownedMessage
-                            ? ((UnownedMessage) tr).owner(this)
-                            : tr, locale)
-                            : c)
-                    .filter(Objects::nonNull)
-                    .toList());
         }
         return component;
     }

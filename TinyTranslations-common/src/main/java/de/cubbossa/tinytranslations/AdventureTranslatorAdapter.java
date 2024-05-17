@@ -26,24 +26,20 @@ public class AdventureTranslatorAdapter implements Translator {
     private static final Key KEY = Key.key("tinytranslations");
 
     @Getter
-    private Collection<MessageTranslator> translators;
+    private final Collection<MessageTranslator> translators;
 
     public AdventureTranslatorAdapter() {
         translators = new HashSet<>();
     }
 
     public void register(MessageTranslator translator) {
-        this.translators.add(translator);
-
-        if (translators.size() == 1) {
+        if (this.translators.add(translator) && translators.size() == 1) {
             GlobalTranslator.translator().addSource(this);
         }
     }
 
     public void unregister(MessageTranslator translator) {
-        this.translators.remove(translator);
-
-        if (translators.isEmpty()) {
+        if (this.translators.remove(translator) && translators.isEmpty()) {
             GlobalTranslator.translator().removeSource(this);
         }
     }
@@ -55,9 +51,9 @@ public class AdventureTranslatorAdapter implements Translator {
 
     @Override
     public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
-        if (component instanceof Message m && m.getKey().key().equals(Message.TEMPORARY_MESSAGE_KEY)) {
+        if (component instanceof Message m && Objects.equals(m.getKey().key(), Message.TEMPORARY_MESSAGE_KEY)) {
             for (MessageTranslator translator : translators) {
-                if (translator.getPath() == null || translator.getPath().equals(m.getKey().namespace())) {
+                if (m.getKey().namespace() == null || translator.getPath().equals(m.getKey().namespace())) {
                     return translator.translate(component, locale);
                 }
             }
@@ -70,9 +66,6 @@ public class AdventureTranslatorAdapter implements Translator {
             }
             Message m = translator.getMessage(component.key());
             if (m == null) {
-                continue;
-            }
-            if (!m.dictionary().containsKey(locale)) {
                 continue;
             }
             // every remaining translator has a matching message.

@@ -6,7 +6,7 @@
 
     <groupId>de.cubbossa</groupId>
     <artifactId>TinyTranslations</artifactId>
-    <version>4.5.0</version>
+    <version>4.5.1</version>
     <packaging>pom</packaging>
 
     <name>TinyTranslations</name>
@@ -21,7 +21,7 @@
     <distributionManagement>
         <repository>
             <id>nexus_cubbossa</id>
-            <url>https://nexus.leonardbausenwein.de/repository/maven-public/</url>
+            <url>https://nexus.leonardbausenwein.de/repository/maven-releases/</url>
         </repository>
     </distributionManagement>
 
@@ -38,6 +38,8 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <reuseForks>false</reuseForks>
+                    <forkCount>1</forkCount>
                     <reportFormat>plain</reportFormat>
                     <consoleOutputReporter>
                         <disable>true</disable>

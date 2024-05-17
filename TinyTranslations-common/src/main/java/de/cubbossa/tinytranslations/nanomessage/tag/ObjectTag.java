@@ -1,6 +1,5 @@
 package de.cubbossa.tinytranslations.nanomessage.tag;
 
-import de.cubbossa.tinytranslations.UnownedMessage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolverImpl;
@@ -8,15 +7,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.renderer.ComponentRenderer;
-import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.translation.Translator;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class ObjectTag {
 

@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.cubbossa</groupId>
         <artifactId>TinyTranslations</artifactId>
-        <version>4.5.0</version>
+        <version>4.5.1</version>
     </parent>
 
     <artifactId>TinyTranslations-common</artifactId>
@@ -48,7 +48,7 @@
                 </executions>
                 <configuration>
                     <serverId>nexus_cubbossa</serverId>
-                    <nexusUrl>https://nexus.leonardbausenwein.de/repository/maven-public/</nexusUrl>
+                    <nexusUrl>https://nexus.leonardbausenwein.de/repository/maven-releases/</nexusUrl>
                     <skipStaging>true</skipStaging>
                 </configuration>
             </plugin>
