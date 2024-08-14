@@ -6,7 +6,12 @@ import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,50 +30,34 @@ public class ExamplePlugin extends JavaPlugin {
     public void onEnable() {
         super.onEnable();
 
+        // Create a MessageTranslator for this plugin
         translator = BukkitTinyTranslations.application(this);
+
         // Set storages of your choice. Can for example also be .properties files or sql databases.
         translator.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
         translator.setMessageStorage(new PropertiesMessageStorage(new File(getDataFolder(), "/lang/"), "messages_", ""));
 
+        // You may want to add some global properties.
+        // We can for example make "plugin" a placeholder for all processed messages.
+        // It will resolve into the plugins name or with according notation into other attributes, like
+        // {plugin.version} -> v5.0.0
+        // {plugin.author} -> CubBossa
+        translator.insertObject("plugin", getDescription());
+        translator.formatted(TagResolver.resolver("alphabeth", (argumentQueue, context) -> {
+            return Tag.inserting(Component.text("abcdefghijklmnopqrstuvwxyz"));
+        }));
+        translator.formatted(Placeholder.parsed("smile", ":D"));
 
-        Message abc = Message.builder("phil.stinkt")
-                .withDefault("Phil smells like {something}")
-                .withTranslation(Locale.GERMAN, "Phil mieft nach {something}")
-                .build();
-
-        abc.insertObject("something", Bukkit.getPlayer("abc"));
-
-
-
-
+        // We create all messages for this plugin at once
         Messages.init(translator);
 
+        // We call the reload functionality to save all messages into required files and to create our style sheet.
+        // If any of the named existed already, their values will be fetched and cached.
         reloadLocales();
 
+        // We can now use Messages.ANY_MESSAGE freely as if they were TextComponents
+
         getCommand("playerlist").setExecutor(this);
-        getCommand("testformat").setExecutor((commandSender, command, s, args) -> {
-
-            Message format = translator.messageBuilder("test_format")
-                    .withDefault("+{el.name}+")
-                    .build();
-            translator.add(TinyObjectMapping.builder(TestObj.class)
-                    .withFallbackConversion(object -> format.insertObject("el", object))
-                    .with("name", TestObj::name)
-                    .build());
-
-            Message list = translator.messageBuilder("test_list")
-                    .withDefault("""
-                            <elements:'\n'>- {el}</elements>
-                            <elements:'\n'>- {el.name}</elements>""")
-                    .build();
-
-            BukkitTinyTranslations.sendMessageIfNotEmpty(commandSender, list
-                    .insertList("elements", List.of(new TestObj("a"), new TestObj("b"), new TestObj("c"), 3)));
-            return false;
-        });
-    }
-
-    record TestObj(String name) {
     }
 
     /**

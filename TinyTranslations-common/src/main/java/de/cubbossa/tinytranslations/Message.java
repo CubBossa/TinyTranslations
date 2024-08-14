@@ -27,11 +27,35 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
      * that renders the {@link Message} which contains this message. A contextual {@link Message} will not be rendered on its own.
      * @param content The content to render for default
      * @return The created {@link UnownedMessage} instance.
+     * @deprecated Instead use {@link Message#temporary(String)}
      */
+    @Deprecated(forRemoval = true, since = "4.5.2")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     static Message contextual(@Language("NanoMessage") String content) {
+        return temporary(content);
+    }
+
+    /**
+     * Creates an {@link UnownedMessage} that is being recognized as contextual and will only be rendered by the {@link MessageTranslator}
+     * that renders the {@link Message} which contains this message. A contextual {@link Message} will not be rendered on its own.
+     * @param content The content to render for default
+     * @return The created {@link UnownedMessage} instance.
+     */
+    static Message temporary(@Language("NanoMessage") String content) {
         return new MessageBuilder(TEMPORARY_MESSAGE_KEY)
                 .withDefault(content)
                 .build();
+    }
+
+        /**
+         * Creates an {@link UnownedMessage} instance with the provided key. The message must be added to a
+         * {@link MessageTranslator} to be of use.
+         *
+         * @param key The message key, not including any namespace.
+         * @return The new {@link UnownedMessage} instance.
+         */
+    static Message unowned(String key) {
+        return new UnownedMessageImpl(key);
     }
 
     /**
@@ -40,9 +64,13 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
      *
      * @param key The message key, not including any namespace.
      * @return The new {@link UnownedMessage} instance.
+     *
+     * @deprecated Instead use {@link Message#unowned(String)}
      */
+    @Deprecated(forRemoval = true, since = "4.5.2")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
     static Message message(String key) {
-        return new UnownedMessageImpl(key);
+        return unowned(key);
     }
 
     /**
@@ -53,8 +81,24 @@ public interface Message extends ComponentLike, Cloneable, Comparable<Message>, 
      * @param defaultValue The translation of the default locale, most likely english.
      * @return The new {@link UnownedMessage} instance.
      */
-    static Message message(String key, @Language("NanoMessage") String defaultValue) {
+    static Message unowned(String key, @Language("NanoMessage") String defaultValue) {
         return new MessageBuilder(key).withDefault(defaultValue).build();
+    }
+
+    /**
+     * Creates an {@link UnownedMessage} instance with the provided key. The message must be added to a
+     * {@link MessageTranslator} to be of use.
+     *
+     * @param key          The message key, not including any namespace.
+     * @param defaultValue The translation of the default locale, most likely english.
+     * @return The new {@link UnownedMessage} instance.
+     *
+     * @deprecated Instead use {@link Message#unowned(String, String)}
+     */
+    @Deprecated(forRemoval = true, since = "4.5.2")
+    @ApiStatus.ScheduledForRemoval(inVersion = "5.0.0")
+    static Message message(String key, @Language("NanoMessage") String defaultValue) {
+        return unowned(key, defaultValue);
     }
 
     /**

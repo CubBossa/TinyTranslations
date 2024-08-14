@@ -151,6 +151,9 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Override
     public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
         String key = component.key();
+
+        TinyTranslations.getLogger().finest("Translating message with key '" + key + "'.");
+
         Message message = getMessageInParentTree(key);
         if (message == null) {
             if (component.key().endsWith(Message.TEMPORARY_MESSAGE_KEY) && component instanceof Message temp) {
@@ -226,6 +229,8 @@ class MessageTranslatorImpl implements MessageTranslator {
         if (raw == null) {
             return null;
         }
+        TinyTranslations.getLogger().finest("Formatting value: '" + raw + "'.");
+
         Collection<TagResolver> r = new LinkedList<>(this.resolvers);
         r.addAll(List.of(resolvers));
 

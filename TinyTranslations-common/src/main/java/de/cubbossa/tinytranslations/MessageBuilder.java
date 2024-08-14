@@ -79,8 +79,12 @@ public class MessageBuilder {
         return withPlaceholder(tag, description);
     }
 
-    public Message build() {
-        return new UnownedMessageImpl(key)
+    public Message build(MessageTranslator owner) {
+        return build().owner(owner);
+    }
+
+    public UnownedMessage build() {
+        return (UnownedMessage) new UnownedMessageImpl(key)
                 .comment(comments.isEmpty() ? null : String.join("\n", comments))
                 .dictionary(translations)
                 .placeholderDescriptions(placeholderDescriptions)

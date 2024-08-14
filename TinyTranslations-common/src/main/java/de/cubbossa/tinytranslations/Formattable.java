@@ -372,7 +372,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                         public Component apply(@NotNull Component current, int depth) {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-                                    .map(e -> Message.contextual(format.get())
+                                    .map(e -> Message.temporary(format.get())
                                             .insertObject("element", e)
                                             .insertObject("el", e)
                                             .insertNumber("index", index.incrementAndGet())
@@ -491,7 +491,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                         public Component apply(@NotNull Component current, int depth) {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
-                                    .map(e -> Message.contextual(format.get())
+                                    .map(e -> Message.temporary(format.get())
                                             .insertObject("element", e)
                                             .insertObject("el", e)
                                             .insertNumber("index", startIndex.incrementAndGet())

@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations;
 
 import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -22,12 +21,13 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.function.Function;
+import java.util.logging.Level;
+
+import static java.lang.System.Logger.Level.*;
 
 public final class BukkitTinyTranslations extends TinyTranslations {
 
@@ -48,7 +48,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
         return g;
     }
 
-    public static boolean isEnabled() {
+    private static boolean isEnabled() {
         MessageTranslator g = server;
         if (g == null) {
             synchronized (mutex) {
@@ -59,19 +59,25 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     private static void enable(Plugin plugin) {
+        getLogger().fine("Enabling TinyTranslations, caused by plugin '" + plugin.getName() + "'.");
         audiences = BukkitAudiences.create(plugin);
 
         if (metrics == null && plugin instanceof JavaPlugin jp) {
+            getLogger().finer("Initializing metrics.");
             metrics = new Metrics(jp, 20979);
+            getLogger().finer("Initialized metrics.");
         }
+        TinyTranslations.getLogger().setParent(plugin.getLogger());
+        getLogger().finer("Updated Logger parentage, now inheriting from plugin logger.");
 
         enable(new File(plugin.getDataFolder(), "/../"));
     }
 
     private static void enable(File pluginDirectory) {
-
+        getLogger().finer("Enabling on directory " + pluginDirectory.getPath());
         MessageTranslator g = server;
         if (g == null) {
+            getLogger().finer("Creating new global translator.");
             synchronized (mutex) {
                 g = server;
                 if (g == null) {
@@ -82,38 +88,64 @@ public final class BukkitTinyTranslations extends TinyTranslations {
         }
     }
 
+    /**
+     * Closes all claimed resources and shuts down the server-wide global translator
+     */
     public static void disable() {
         audiences.close();
     }
 
-    public static MessageTranslator globalTranslator(File dir) {
-        var server = TinyTranslations.globalTranslator(dir);
+    /**
+     * Creates a MessageTranslator with certain default messages, default styles and according files in the provided directory.
+     * There can be multiple instances of such root Translator, but it is not advised to let multiple instances
+     * use a shared directory. Instead, create one instance per directory (in server terms one per server/plugin directory) and
+     * let plugins be child MessageTranslators of this shared root.
+     *
+     * @param root The root directory, in terms of plugins the /plugin/ directory.
+     * @return The global MessageTranslator instance.
+     */
+    public static MessageTranslator globalTranslator(File root) {
+        var server = TinyTranslations.globalTranslator(root);
         applyBukkitObjectResolvers(server);
         server.addMessages(messageFieldsFromClass(BukkitGlobalMessages.class));
         return server;
     }
 
+    /**
+     * Creates a new MessageTranslator instance.
+     * A unique name helps to identify translatables as part of this translator.
+     * Notice that this method will create a single standalone MessageTranslator, which
+     * hasn't got any storages or relations defined.
+     * <br><br>
+     * To create a MessageTranslator that is inheriting from a global message set and style sheet,
+     * access the GlobalTranslator instance and fork it or use according platform implementations (BukkitTinyTranslations.plugin(String), ...)
+     * <br><br>
+     *
+     * @param name A unique name within the children scope of the GlobalTranslator.
+     * @return A new standalone MessageTranslator
+     */
     public static MessageTranslator application(String name) {
         var tr = TinyTranslations.application(name);
         applyBukkitObjectResolvers(tr);
         return tr;
     }
 
+    /**
+     * Creates a new MessageTranslator instance.
+     * A unique name helps to identify translatables as part of this translator.
+     * This method will create a child MessageTranslator with the server-wide Translator as parent.
+     * It will inherit global styles from the style sheet in 'myserver/plugins/lang/global_style_sheet.properties'
+     * <br><br>
+     *
+     * @param plugin A unique name within the children scope of the server-wide GlobalTranslator.
+     * @return A new MessageTranslator
+     */
     public static MessageTranslator application(Plugin plugin) {
         if (!isEnabled()) {
             enable(plugin);
         }
         var app = server().fork(plugin.getName());
         return app;
-    }
-
-    public static Function<@Nullable Audience, Locale> getPerPlayerLocaleProvider(Locale fallback) {
-        return audience -> {
-            if (audience == null) {
-                return fallback;
-            }
-            return audience.getOrDefault(Identity.LOCALE, fallback);
-        };
     }
 
     public static Locale getLocale(CommandSender sender) {
@@ -149,6 +181,7 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     private static void applyBukkitObjectResolvers(MessageTranslator tr) {
+        getLogger().fine("Applying Bukkit Object Resolvers to " + tr.getPath());
         tr.add(TinyObjectMapping.builder(NamespacedKey.class)
                 .with("namespace", NamespacedKey::getNamespace)
                 .with("key", NamespacedKey::getKey)

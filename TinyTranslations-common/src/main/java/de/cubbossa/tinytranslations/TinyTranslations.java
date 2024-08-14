@@ -34,13 +34,36 @@ public class TinyTranslations {
         return LOGGER;
     }
 
+    /**
+     * Creates a new MessageTranslator instance.
+     * A unique name helps to identify translatables as part of this translator.
+     * Notice that this method will create a single standalone MessageTranslator, which
+     * hasn't got any storages or relations defined.
+     * <br><br>
+     * To create a MessageTranslator that is inheriting from a global message set and style sheet,
+     * access the GlobalTranslator instance and fork it or use according platform implementations (BukkitTinyTranslations.plugin(String), ...)
+     * <br><br>
+     *
+     * @param name A unique name among all MessageTranslators.
+     * @return A new standalone MessageTranslator
+     */
     public static MessageTranslator application(String name) {
         var tr = new MessageTranslatorImpl(null, name);
         applyDefaultObjectResolvers(tr);
         return tr;
     }
 
+    /**
+     * Loads all Message values that a class file contains as static fields
+     * and returns these values as Array.
+     * Notice that none of the messages changes its status from UnownedMessage to
+     * owned Message.
+     *
+     * @param messageClass A class to scan for Message fields.
+     * @return An Array of all found Message field values.
+     */
     public static Message[] messageFieldsFromClass(Class<?> messageClass) {
+        getLogger().fine("Fetching Messages from class " + messageClass);
         try {
             TinyTranslations.class.getClassLoader().loadClass(messageClass.getName());
         } catch (Throwable t) {
@@ -56,19 +79,24 @@ public class TinyTranslations {
             try {
                 messages[i++] = (Message) messageField.get(messageClass);
             } catch (Throwable t) {
-                LOGGER.log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName(), t);
+                getLogger().log(Level.WARNING, "Could not extract message '" + messageField.getName() + "' from class " + messageClass.getSimpleName(), t);
             }
         }
+        getLogger().fine("Fetchind Messages from class " + messageClass);
         return messages;
     }
 
     /**
-     * Creates the lang directory
+     * Creates a MessageTranslator with certain default messages, default styles and according files in the provided directory.
+     * There can be multiple instances of such root Translator, but it is not advised to let multiple instances
+     * use a shared directory. Instead, create one instance per directory (in server terms one per server/plugin directory) and
+     * let plugins be child MessageTranslators of this shared root.
      *
      * @param root The root directory, in terms of plugins the /plugin/ directory.
      * @return The global MessageTranslator instance.
      */
     public static MessageTranslator globalTranslator(File root) {
+        getLogger().fine("Creating globalTranslator " + root.getPath());
 
         initGlobalFiles(root);
         MessageTranslator global = new MessageTranslatorImpl(null, "global") {
@@ -118,6 +146,8 @@ public class TinyTranslations {
     }
 
     private static boolean initGlobalFiles(File directory) {
+        getLogger().finer("Initializing global files in " + directory.getPath());
+
         if (!directory.exists()) {
             throw new IllegalArgumentException("Global translations directory must exist.");
         }
@@ -139,6 +169,7 @@ public class TinyTranslations {
 
     private static void writeResourceIfNotExists(File langDir, String name, String as) {
         File file = new File(langDir, as);
+        getLogger().finer("Creating resource in storage: " + file.getPath());
         if (file.exists()) {
             return;
         }
@@ -160,6 +191,7 @@ public class TinyTranslations {
     }
 
     private static void writeMissingDefaultStyles(MessageTranslator translator) {
+        getLogger().finer("Creating missing default styles");
         File tempFile;
         try {
             tempFile = File.createTempFile("stream_to_file", ".properties");
@@ -181,9 +213,12 @@ public class TinyTranslations {
         if (translator.getStyleStorage() != null) {
             translator.getStyleStorage().writeStyles(translator.getStyleSet());
         }
+        getLogger().finer("Created missing default styles");
     }
 
     private static void applyDefaultObjectResolvers(MessageTranslator translator) {
+        getLogger().fine("Applying general Object Resolvers to " + translator.getPath());
+
         translator.add(TinyObjectMapping.alwaysConvert(String.class, Component::text));
         translator.add(TinyObjectMapping.builder(Number.class).withFallbackResolver((value, context, argumentQueue) -> {
             return Formatter.number("avoid_name_collisions", value).resolve("avoid_name_collisions", argumentQueue, context);

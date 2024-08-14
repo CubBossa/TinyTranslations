@@ -16,6 +16,27 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * A MessageTranslator bundles several features that influence the way a plugin message might be translated.
+ * <br><br>
+ * In general, all MessageTranslator instances produce the same result. They translate a message like
+ * 'general.no_permission' into the according Components.
+ * <br><br>
+ * But messages can be formatted and sometimes require placeholders to be filled in.
+ * MessageTranslators allow to apply some global replacements and styles.
+ * <br><br>
+ * They also provide
+ * <ul>
+ *     <li>the option to configure a default locale to use when the client locale should not be used.</li>
+ *     <li>a custom style collection. You might want to style messages of your application with certain styles that are not
+ *     part of MiniMessage.</li>
+ *     <li>Storages to create locale files (ResourceBundles) and style sheets</li>
+ * </ul>
+ * <br>
+ * <br><br>
+ * To obtain a MessageTranslator instance, refer to {@link TinyTranslations#application(String)}
+ * or the according platform implementations
+ */
 public interface MessageTranslator extends AutoCloseable, Formattable<MessageTranslator>, TranslationRegistry {
 
     @AppPathPattern
@@ -58,6 +79,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
     /**
      * Creates a new {@link MessageBuilder} that automatically adds the created {@link Message} to this {@link MessageTranslator}
      * when building.
+     *
      * @param key The message key.
      * @return A new {@link MessageBuilder} instance.
      */
@@ -138,7 +160,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * migrates between versions. A migration tool like Flyway might be useful.
      *
      * @param messages A list of messages whose dictionary has changed for the specified locale.
-     * @param locale The locale to execute this operation for.
+     * @param locale   The locale to execute this operation for.
      */
     void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale);
 
@@ -146,9 +168,10 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
      * Changes a message only if its value still equals a certain value, most likely the value that
      * was generated earlier. With this method, you can fix spelling mistakes in messages when migrating, but
      * only if the administrators haven't changed anything on this translation already.
+     *
      * @param messages A map of messages and their check values. If the check values are equals to the stored values,
      *                 the message will be overwritten without backup.
-     * @param locale The locale to execute this operation for.
+     * @param locale   The locale to execute this operation for.
      */
     void saveMessagesIfOldValueEquals(Map<Message, String> messages, Locale locale);
 
@@ -170,6 +193,7 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     /**
      * Find a registered MessageStyle by its key.
+     *
      * @param key The style key
      * @return The {@link MessageStyle} instance or null if no style with the given key exists.
      */
