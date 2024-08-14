@@ -1,17 +1,10 @@
 package de.cubbossa.example;
 
 import de.cubbossa.tinytranslations.BukkitTinyTranslations;
-import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageTranslator;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
-import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -43,10 +36,7 @@ public class ExamplePlugin extends JavaPlugin {
         // {plugin.version} -> v5.0.0
         // {plugin.author} -> CubBossa
         translator.insertObject("plugin", getDescription());
-        translator.formatted(TagResolver.resolver("alphabeth", (argumentQueue, context) -> {
-            return Tag.inserting(Component.text("abcdefghijklmnopqrstuvwxyz"));
-        }));
-        translator.formatted(Placeholder.parsed("smile", ":D"));
+        translator.insertString("smile", ":D");
 
         // We create all messages for this plugin at once
         Messages.init(translator);

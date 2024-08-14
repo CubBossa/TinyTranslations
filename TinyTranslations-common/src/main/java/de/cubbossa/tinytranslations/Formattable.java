@@ -197,6 +197,17 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
         return formatted(TagResolver.resolver(key, tag));
     }
 
+    /**
+     * Short form of {@link TagResolver#resolver(String, Tag)}
+     *
+     * @param key The tag key
+     * @param handler A tag implementation to insert
+     * @return this object or a new object if the implementation is pure
+     */
+    default ReturnT insertTag(final @NotNull String key, final @NotNull BiFunction<ArgumentQueue, Context, Tag> handler) {
+        return formatted(TagResolver.resolver(key, handler));
+    }
+
     Map<String, InsertedObject> insertedObjects();
 
     /**

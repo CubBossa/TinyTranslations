@@ -80,11 +80,12 @@ public class MessageBuilder {
     }
 
     public Message build(MessageTranslator owner) {
-        return build().owner(owner);
+        var msg = build();
+        return msg instanceof UnownedMessage unowned ? unowned.owner(owner) : msg;
     }
 
-    public UnownedMessage build() {
-        return (UnownedMessage) new UnownedMessageImpl(key)
+    public Message build() {
+        return new UnownedMessageImpl(key)
                 .comment(comments.isEmpty() ? null : String.join("\n", comments))
                 .dictionary(translations)
                 .placeholderDescriptions(placeholderDescriptions)
