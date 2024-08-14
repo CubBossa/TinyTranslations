@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.cubbossa</groupId>
         <artifactId>TinyTranslations</artifactId>
-        <version>4.5.1</version>
+        <version>4.5.2</version>
     </parent>
 
     <artifactId>TinyTranslations-bukkit</artifactId>
@@ -65,12 +65,12 @@
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-common</artifactId>
-            <version>4.5.1</version>
+            <version>4.5.2</version>
         </dependency>
         <dependency>
             <groupId>de.cubbossa</groupId>
             <artifactId>TinyTranslations-bukkit-common</artifactId>
-            <version>4.5.1</version>
+            <version>4.5.2</version>
         </dependency>
     </dependencies>
 

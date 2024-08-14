@@ -1,14 +1,12 @@
 package de.cubbossa.tinytranslations.util;
 
 import de.cubbossa.tinytranslations.Formattable;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.InsertedObject;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class FormattableBuilder implements Formattable<FormattableBuilder> {
 
@@ -17,6 +15,7 @@ public class FormattableBuilder implements Formattable<FormattableBuilder> {
     }
 
     private List<TagResolver> resolvers = new ArrayList<>();
+    private Map<String, InsertedObject> insertedObjects = new HashMap<>();
 
     private FormattableBuilder() {
     }
@@ -37,12 +36,13 @@ public class FormattableBuilder implements Formattable<FormattableBuilder> {
     }
 
     @Override
-    public <T> FormattableBuilder insertObject(@NotNull String key, T obj) {
-        throw new IllegalStateException("Cannot insert object into FormattableBuilder without providing any TinyObjectResolvers.");
+    public Map<String, InsertedObject> insertedObjects() {
+        return insertedObjects;
     }
 
     @Override
-    public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return Collections.emptyList();
+    public <T> FormattableBuilder insertObject(@NotNull String key, T obj, Collection<TinyObjectMapping> resolvers) {
+        insertedObjects.put(key, new InsertedObject(key, obj, resolvers));
+        return this;
     }
 }

@@ -51,19 +51,21 @@ public class AdventureTranslatorAdapter implements Translator {
 
     @Override
     public @Nullable Component translate(@NotNull TranslatableComponent component, @NotNull Locale locale) {
+        if (translators.isEmpty()) {
+            return null;
+        }
+
         if (component instanceof Message m && Objects.equals(m.getKey().key(), Message.TEMPORARY_MESSAGE_KEY)) {
             for (MessageTranslator translator : translators) {
                 if (m.getKey().namespace() == null || translator.getPath().equals(m.getKey().namespace())) {
                     return translator.translate(component, locale);
                 }
             }
+            return translators.iterator().next().translate(component, locale);
         }
 
         Map<MessageTranslator, Message> matched = null;
         for (MessageTranslator translator : translators) {
-            if (translator.hasAnyTranslations().equals(TriState.FALSE)) {
-                continue;
-            }
             Message m = translator.getMessage(component.key());
             if (m == null) {
                 continue;

@@ -13,6 +13,7 @@ import static de.cubbossa.tinytranslations.nanomessage.NanoMessageTokenizer.Toke
 public class NanoMessageCompiler {
 
     private final List<CompilationStep> compilationSteps = List.of(
+            new ObjectTagCompilation(),
             new SelfClosingTagCompilation(),
             new PlaceholderCompilation(),
             new ChoiceCompilation(),

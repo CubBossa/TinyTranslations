@@ -5,8 +5,7 @@ import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -260,11 +259,11 @@ public interface MessageTranslator extends AutoCloseable, Formattable<MessageTra
 
     // Tiny object resolving
 
-    Collection<TinyObjectResolver> getTinyObjectResolvers();
+    Collection<TinyObjectMapping> getTinyObjectResolvers();
 
-    void addAll(Iterable<TinyObjectResolver> resolvers);
+    void addAll(Iterable<TinyObjectMapping> resolvers);
 
-    void add(TinyObjectResolver resolver);
+    void add(TinyObjectMapping resolver);
 
-    void remove(TinyObjectResolver resolver);
+    void remove(TinyObjectMapping resolver);
 }

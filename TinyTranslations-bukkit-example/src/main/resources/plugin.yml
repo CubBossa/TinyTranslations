@@ -1,0 +1,11 @@
+name: TinyTranslations-bukkit-example
+author: CubBossa
+version: 1.0.0
+
+api-version: 1.16
+prefix: PathFinder
+main: de.cubbossa.example.ExamplePlugin
+
+commands:
+  playerlist:
+  testformat:

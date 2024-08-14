@@ -3,11 +3,9 @@ package de.cubbossa.example;
 import de.cubbossa.tinytranslations.BukkitTinyTranslations;
 import de.cubbossa.tinytranslations.Message;
 import de.cubbossa.tinytranslations.MessageTranslator;
-import de.cubbossa.tinytranslations.TinyTranslations;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
-import de.cubbossa.tinytranslations.storage.yml.YamlMessageStorage;
-import de.cubbossa.tinytranslations.storage.yml.YamlStyleStorage;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import de.cubbossa.tinytranslations.util.ListSection;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -24,22 +22,53 @@ public class ExamplePlugin extends JavaPlugin {
     private MessageTranslator translator = null;
 
     @Override
-    public void onLoad() {
+    public void onEnable() {
+        super.onEnable();
+
         translator = BukkitTinyTranslations.application(this);
         // Set storages of your choice. Can for example also be .properties files or sql databases.
         translator.setStyleStorage(new PropertiesStyleStorage(new File(getDataFolder(), "/lang/styles.properties")));
         translator.setMessageStorage(new PropertiesMessageStorage(new File(getDataFolder(), "/lang/"), "messages_", ""));
 
+
+        Message abc = Message.builder("phil.stinkt")
+                .withDefault("Phil smells like {something}")
+                .withTranslation(Locale.GERMAN, "Phil mieft nach {something}")
+                .build();
+
+        abc.insertObject("something", Bukkit.getPlayer("abc"));
+
+
+
+
         Messages.init(translator);
 
         reloadLocales();
-    }
-
-    @Override
-    public void onEnable() {
-        super.onEnable();
 
         getCommand("playerlist").setExecutor(this);
+        getCommand("testformat").setExecutor((commandSender, command, s, args) -> {
+
+            Message format = translator.messageBuilder("test_format")
+                    .withDefault("+{el.name}+")
+                    .build();
+            translator.add(TinyObjectMapping.builder(TestObj.class)
+                    .withFallbackConversion(object -> format.insertObject("el", object))
+                    .with("name", TestObj::name)
+                    .build());
+
+            Message list = translator.messageBuilder("test_list")
+                    .withDefault("""
+                            <elements:'\n'>- {el}</elements>
+                            <elements:'\n'>- {el.name}</elements>""")
+                    .build();
+
+            BukkitTinyTranslations.sendMessageIfNotEmpty(commandSender, list
+                    .insertList("elements", List.of(new TestObj("a"), new TestObj("b"), new TestObj("c"), 3)));
+            return false;
+        });
+    }
+
+    record TestObj(String name) {
     }
 
     /**
@@ -95,7 +124,7 @@ public class ExamplePlugin extends JavaPlugin {
 
         BukkitTinyTranslations.sendMessageIfNotEmpty(sender, Messages.PLAYER_LIST
                 .insertNumber("count", Bukkit.getOnlinePlayers().size())
-                .insertList("players", List.of(Bukkit.getOnlinePlayers()), ListSection.paged(page, 3)));
+                .insertList("players", Bukkit.getOnlinePlayers(), ListSection.paged(page, 3)));
 
         // Result could look like so:
         // ---- Online Players: 14 ------------------------------

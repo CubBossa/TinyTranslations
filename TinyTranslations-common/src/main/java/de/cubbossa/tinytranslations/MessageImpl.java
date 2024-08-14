@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.InsertedObject;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 @Getter
 @Setter
@@ -26,12 +26,12 @@ class MessageImpl implements Message {
     private final TranslationKey key;
     private final List<TranslationArgument> arguments = Collections.emptyList();
     private final Collection<TagResolver> resolvers = new LinkedList<>();
-    @Setter
-    private Supplier<Collection<TinyObjectResolver>> objectResolverSupplier = Collections::emptyList;
     private Style style = Style.empty();
     private List<Component> children = new ArrayList<>();
     private Map<Locale, String> dictionary;
     private String fallback;
+
+    private final Map<String, InsertedObject> insertedObjects = new HashMap<>();
 
     private Collection<PlaceholderDescription> placeholderDescriptions;
     private String comment;
@@ -57,7 +57,12 @@ class MessageImpl implements Message {
         this.placeholderDescriptions = new LinkedList<>(other.placeholderDescriptions);
         this.comment = other.comment;
         this.resolvers.addAll(other.resolvers);
-        this.objectResolverSupplier = other.objectResolverSupplier;
+        this.insertedObjects.putAll(other.insertedObjects);
+    }
+
+    @Override
+    public Map<String, InsertedObject> insertedObjects() {
+        return insertedObjects;
     }
 
     @Override
@@ -88,8 +93,10 @@ class MessageImpl implements Message {
     }
 
     @Override
-    public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return objectResolverSupplier.get();
+    public <T> Message insertObject(@NotNull String key, T obj, Collection<TinyObjectMapping> resolvers) {
+        MessageImpl message = new MessageImpl(this.key, this);
+        message.insertedObjects.put(key, new InsertedObject(key, obj, resolvers));
+        return message;
     }
 
     @Override

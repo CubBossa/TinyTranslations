@@ -3,10 +3,12 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMappingImpl;
 import de.cubbossa.tinytranslations.util.ComponentSplit;
 import de.cubbossa.tinytranslations.util.ListSection;
 import de.cubbossa.tinytranslations.util.MessageUtil;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -57,6 +59,29 @@ class MessageTranslatorImplTest extends AbstractTest {
             .withDefault("aBc").build();
     public static final Message TEST_A = new MessageBuilder("sorted.a")
             .withDefault("Abc").build();
+
+    @Test
+    void collision(@TempDir File file) {
+        MessageTranslator global = TinyTranslations.globalTranslator(file);
+        MessageTranslator a = TinyTranslations.application("a");
+        MessageTranslator b = TinyTranslations.application("b");
+        MessageTranslator c = TinyTranslations.application("c");
+
+        a.messageBuilder("collidingname").withDefault("testa1").build();
+        a.messageBuilder("collidingname").withDefault("testa2").build();
+        Message test = c.messageBuilder("collidingname").withDefault("testc1").build();
+        b.messageBuilder("collidingname").withDefault("testb1").build();
+        c.messageBuilder("collidingname").withDefault("testc2").build();
+
+        assertRenderEquals(
+                text("testc2"),
+                test
+        );
+
+        a.close();
+        b.close();
+        c.close();
+    }
 
     @Test
     void newLine() {
@@ -185,7 +210,7 @@ class MessageTranslatorImplTest extends AbstractTest {
 
             @Override
             public Map<TranslationKey, StorageEntry> readMessages(Locale locale) {
-                return Map.of(TranslationKey.of(translator.getPath(), "a"),  new StorageEntry("a", "Worked!", null));
+                return Map.of(TranslationKey.of(translator.getPath(), "a"), new StorageEntry("a", "Worked!", null));
             }
 
             @Override
@@ -326,9 +351,9 @@ class MessageTranslatorImplTest extends AbstractTest {
     public void testListWithObjects() {
         Message msg = Message.message("list", "<list>{el}</list>");
         translator.addMessage(msg);
-        var r = TinyObjectResolver.builder(TestData.class)
+        var r = TinyObjectMapping.builder(TestData.class)
                 .with("xy", TestData::xy)
-                .withFallback(TestData::xy)
+                .withFallbackConversion(TestData::xy)
                 .build();
         translator.add(r);
 
@@ -342,6 +367,25 @@ class MessageTranslatorImplTest extends AbstractTest {
         );
 
         translator.remove(r);
+    }
+
+    record Dummy(String name) {}
+
+    @Test
+    public void testListWithMessages() {
+        Message format = translator.messageBuilder("format").withDefault("B{dummy.name}A").build();
+        translator.add(TinyObjectMapping.builder(Dummy.class)
+                .withFallbackConversion(dummy -> format.insertObject("dummy", dummy))
+                .with("name", Dummy::name).build());
+        Message msg = translator.messageBuilder("abc")
+                .withDefault("Header,<mylist:','>b::{el}::a</mylist>,Footer")
+                .build()
+                .insertList("mylist", List.of(new Dummy("x"), new Dummy("y"), new Dummy("z")));
+
+        assertRenderEquals(
+                Component.text("Header,b::BxA::a,b::ByA::a,b::BzA::a,Footer"),
+                msg
+        );
     }
 
 //    @Test
@@ -432,16 +476,16 @@ class MessageTranslatorImplTest extends AbstractTest {
 
     @Test
     public void testObject() {
-        translator.add(TinyObjectResolver.builder(Player.class)
+        translator.add(TinyObjectMapping.builder(Player.class)
                 .with("name", Player::name)
                 .with("location", Player::location)
-                .withFallback(player -> text(player.name))
+                .withFallbackConversion(player -> text(player.name))
                 .build());
-        translator.add(TinyObjectResolver.builder(Location.class)
+        translator.add(TinyObjectMapping.builder(Location.class)
                 .with("x", Location::x)
                 .with("y", Location::y)
                 .with("z", Location::z)
-                .withFallback(l -> text("<" + l.x + ";" + l.y + ";" + l.z + ">"))
+                .withFallbackConversion(l -> text("<" + l.x + ";" + l.y + ";" + l.z + ">"))
                 .build());
 
         Message msg = translator.messageBuilder("msg").withDefault("my test {player}").build();
@@ -449,12 +493,12 @@ class MessageTranslatorImplTest extends AbstractTest {
                 text("my test peter"),
                 msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
         );
-        msg = translator.messageBuilder("msg").withDefault("my test {player:name}").build();
+        msg = translator.messageBuilder("msg").withDefault("my test {player.name}").build();
         assertRenderEquals(
                 text("my test peter"),
                 msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
         );
-        msg = translator.messageBuilder("msg").withDefault("my test {player:location}").build();
+        msg = translator.messageBuilder("msg").withDefault("my test {player.location}").build();
         assertRenderEquals(
                 text("my test <1;2;3>"),
                 msg.insertObject("player", new Player("peter", new Location(1, 2, 3)))
@@ -463,9 +507,9 @@ class MessageTranslatorImplTest extends AbstractTest {
 
     @Test
     public void testAppResolvers() {
-        translator.add(TinyObjectResolver.builder(Description.class)
+        translator.add(TinyObjectMapping.builder(Description.class)
                 .with("name", Description::name)
-                .withFallback(d -> text(d.name))
+                .withFallbackConversion(d -> text(d.name))
                 .build());
         translator.insertObject("desc", new Description("tim"));
         Message a = translator.messageBuilder("a").withDefault("{desc:name}").build();
@@ -617,6 +661,49 @@ class MessageTranslatorImplTest extends AbstractTest {
                 text("[P1] text"),
                 msg
         );
+    }
+
+    @Test
+    void testInheritingTags(@TempDir File d) {
+        MessageTranslator server = TinyTranslations.globalTranslator(d);
+        MessageTranslator plugin = server.fork("myPlugin");
+
+        plugin.getStyleSet().put("footer", "{page}/{pages}");
+        Message msg = plugin.messageBuilder("a").withDefault("<footer/>").build();
+
+        Assertions.assertEquals(
+                Component.text("1/2"),
+                plugin.translate(msg.insertNumber("page", 1).insertNumber("pages", 2))
+        );
+
+        plugin.close();
+    }
+
+    @Test
+    void testListOfTranslatables(@TempDir File d) {
+        MessageTranslator server = TinyTranslations.globalTranslator(d);
+        MessageTranslator plugin = server.fork("myPlugin");
+
+        Message el = plugin.messageBuilder("b").withDefault("entry").build();
+        Message msg = plugin.messageBuilder("a")
+                .withDefault("""
+                        Header
+                        <mylist:'\n'>- {el}</mylist>
+                        Footer""")
+                .build();
+
+        assertRenderEquals(
+                Component.text("""
+                        Header
+                        - entry
+                        - entry
+                        - entry
+                        - entry
+                        Footer"""),
+                msg.insertList("mylist", List.of(el, el, el, el))
+        );
+
+        plugin.close();
     }
 
     @Test

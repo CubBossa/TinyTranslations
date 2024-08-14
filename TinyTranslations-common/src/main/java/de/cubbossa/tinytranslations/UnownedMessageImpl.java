@@ -1,6 +1,7 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.InsertedObject;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.key.KeyPattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -18,9 +19,6 @@ class UnownedMessageImpl implements UnownedMessage {
 
     private final String key;
     private MessageImpl ref;
-    private Collection<TempObjectTag> tempTags = new ArrayList<>();
-
-    record TempObjectTag(String key, Object obj, Collection<TinyObjectResolver> additionalResolvers) {}
 
     public UnownedMessageImpl(@KeyPattern String key) {
         this.key = key;
@@ -34,22 +32,12 @@ class UnownedMessageImpl implements UnownedMessage {
 
     @Override
     public Message owner(String namespace) {
-        Message m = new MessageImpl(TranslationKey.of(namespace, key), ref);
-        for (TempObjectTag tempTag : tempTags) {
-            m = m.insertObject(tempTag.key, tempTag.obj, tempTag.additionalResolvers);
-        }
-        return m;
+        return new MessageImpl(TranslationKey.of(namespace, key), ref);
     }
 
     @Override
     public Message owner(MessageTranslator translator) {
-        Message m = new MessageImpl(TranslationKey.of(translator.getPath(), key), ref);
-        for (TempObjectTag tempTag : tempTags) {
-            Collection<TinyObjectResolver> merged = new LinkedList<>(translator.getObjectResolversInScope());
-            merged.addAll(tempTag.additionalResolvers);
-            m = m.insertObject(tempTag.key, tempTag.obj, merged);
-        }
-        return m;
+        return new MessageImpl(TranslationKey.of(translator.getPath(), key), ref);
     }
 
     @Override
@@ -68,14 +56,19 @@ class UnownedMessageImpl implements UnownedMessage {
     }
 
     @Override
-    public <T> Message insertObject(@NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
-        tempTags.add(new TempObjectTag(key, obj, additionalResolvers));
-        return this;
+    public Map<String, InsertedObject> insertedObjects() {
+        return ref.insertedObjects();
     }
 
     @Override
-    public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return Collections.emptyList();
+    public <T> Message insertObject(@NotNull String key, T obj) {
+        return wrap(ref.insertObject(key, obj));
+    }
+
+    @Override
+    public <T> Message insertObject(@NotNull String key, T obj, Collection<TinyObjectMapping> additionalResolvers) {
+        ref.insertObject(key, obj, additionalResolvers);
+        return this;
     }
 
     @Override
@@ -229,7 +222,6 @@ class UnownedMessageImpl implements UnownedMessage {
 
     private Message wrap(MessageImpl ref) {
         var msg = new UnownedMessageImpl(key);
-        msg.tempTags = new LinkedList<>(tempTags);
         msg.ref = ref;
         return msg;
     }

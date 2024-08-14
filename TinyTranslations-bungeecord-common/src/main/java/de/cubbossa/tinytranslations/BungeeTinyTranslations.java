@@ -1,6 +1,6 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
@@ -138,30 +138,30 @@ public class BungeeTinyTranslations extends TinyTranslations {
     }
 
     private static void applyBungeeObjectResolvers(MessageTranslator tr) {
-        tr.add(TinyObjectResolver.builder(ProxiedPlayer.class)
+        tr.add(TinyObjectMapping.builder(ProxiedPlayer.class)
                 .with("uuid", ProxiedPlayer::getUniqueId)
                 .with("display_name", ProxiedPlayer::getDisplayName)
                 .with("name", ProxiedPlayer::getName)
                 .with("server", ProxiedPlayer::getServer)
                 .with("locale", ProxiedPlayer::getLocale)
-                .withFallback(p -> BungeeGlobalMessages.FORMAT_PLAYER.insertObject("player", p))
+                .withFallbackConversion(p -> BungeeGlobalMessages.FORMAT_PLAYER.insertObject("player", p))
                 .build());
-        tr.add(TinyObjectResolver.builder(Plugin.class)
-                .withFallback(Plugin::getDescription)
+        tr.add(TinyObjectMapping.builder(Plugin.class)
+                .withFallbackConversion(Plugin::getDescription)
                 .build());
-        tr.add(TinyObjectResolver.builder(PluginDescription.class)
+        tr.add(TinyObjectMapping.builder(PluginDescription.class)
                 .with("name", PluginDescription::getName)
                 .with("author", PluginDescription::getAuthor)
                 .with("authors", PluginDescription::getAuthor)
                 .with("version", PluginDescription::getVersion)
-                .withFallback(d -> Component.text(d.getName()))
+                .withFallbackConversion(d -> Component.text(d.getName()))
                 .build());
-        tr.add(TinyObjectResolver.builder(ProxyServer.class)
+        tr.add(TinyObjectMapping.builder(ProxyServer.class)
                 .with("name", ProxyServer::getName)
                 .with("online_count", ProxyServer::getOnlineCount)
                 .with("players", ProxyServer::getPlayers)
                 .with("plugins", s -> s.getPluginManager().getPlugins())
-                .withFallback(ProxyServer::getName)
+                .withFallbackConversion(ProxyServer::getName)
                 .build());
     }
 }

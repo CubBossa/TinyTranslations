@@ -16,6 +16,10 @@ public class NanoMessageCompilerTest {
                 new StringPair("<a :    b:c   ></a>", "<a:b:c></a>"),
                 new StringPair("{a ?b :c}", "<choice:'<a>':'b':'c'>"),
                 new StringPair("{ a ?  b :  c }", "<choice:'<a>':'b':'c'>"),
+                new StringPair("{ a.b.c:'#.#' }", "<object_notation:'a.b.c':'#.#'>"),
+                new StringPair("{ a.b.c ? '<a>' : b :  c }", "<choice:'<object_notation:'a.b.c'>':'<a>':'b':'c'>"),
+                new StringPair("{ a.b.c }", "<object_notation:'a.b.c'>"),
+//                new StringPair("<a.b.c>lol</a>", "<object_notation:'a.b.c':'#.#'>"),
         };
 
         NanoMessageCompiler compiler = new NanoMessageCompiler();

@@ -22,7 +22,7 @@ public class Messages {
         PLAYER_LIST = translator.messageBuilder("cmd.playerlist.list")
                 .withDefault("""
                         ---- Players Online: {count}<repeat:30>-</repeat>
-                        <players:'\n'><text_d>{index}.) </text_d><text>{player:name}</text></players>
+                        <players:'\n'><text_d>{index}.) </text_d><text>{el.name}</text></players>
                         ---- <click:run_command:"/players {prev_page}">{msg:symbols.arrow_left}</click> {page}/{pages} <click:run_command:"/players {next_page}">{msg:symbols.arrow_right}</click> <repeat:30></repeat>""")
                 .withPlaceholders(Formattable.LIST_PLACEHOLDERS)
                 .withPlaceholder("players", "list of online players", List.class)

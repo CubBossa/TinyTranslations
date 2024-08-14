@@ -3,12 +3,14 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.annotation.AppPathPattern;
 import de.cubbossa.tinytranslations.annotation.AppPattern;
 import de.cubbossa.tinytranslations.annotation.KeyPattern;
+import de.cubbossa.tinytranslations.nanomessage.tag.ObjectNotationTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.MessageTag;
 import de.cubbossa.tinytranslations.nanomessage.tag.StyleTag;
 import de.cubbossa.tinytranslations.storage.MessageStorage;
 import de.cubbossa.tinytranslations.storage.StorageEntry;
 import de.cubbossa.tinytranslations.storage.StyleStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.InsertedObject;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.key.Key;
@@ -17,17 +19,14 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.util.TriState;
-import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static de.cubbossa.tinytranslations.util.MessageUtil.getMessageTranslation;
 
@@ -45,7 +44,7 @@ class MessageTranslatorImpl implements MessageTranslator {
     private final StyleSet styleSet;
     @Getter
     private final Collection<TagResolver> resolvers = new LinkedList<>();
-    private final Collection<TinyObjectResolver> objectResolvers = new LinkedList<>();
+    private final Collection<TinyObjectMapping> objectResolvers = new LinkedList<>();
     @Getter
     @Setter
     private @Nullable MessageStorage messageStorage;
@@ -56,6 +55,8 @@ class MessageTranslatorImpl implements MessageTranslator {
     @Setter
     private boolean useClientLocale = true;
     private @NotNull Locale defaultLocale = Locale.ENGLISH;
+
+    private final Map<String, InsertedObject> insertedObjects = new HashMap<>();
 
     private Logger logger = Logger.getLogger("TinyTranslations");
 
@@ -109,6 +110,7 @@ class MessageTranslatorImpl implements MessageTranslator {
 
         MessageTranslator child = new MessageTranslatorImpl(this, name);
         children.put(name, child);
+        child.addAll(objectResolvers);
         return child;
     }
 
@@ -158,12 +160,25 @@ class MessageTranslatorImpl implements MessageTranslator {
             }
         }
         final Locale l = useClientLocale ? locale : defaultLocale;
-        TagResolver resolver = TagResolver.empty();
+        TagResolver resolver;
+
+        Map<String, InsertedObject> objectMap = new HashMap<>(insertedObjects);
         if (component instanceof Message formatted) {
             if (formatted instanceof UnownedMessage unowned) {
                 formatted = unowned.owner(this);
             }
-            resolver = TagResolver.resolver(formatted.getResolvers());
+            objectMap.putAll(formatted.insertedObjects());
+
+            resolver = TagResolver.builder()
+                    .resolvers(getResolvers())
+                    .resolvers(formatted.getResolvers())
+                    .resolver(ObjectNotationTag.resolver(objectMap, getTinyObjectResolvers()))
+                    .build();
+        } else {
+            resolver = TagResolver.builder()
+                    .resolvers(getResolvers())
+                    .resolver(ObjectNotationTag.resolver(insertedObjects, getTinyObjectResolvers()))
+                    .build();
         }
 
         // Translate given translation string with provided resolvers
@@ -173,15 +188,22 @@ class MessageTranslatorImpl implements MessageTranslator {
         if (translation == null) {
             return null;
         }
+
         // render all translated children again, because they again might be translatable
         if (!translation.children().isEmpty()) {
             translation = translation.children(translation.children().stream()
-                    .map(c -> c instanceof TranslatableComponent tr
-                            ? GlobalTranslator.renderer().render(tr instanceof UnownedMessage
-                            ? ((UnownedMessage) tr).owner(this)
-                            : tr, l)
-                            : c)
-                    .filter(Objects::nonNull)
+                    .map(c -> {
+                        if (c instanceof Message m) {
+                            m.insertedObjects().putAll(objectMap);
+                            return m.formatted(resolver);
+                        }
+                        return c;
+                    })
+                    .map(c -> GlobalTranslator.renderer().render(
+                                c instanceof UnownedMessage
+                                    ? ((UnownedMessage) c).owner(this)
+                                    : c
+                            , l))
                     .toList());
         }
         // add all remaining children on the actual message component
@@ -231,7 +253,8 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public @NotNull TriState hasAnyTranslations() {
-        return TriState.byBoolean(!messageSet.isEmpty());
+        // anonymous messages always match, therefore always true
+        return TriState.TRUE;
     }
 
     @Override
@@ -307,9 +330,6 @@ class MessageTranslatorImpl implements MessageTranslator {
     public void addMessage(@NotNull Message message) {
         if (message instanceof UnownedMessage unowned) {
             message = unowned.owner(this);
-            if (message instanceof MessageImpl impl) {
-                impl.setObjectResolverSupplier(this::getTinyObjectResolvers);
-            }
             messageSet.put(message.getKey(), message);
         } else {
             throw new IllegalArgumentException("The provided message already belongs to a translator. Messages can only belong to one translator.");
@@ -334,8 +354,8 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public Collection<TinyObjectResolver> getTinyObjectResolvers() {
-        Collection<TinyObjectResolver> result = new LinkedList<>(objectResolvers);
+    public Collection<TinyObjectMapping> getTinyObjectResolvers() {
+        Collection<TinyObjectMapping> result = new LinkedList<>(objectResolvers);
         if (parent != null) {
             result.addAll(parent.getTinyObjectResolvers());
         }
@@ -343,17 +363,17 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public void addAll(Iterable<TinyObjectResolver> resolvers) {
+    public void addAll(Iterable<TinyObjectMapping> resolvers) {
         resolvers.forEach(objectResolvers::add);
     }
 
     @Override
-    public void add(TinyObjectResolver resolver) {
+    public void add(TinyObjectMapping resolver) {
         objectResolvers.add(resolver);
     }
 
     @Override
-    public void remove(TinyObjectResolver resolver) {
+    public void remove(TinyObjectMapping resolver) {
         objectResolvers.remove(resolver);
     }
 
@@ -440,30 +460,30 @@ class MessageTranslatorImpl implements MessageTranslator {
 
     @Override
     public void saveMessagesAndBackupExistingValues(Collection<Message> messages, Locale locale) {
-      if (messageStorage == null) {
-        return;
-      }
-      Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
-      List<Message> list = new ArrayList<>();
-      for (Message message : messages) {
-          Message stored = getMessage(message.getKey());
-          if (stored == null) {
-              continue;
-          }
-          String oldVal = loadedValues.get(message.getKey()).value();
-          String newVal = message.dictionary().get(locale);
-          if (!Objects.equals(newVal, oldVal)) {
-              String comment = "Backed up value: '" + oldVal + "'";
-              if (stored.comment() == null || stored.comment().isEmpty()) {
-                  stored = stored.comment(comment);
-              } else {
-                  stored = stored.comment(stored.comment() + "\n" + comment);
-              }
-              list.add(stored);
-          }
-      }
-      messageStorage.overwriteMessages(list, locale);
-      loadLocales();
+        if (messageStorage == null) {
+            return;
+        }
+        Map<TranslationKey, StorageEntry> loadedValues = messageStorage.readMessages(locale);
+        List<Message> list = new ArrayList<>();
+        for (Message message : messages) {
+            Message stored = getMessage(message.getKey());
+            if (stored == null) {
+                continue;
+            }
+            String oldVal = loadedValues.get(message.getKey()).value();
+            String newVal = message.dictionary().get(locale);
+            if (!Objects.equals(newVal, oldVal)) {
+                String comment = "Backed up value: '" + oldVal + "'";
+                if (stored.comment() == null || stored.comment().isEmpty()) {
+                    stored = stored.comment(comment);
+                } else {
+                    stored = stored.comment(stored.comment() + "\n" + comment);
+                }
+                list.add(stored);
+            }
+        }
+        messageStorage.overwriteMessages(list, locale);
+        loadLocales();
     }
 
     @Override
@@ -497,13 +517,14 @@ class MessageTranslatorImpl implements MessageTranslator {
     }
 
     @Override
-    public <T> MessageTranslator insertObject(@NotNull String key, T obj) {
-        return MessageTranslator.super.insertObject(key, obj);
+    public Map<String, InsertedObject> insertedObjects() {
+        return insertedObjects;
     }
 
     @Override
-    public Collection<TinyObjectResolver> getObjectResolversInScope() {
-        return getTinyObjectResolvers();
+    public <T> MessageTranslator insertObject(@NotNull String key, T obj, Collection<TinyObjectMapping> resolvers) {
+        insertedObjects.put(key, new InsertedObject(key, obj, resolvers));
+        return this;
     }
 
     @Override

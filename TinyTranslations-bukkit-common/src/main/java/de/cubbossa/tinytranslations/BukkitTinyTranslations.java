@@ -1,7 +1,6 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectTagResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -150,12 +149,12 @@ public final class BukkitTinyTranslations extends TinyTranslations {
     }
 
     private static void applyBukkitObjectResolvers(MessageTranslator tr) {
-        tr.add(TinyObjectResolver.builder(NamespacedKey.class)
+        tr.add(TinyObjectMapping.builder(NamespacedKey.class)
                 .with("namespace", NamespacedKey::getNamespace)
                 .with("key", NamespacedKey::getKey)
-                .withFallback(k -> Component.text(k.toString()))
+                .withFallbackConversion(k -> Component.text(k.toString()))
                 .build());
-        tr.add(TinyObjectResolver.builder(PluginDescriptionFile.class)
+        tr.add(TinyObjectMapping.builder(PluginDescriptionFile.class)
                 .with("name", PluginDescriptionFile::getName)
                 .with("fullName", PluginDescriptionFile::getFullName)
                 .with("authors", d -> String.join(", ", d.getAuthors()))
@@ -163,65 +162,65 @@ public final class BukkitTinyTranslations extends TinyTranslations {
                 .with("api-version", PluginDescriptionFile::getAPIVersion)
                 .with("website", PluginDescriptionFile::getWebsite)
                 .with("contributors", PluginDescriptionFile::getContributors)
-                .withFallback(d -> Component.text(d.getName()))
+                .withFallbackConversion(d -> Component.text(d.getName()))
                 .build());
-        tr.add(TinyObjectResolver.builder(Player.class)
+        tr.add(TinyObjectMapping.builder(Player.class)
                 .with("name", Player::getName)
                 .with("uuid", Entity::getUniqueId)
                 .with("type", Entity::getType)
                 .with("display", Player::getDisplayName)
                 .with("location", Player::getLocation)
-                .withFallback(p -> BukkitGlobalMessages.FORMAT_PLAYER.insertObject("player", p))
+                .withFallbackConversion(p -> BukkitGlobalMessages.FORMAT_PLAYER.insertObject("player", p))
                 .build());
-        tr.add(TinyObjectResolver.builder(Entity.class)
+        tr.add(TinyObjectMapping.builder(Entity.class)
                 .with("name", Entity::getName)
                 .with("uuid", Entity::getUniqueId)
                 .with("type", Entity::getType)
                 .with("location", Entity::getLocation)
-                .withFallback(p -> BukkitGlobalMessages.FORMAT_ENTITY.insertObject("entity", p))
+                .withFallbackConversion(p -> BukkitGlobalMessages.FORMAT_ENTITY.insertObject("entity", p))
                 .build());
-        tr.add(TinyObjectResolver.builder(World.class)
+        tr.add(TinyObjectMapping.builder(World.class)
                 .with("name", WorldInfo::getName)
                 .with("uuid", WorldInfo::getUID)
-                .withFallback(w -> BukkitGlobalMessages.FORMAT_WORLD.insertObject("world", w))
+                .withFallbackConversion(w -> BukkitGlobalMessages.FORMAT_WORLD.insertObject("world", w))
                 .build());
-        tr.add(TinyObjectResolver.builder(Block.class)
+        tr.add(TinyObjectMapping.builder(Block.class)
                 .with("type", Block::getType)
                 .with("x", Block::getX)
                 .with("y", Block::getY)
                 .with("z", Block::getZ)
                 .with("world", Block::getWorld)
                 .with("biome", Block::getBiome)
-                .withFallback(b -> BukkitGlobalMessages.FORMAT_BLOCK.insertObject("block", b))
+                .withFallbackConversion(b -> BukkitGlobalMessages.FORMAT_BLOCK.insertObject("block", b))
                 .build());
-        tr.add(TinyObjectResolver.builder(Location.class)
+        tr.add(TinyObjectMapping.builder(Location.class)
                 .with("x", Location::getX)
                 .with("y", Location::getY)
                 .with("z", Location::getZ)
                 .with("yaw", Location::getZ)
                 .with("pitch", Location::getZ)
                 .with("world", Location::getWorld)
-                .withFallback(l -> BukkitGlobalMessages.FORMAT_LOCATION.insertObject("loc", l))
+                .withFallbackConversion(l -> BukkitGlobalMessages.FORMAT_LOCATION.insertObject("loc", l))
                 .build());
-        tr.add(TinyObjectResolver.builder(Vector.class)
+        tr.add(TinyObjectMapping.builder(Vector.class)
                 .with("x", Vector::getX)
                 .with("y", Vector::getY)
                 .with("z", Vector::getZ)
-                .withFallback(v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v))
+                .withFallbackConversion(v -> BukkitGlobalMessages.FORMAT_VECTOR.insertObject("vector", v))
                 .build());
-        tr.add(TinyObjectResolver.builder(ItemStack.class)
+        tr.add(TinyObjectMapping.builder(ItemStack.class)
                 .with("type", ItemStack::getType)
                 .with("amount", ItemStack::getAmount)
                 .with("name", i -> i.hasItemMeta() ? i.getItemMeta().getDisplayName() : i.getType())
                 .with("lore", i -> i.hasItemMeta() ? i.getItemMeta().getLore() : Collections.emptyList())
-                .withFallback(i -> BukkitGlobalMessages.FORMAT_ITEM.insertObject("item", i))
+                .withFallbackConversion(i -> BukkitGlobalMessages.FORMAT_ITEM.insertObject("item", i))
                 .build());
 
-        tr.add(TinyObjectResolver.builder(PotionEffectType.class).withFallback(p -> Component.translatable("effect.minecraft." + p.getKey().getKey())).build());
-        tr.add(TinyObjectResolver.builder(ChatColor.class).withFallback(c -> Component.translatable("color.minecraft." + c.toString())).build());
-        tr.add(TinyObjectResolver.builder(Enchantment.class).withFallback(e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey())).build());
-        tr.add(TinyObjectResolver.builder(Material.class).withFallback(m -> Component.translatable((m.isBlock() ? "block" : "item") + ".minecraft." + m.name().toLowerCase())).build());
-        tr.add(TinyObjectResolver.builder(EntityType.class).withFallback(t -> Component.translatable(t.getTranslationKey())).build());
-        tr.add(TinyObjectResolver.builder(Biome.class).withFallback(b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey())).build());
+        tr.add(TinyObjectMapping.builder(PotionEffectType.class).withFallbackConversion(p -> Component.translatable("effect.minecraft." + p.getKey().getKey())).build());
+        tr.add(TinyObjectMapping.builder(ChatColor.class).withFallbackConversion(c -> Component.translatable("color.minecraft." + c.toString())).build());
+        tr.add(TinyObjectMapping.builder(Enchantment.class).withFallbackConversion(e -> Component.translatable("enchantment.minecraft." + e.getKey().getKey())).build());
+        tr.add(TinyObjectMapping.builder(Material.class).withFallbackConversion(m -> Component.translatable((m.isBlock() ? "block" : "item") + ".minecraft." + m.name().toLowerCase())).build());
+        tr.add(TinyObjectMapping.builder(EntityType.class).withFallbackConversion(t -> Component.translatable(t.getTranslationKey())).build());
+        tr.add(TinyObjectMapping.builder(Biome.class).withFallbackConversion(b -> Component.translatable("biome." + b.getKey().getNamespace() + "." + b.getKey().getKey())).build());
     }
 }

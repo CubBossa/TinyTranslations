@@ -3,8 +3,9 @@ package de.cubbossa.tinytranslations;
 import de.cubbossa.tinytranslations.nanomessage.NanoMessage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesMessageStorage;
 import de.cubbossa.tinytranslations.storage.properties.PropertiesStyleStorage;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Formatter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,12 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class TinyTranslations {
 
@@ -63,6 +64,7 @@ public class TinyTranslations {
 
     /**
      * Creates the lang directory
+     *
      * @param root The root directory, in terms of plugins the /plugin/ directory.
      * @return The global MessageTranslator instance.
      */
@@ -109,6 +111,8 @@ public class TinyTranslations {
 
         global.loadStyles();
         global.loadLocales();
+
+        applyDefaultObjectResolvers(global);
 
         return global;
     }
@@ -180,17 +184,17 @@ public class TinyTranslations {
     }
 
     private static void applyDefaultObjectResolvers(MessageTranslator translator) {
-        translator.add(TinyObjectResolver.builder(List.class).withFallback(list -> Component.text(
-                (String) list.stream().map(Object::toString).collect(Collectors.joining(", "))
-        )).build());
-        translator.add(TinyObjectResolver.builder(Integer.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Short.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Double.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Float.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Long.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Boolean.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(char.class).withFallback(Component::text).build());
-        translator.add(TinyObjectResolver.builder(Locale.class).withFallback(l -> Component.text(l.toLanguageTag())).build());
+        translator.add(TinyObjectMapping.alwaysConvert(String.class, Component::text));
+        translator.add(TinyObjectMapping.builder(Number.class).withFallbackResolver((value, context, argumentQueue) -> {
+            return Formatter.number("avoid_name_collisions", value).resolve("avoid_name_collisions", argumentQueue, context);
+        }).build());
 
+        translator.add(TinyObjectMapping.builder(Boolean.class).withFallbackConversion(Component::text).build());
+        translator.add(TinyObjectMapping.builder(char.class).withFallbackConversion(Component::text).build());
+        translator.add(TinyObjectMapping.builder(Locale.class).withFallbackConversion(l -> Component.text(l.toLanguageTag())).build());
+
+        translator.add(TinyObjectMapping.alwaysConvert(Supplier.class, Supplier::get));
+        translator.add(TinyObjectMapping.alwaysConvert(CompletableFuture.class, CompletableFuture::join));
+        translator.add(TinyObjectMapping.alwaysConvert(Optional.class, o -> o.orElse(null)));
     }
 }

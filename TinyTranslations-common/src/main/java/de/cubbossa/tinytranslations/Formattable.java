@@ -1,7 +1,7 @@
 package de.cubbossa.tinytranslations;
 
-import de.cubbossa.tinytranslations.nanomessage.tag.ObjectTag;
-import de.cubbossa.tinytranslations.tinyobject.TinyObjectResolver;
+import de.cubbossa.tinytranslations.tinyobject.InsertedObject;
+import de.cubbossa.tinytranslations.tinyobject.TinyObjectMapping;
 import de.cubbossa.tinytranslations.util.ListSection;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -197,14 +197,16 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
         return formatted(TagResolver.resolver(key, tag));
     }
 
+    Map<String, InsertedObject> insertedObjects();
+
     /**
      * Inserts any object as {@link TagResolver}.
      * Generally, objects will be inserted via their according methods if present (insertNumber, ...)
      * or as <pre>Component.text(object.toString())</pre>
      * <br><br>
      * To define a specific way for turning objects into components, you want to use
-     * {@link TinyObjectResolver}.<br>
-     * In the general TinyTranslations translation process, a series of default {@link TinyObjectResolver}s
+     * {@link TinyObjectMapping}.<br>
+     * In the general TinyTranslations translation process, a series of default {@link TinyObjectMapping}s
      * is being applied. Objects contained in {@link Collection}s are rendered via {@link #insertObject(String, Object)} again.
      * <br><br>
      *
@@ -223,28 +225,18 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * or as <pre>Component.text(object.toString())</pre>
      * <br><br>
      * To define a specific way for turning objects into components, you want to use
-     * {@link TinyObjectResolver}.<br>
-     * In the general TinyTranslations translation process, a series of default {@link TinyObjectResolver}s
+     * {@link TinyObjectMapping}.<br>
+     * In the general TinyTranslations translation process, a series of default {@link TinyObjectMapping}s
      * is being applied. Objects contained in {@link Collection}s are rendered via {@link #insertObject(String, Object)} again.
      * <br><br>
      *
      * @param key                 The tag key
      * @param obj                 Any object to insert
-     * @param additionalResolvers a collection of additional {@link TinyObjectResolver} to apply in the parsing process.
+     * @param additionalResolvers a collection of additional {@link TinyObjectMapping} to apply in the parsing process.
      * @param <T>                 The object type
      * @return this object or a new object if the implementation is pure
      */
-    default <T> ReturnT insertObject(final @NotNull String key, T obj, Collection<TinyObjectResolver> additionalResolvers) {
-        Collection<TinyObjectResolver> r = new LinkedList<>(additionalResolvers);
-        r.addAll(getObjectResolversInScope());
-        return formatted(ObjectTag.resolver(key, obj, r));
-    }
-
-    /**
-     * @return All {@link TinyObjectResolver}s of the current context. If this interface is being implemented by a {@link MessageTranslator},
-     * this might be all resolvers of this translator instance and its ancestors.
-     */
-    Collection<TinyObjectResolver> getObjectResolversInScope();
+    <T> ReturnT insertObject(final @NotNull String key, T obj, Collection<TinyObjectMapping> additionalResolvers);
 
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "5.0")
@@ -258,14 +250,14 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
      * within slot.
      * <br><br>
-     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * Objects contained in the collection are resolved via {@link TinyObjectMapping}s,
      * see {@link #insertObject(String, Object)}
      * <br><br>
      * Example:
      * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
      * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
      * Will render all players in new lines with a "- " prefix.
-     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectMapping}
      * for the org.bukkit.Player class.
      *
      * @param key      The tag key for the list
@@ -307,14 +299,14 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
      * within slot.
      * <br><br>
-     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * Objects contained in the collection are resolved via {@link TinyObjectMapping}s,
      * see {@link #insertObject(String, Object)}
      * <br><br>
      * Example:
      * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
      * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
      * Will render all players in new lines with a "- " prefix.
-     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectMapping}
      * for the org.bukkit.Player class.
      *
      * @param key      The tag key for the list
@@ -333,14 +325,14 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
      * within slot.
      * <br><br>
-     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * Objects contained in the collection are resolved via {@link TinyObjectMapping}s,
      * see {@link #insertObject(String, Object)}
      * <br><br>
      * Example:
      * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
      * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
      * Will render all players in new lines with a "- " prefix.
-     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectMapping}
      * for the org.bukkit.Player class.
      *
      * @param key      The tag key for the list
@@ -351,7 +343,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * @param <E>      The generic type of the elements
      * @return this object or a new object if the implementation is pure
      */
-    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section, Collection<TagResolver> tagResolvers, Collection<TinyObjectResolver> objectResolvers) {
+    default <E> ReturnT insertList(final @NotNull String key, Collection<E> elements, ListSection section, Collection<TagResolver> tagResolvers, Collection<TinyObjectMapping> objectResolvers) {
         return formatted(
                 Formatter.choice("has-pages", section.getMaxPages(elements.size())),
                 Formatter.number("page", section.getPage() + 1),
@@ -381,8 +373,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> Message.contextual(format.get())
-                                            .insertObject("element", e, objectResolvers)
-                                            .insertObject("el", e, objectResolvers)
+                                            .insertObject("element", e)
+                                            .insertObject("el", e)
                                             .insertNumber("index", index.incrementAndGet())
                                             .formatted(tagResolvers.toArray(TagResolver[]::new))
                                     )
@@ -427,14 +419,14 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
      * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
      * within slot.
      * <br><br>
-     * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+     * Objects contained in the collection are resolved via {@link TinyObjectMapping}s,
      * see {@link #insertObject(String, Object)}
      * <br><br>
      * Example:
      * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
      * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
      * Will render all players in new lines with a "- " prefix.
-     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+     * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectMapping}
      * for the org.bukkit.Player class.
      *
      * @param key             The tag key for the list
@@ -454,14 +446,14 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
          * The tag slot represents the way of how each element should be rendered, while &#60el> represents the object
          * within slot.
          * <br><br>
-         * Objects contained in the collection are resolved via {@link TinyObjectResolver}s,
+         * Objects contained in the collection are resolved via {@link TinyObjectMapping}s,
          * see {@link #insertObject(String, Object)}
          * <br><br>
          * Example:
          * <pre>Java: insertList("online", Bukkit.getOnlinePlayers())</pre>
          * <pre>NanoMessage: &#online>\n- &#60el>&#60/online></pre>
          * Will render all players in new lines with a "- " prefix.
-         * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectResolver}
+         * Players will be rendered with their display names, since {@link TinyTranslations} registers a {@link TinyObjectMapping}
          * for the org.bukkit.Player class.
          *
          * @param key             The tag key for the list
@@ -472,7 +464,7 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
          * @param objectResolvers All object resolvers to include in the resolving process of object tags.
          * @return this object or a new object if the implementation is pure
          */
-    default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section, Collection<TinyObjectResolver> objectResolvers, Collection<TagResolver> tagResolvers) {
+    default <E> ReturnT insertList(final @NotNull String key, Function<ListSection, Collection<E>> elementSupplier, ListSection section, Collection<TinyObjectMapping> objectResolvers, Collection<TagResolver> tagResolvers) {
         return formatted(
                 Formatter.number("page", section.getPage() + 1),
                 Formatter.number("next-page", section.getPage() + 2),
@@ -500,8 +492,8 @@ public interface Formattable<ReturnT extends Formattable<ReturnT>> {
                             if (depth != 0) return Component.empty();
                             return Component.join(JoinConfiguration.separator(separatorParsed), sublist.stream()
                                     .map(e -> Message.contextual(format.get())
-                                            .insertObject("element", e, objectResolvers)
-                                            .insertObject("el", e, objectResolvers)
+                                            .insertObject("element", e)
+                                            .insertObject("el", e)
                                             .insertNumber("index", startIndex.incrementAndGet())
                                             .formatted(tagResolvers.toArray(TagResolver[]::new))
                                     )
